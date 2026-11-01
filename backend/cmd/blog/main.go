@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/mbougarne/modawana/backend/internal/auth"
@@ -19,11 +20,28 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/config"
 	"github.com/mbougarne/modawana/backend/internal/content"
 	"github.com/mbougarne/modawana/backend/internal/db"
+	"github.com/mbougarne/modawana/backend/internal/extension"
 	httpserver "github.com/mbougarne/modawana/backend/internal/http"
 	"github.com/mbougarne/modawana/backend/internal/media"
 	"github.com/mbougarne/modawana/backend/internal/siteconfig"
 	"github.com/mbougarne/modawana/backend/internal/storage"
 )
+
+// maintenanceJobs registers the hourly cleanup batch, formerly an ad-hoc
+// goroutine, as the first built-in job on the extension host.
+type maintenanceJobs struct {
+	db    *sql.DB
+	files *storage.Store
+}
+
+func (*maintenanceJobs) Slug() string { return "maintenance" }
+
+func (m *maintenanceJobs) Register(r *extension.Registrar) error {
+	return r.Job(extension.Job{Name: "cleanup", Every: time.Hour, Timeout: 10 * time.Minute, Run: func(ctx context.Context) error {
+		_, err := operations.Cleanup(ctx, m.db, m.files)
+		return err
+	}})
+}
 
 func main() { os.Exit(run()) }
 func run() int {
@@ -144,25 +162,17 @@ func run() int {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	identities := learning.NewIdentity(database, cfg.LearningIdleDays, cfg.LearningMaxIdentities)
-	go func() {
-		ticker := time.NewTicker(time.Hour)
-		defer ticker.Stop()
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case <-ticker.C:
-				if _, e := operations.Cleanup(ctx, database, files); e != nil {
-					logger.Error("maintenance batch failed")
-				}
-			}
-		}
-	}()
-	domain := &httpserver.Domain{Learning: identities, SiteConfig: settings, Content: contents, Auth: authentication, Media: media.New(database, files, policy)}
+	host := extension.NewHost(logger)
+	if err = host.Install(&maintenanceJobs{db: database, files: files}); err != nil {
+		logger.Error("maintenance job registration failed", "reason", err.Error())
+		return 1
+	}
+	go host.RunJobs(ctx)
+	domain := &httpserver.Domain{Learning: identities, SiteConfig: settings, Content: contents, Auth: authentication, Media: media.New(database, files, policy), Extensions: host}
 	if cfg.Environment == "production" && len(cfg.TrustedProxies) == 0 {
 		logger.Warn("no trusted proxies configured; reverse-proxy deployments must set BLOG_TRUSTED_PROXIES to observed proxy peers for per-client throttling")
 	}
-	handler := httpserver.New(httpserver.Options{Maintenance: func() bool { return operations.Maintenance(cfg.DataRoot) }, SiteConfig: settings, Config: cfg, Assets: assets, Logger: logger, Ready: database.PingContext, Auth: authentication, Domain: domain})
+	handler := httpserver.New(httpserver.Options{Maintenance: func() bool { return operations.Maintenance(cfg.DataRoot) }, SiteConfig: settings, Config: cfg, Assets: assets, Logger: logger, Extensions: host, Ready: database.PingContext, Auth: authentication, Domain: domain})
 	srv := &http.Server{Addr: cfg.ListenAddr, Handler: handler, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 30 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16 << 10, ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelError)}
 	done := make(chan error, 1)
 	go func() { done <- srv.ListenAndServe() }()

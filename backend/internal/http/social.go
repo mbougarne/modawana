@@ -2,6 +2,8 @@ package httpserver
 
 import (
 	"bytes"
+	"context"
+	"encoding/json"
 	"image"
 	"image/color"
 	"image/draw"
@@ -9,8 +11,10 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/mbougarne/modawana/backend/internal/content"
+	"github.com/mbougarne/modawana/backend/internal/extension"
 	"github.com/mbougarne/modawana/backend/internal/siteconfig"
 	imagedraw "golang.org/x/image/draw"
 	"golang.org/x/image/font"
@@ -18,48 +22,162 @@ import (
 	"golang.org/x/image/math/fixed"
 )
 
+// Hook results may carry attacker-shaped text once plugins exist; bound every
+// emitted field beyond the host's own configuration limits.
+const socialTextLimit = 300
+const socialImageLimit = 2048
+const socialDimensionLimit = 16384
+
 type socialMetadata struct {
 	Image, Alt, Type, SiteName string
 	Width, Height              int
 }
 
-// Use only published public configuration and an already authorized public media
-// manifest. A learner's unlocked lesson must never advertise its gated cover.
-func socialFor(page content.PageRoute, settings siteconfig.Public, origin, title string) socialMetadata {
-	out := socialMetadata{Image: origin + "/social-card.png", Alt: title, Type: "website", Width: 1200, Height: 630}
-	out.SiteName = settings.Effective["name"].Text
-	if out.SiteName == "" {
-		out.SiteName = settings.Site.Wordmark
+// socialCards is the built-in extension that keeps today's social-card
+// selection behind the content.rendered_meta hook.
+type socialCards struct{}
+
+func (socialCards) Slug() string { return "social-cards" }
+
+func (socialCards) Register(r *extension.Registrar) error {
+	return r.Hook(extension.HookRenderedMeta, 1, renderedMetaHook)
+}
+
+func renderedMetaHook(ctx context.Context, hook string, payload []byte) ([]byte, error) {
+	var in extension.RenderedMetaPayload
+	if err := json.Unmarshal(payload, &in); err != nil {
+		return nil, err
 	}
-	if page.Content != nil && page.Kind != "lesson" && !page.Content.Locked {
+	return json.Marshal(selectRenderedMeta(in))
+}
+
+// Use only published public configuration and an already authorized public
+// media manifest. A learner's unlocked lesson must never advertise its gated cover.
+func selectRenderedMeta(in extension.RenderedMetaPayload) extension.RenderedMetaResult {
+	out := extension.RenderedMetaResult{Image: in.Origin + "/social-card.png", Alt: in.Title, Type: "website", SiteName: in.Site.Name, Width: 1200, Height: 630}
+	if out.SiteName == "" {
+		out.SiteName = in.Site.Wordmark
+	}
+	if in.Content != nil && in.Kind != "lesson" && !in.Content.Locked {
 		out.Type = "article"
-		for _, m := range page.Content.Media {
-			if m.ID == page.Content.CoverID && m.Kind == "image" && (m.MIME == "image/jpeg" || m.MIME == "image/png" || m.MIME == "image/webp") {
-				out.Image = origin + "/media/" + m.ID
+		for _, m := range in.Content.Media {
+			if m.ID == in.Content.CoverID && m.Kind == "image" && (m.MIME == "image/jpeg" || m.MIME == "image/png" || m.MIME == "image/webp") {
+				out.Image = in.Origin + "/media/" + m.ID
 				out.Width, out.Height = m.Width, m.Height
 				return out
 			}
 		}
 	}
 	id := ""
-	if settings.Profile.BannerEnabled && settings.Profile.BannerID != "" {
-		id = settings.Profile.BannerID
-		out.Alt = settings.Effective["banner_alt"].Text
-	} else if settings.Profile.PortraitID != "" {
-		id = settings.Profile.PortraitID
-		out.Alt = settings.Effective["portrait_alt"].Text
-	} else if settings.Site.LogoMode == "image" {
-		id = settings.Site.LogoID
+	if in.Site.BannerEnabled && in.Site.BannerID != "" {
+		id = in.Site.BannerID
+		out.Alt = in.Site.BannerAlt
+	} else if in.Site.PortraitID != "" {
+		id = in.Site.PortraitID
+		out.Alt = in.Site.PortraitAlt
+	} else if in.Site.LogoMode == "image" {
+		id = in.Site.LogoID
 		out.Alt = out.SiteName
 	}
 	if id != "" {
-		out.Image = origin + "/media/" + id
+		out.Image = in.Origin + "/media/" + id
 		out.Width, out.Height = 0, 0
 	}
 	if out.Alt == "" {
-		out.Alt = title
+		out.Alt = in.Title
 	}
 	return out
+}
+
+// renderedMetaPayload bounds what hooks may see: the media manifest of a
+// lesson or locked page never enters the payload, so no handler can leak a
+// gated cover whatever it returns.
+func renderedMetaPayload(page content.PageRoute, settings siteconfig.Public, origin, title string) extension.RenderedMetaPayload {
+	payload := extension.RenderedMetaPayload{Origin: origin, Title: title, Kind: page.Kind, Site: extension.RenderedMetaSite{
+		Name:          settings.Effective["name"].Text,
+		Wordmark:      settings.Site.Wordmark,
+		BannerEnabled: settings.Profile.BannerEnabled,
+		BannerID:      settings.Profile.BannerID,
+		BannerAlt:     settings.Effective["banner_alt"].Text,
+		PortraitID:    settings.Profile.PortraitID,
+		PortraitAlt:   settings.Effective["portrait_alt"].Text,
+		LogoMode:      settings.Site.LogoMode,
+		LogoID:        settings.Site.LogoID,
+	}}
+	if page.Content != nil {
+		routed := &extension.RenderedMetaContent{Locked: page.Content.Locked}
+		if page.Kind != "lesson" && !page.Content.Locked {
+			routed.CoverID = page.Content.CoverID
+			for _, m := range page.Content.Media {
+				routed.Media = append(routed.Media, extension.RenderedMetaMedia{ID: m.ID, Kind: m.Kind, MIME: m.MIME, Width: m.Width, Height: m.Height})
+			}
+		}
+		payload.Content = routed
+	}
+	return payload
+}
+
+// socialFor is the built-in selection the content.rendered_meta hook serves,
+// kept directly callable so tests pin the exact selection behavior.
+func socialFor(page content.PageRoute, settings siteconfig.Public, origin, title string) socialMetadata {
+	out := selectRenderedMeta(renderedMetaPayload(page, settings, origin, title))
+	return socialMetadata{Image: out.Image, Alt: out.Alt, Type: out.Type, SiteName: out.SiteName, Width: out.Width, Height: out.Height}
+}
+
+// renderedMeta dispatches content.rendered_meta and keeps final say over the
+// emitted metadata: every result is bounded, sanitized, and restricted to
+// same-origin images, and a failing hook falls back to the default card.
+func (s *Server) renderedMeta(ctx context.Context, page content.PageRoute, settings siteconfig.Public, origin, title string) socialMetadata {
+	fallback := socialMetadata{Image: origin + "/social-card.png", Alt: title, Type: "website", SiteName: settings.Effective["name"].Text, Width: 1200, Height: 630}
+	if fallback.SiteName == "" {
+		fallback.SiteName = settings.Site.Wordmark
+	}
+	payload, err := json.Marshal(renderedMetaPayload(page, settings, origin, title))
+	if err != nil {
+		return fallback
+	}
+	out := fallback
+	for _, raw := range s.extensions().DispatchHook(ctx, extension.HookRenderedMeta, payload) {
+		var result extension.RenderedMetaResult
+		if json.Unmarshal(raw, &result) == nil {
+			out = sanitizeRenderedMeta(result, origin, fallback)
+		}
+	}
+	return out
+}
+
+func sanitizeRenderedMeta(in extension.RenderedMetaResult, origin string, fallback socialMetadata) socialMetadata {
+	out := fallback
+	if in.Type == "article" {
+		out.Type = "article"
+	}
+	if name := boundedSocialText(in.SiteName); name != "" {
+		out.SiteName = name
+	}
+	if alt := boundedSocialText(in.Alt); alt != "" {
+		out.Alt = alt
+	}
+	if in.Image == origin+"/social-card.png" {
+		out.Image, out.Width, out.Height = in.Image, 1200, 630
+	} else if strings.HasPrefix(in.Image, origin+"/media/") && len(in.Image) <= socialImageLimit && !strings.ContainsAny(in.Image, " \r\n\t\"'<>\\") {
+		out.Image, out.Width, out.Height = in.Image, 0, 0
+		if in.Width > 0 && in.Width <= socialDimensionLimit && in.Height > 0 && in.Height <= socialDimensionLimit {
+			out.Width, out.Height = in.Width, in.Height
+		}
+	}
+	return out
+}
+
+func boundedSocialText(s string) string {
+	if len(s) > socialTextLimit {
+		return ""
+	}
+	for _, r := range s {
+		if r < 0x20 || r == 0x7f {
+			return ""
+		}
+	}
+	return s
 }
 
 // The fallback contains only the configured public hostname, never request Host,

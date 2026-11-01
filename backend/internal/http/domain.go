@@ -8,12 +8,14 @@ import (
 	"mime"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/mbougarne/modawana/backend/internal/access"
 	"github.com/mbougarne/modawana/backend/internal/auth"
 	"github.com/mbougarne/modawana/backend/internal/content"
 	"github.com/mbougarne/modawana/backend/internal/db"
+	"github.com/mbougarne/modawana/backend/internal/extension"
 	"github.com/mbougarne/modawana/backend/internal/media"
 	"github.com/mbougarne/modawana/backend/internal/siteconfig"
 )
@@ -26,6 +28,23 @@ type Domain struct {
 	Content    *content.Service
 	Auth       *auth.Service
 	Media      *media.Service
+	Extensions *extension.Host
+
+	builtinOnce sync.Once
+}
+
+// extensions installs the built-in publisher MCP tools exactly once on the
+// shared host, or on a private one when the caller provided none.
+func (d *Domain) extensions() *extension.Host {
+	d.builtinOnce.Do(func() {
+		if d.Extensions == nil {
+			d.Extensions = extension.NewHost(nil)
+		}
+		// Registration only fails on a malformed built-in declaration or a
+		// duplicate slug, both programming errors; the tests pin the list.
+		_ = d.Extensions.Install(publisherTools{domain: d})
+	})
+	return d.Extensions
 }
 
 func domainError(w http.ResponseWriter, e error) {
