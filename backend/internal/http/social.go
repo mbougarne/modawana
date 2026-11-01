@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/mbougarne/modawana/backend/internal/content"
 	"github.com/mbougarne/modawana/backend/internal/extension"
@@ -23,7 +24,9 @@ import (
 )
 
 // Hook results may carry attacker-shaped text once plugins exist; bound every
-// emitted field beyond the host's own configuration limits.
+// emitted field beyond the host's own configuration limits. Text is counted
+// in runes like the site configuration bounds (alt text and titles are at
+// most 200 runes), so Arabic values pass through untouched.
 const socialTextLimit = 300
 const socialImageLimit = 2048
 const socialDimensionLimit = 16384
@@ -127,6 +130,9 @@ func socialFor(page content.PageRoute, settings siteconfig.Public, origin, title
 // renderedMeta dispatches content.rendered_meta and keeps final say over the
 // emitted metadata: every result is bounded, sanitized, and restricted to
 // same-origin images, and a failing hook falls back to the default card.
+// When several handlers return a valid result the last registered one wins,
+// each sanitized against the default card rather than merged with earlier
+// results, per the contract in extension.RenderedMetaResult.
 func (s *Server) renderedMeta(ctx context.Context, page content.PageRoute, settings siteconfig.Public, origin, title string) socialMetadata {
 	fallback := socialMetadata{Image: origin + "/social-card.png", Alt: title, Type: "website", SiteName: settings.Effective["name"].Text, Width: 1200, Height: 630}
 	if fallback.SiteName == "" {
@@ -169,7 +175,7 @@ func sanitizeRenderedMeta(in extension.RenderedMetaResult, origin string, fallba
 }
 
 func boundedSocialText(s string) string {
-	if len(s) > socialTextLimit {
+	if utf8.RuneCountInString(s) > socialTextLimit {
 		return ""
 	}
 	for _, r := range s {

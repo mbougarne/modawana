@@ -52,16 +52,19 @@ func New(options Options) http.Handler {
 	return &Server{options: options}
 }
 
-// extensions installs the server's built-in extensions exactly once on the
-// shared host, or on a private one when the caller provided none.
+// extensions installs the server's built-in extensions exactly once when the
+// caller did not install Domain.Builtins eagerly — a convenience for tests
+// that construct a Server without a prepared host.
 func (s *Server) extensions() *extension.Host {
 	s.builtinOnce.Do(func() {
 		host := s.options.Extensions
 		if host == nil {
 			host = extension.NewHost(s.options.Logger)
 		}
-		if err := host.Install(socialCards{}); err != nil {
-			s.options.Logger.Error("built-in extension rejected", "extension", "social-cards", "reason", err.Error())
+		if !host.Installed("social-cards") {
+			if err := host.Install(socialCards{}); err != nil {
+				s.options.Logger.Error("built-in extension rejected", "extension", "social-cards", "reason", err.Error())
+			}
 		}
 		s.extensionHost = host
 	})

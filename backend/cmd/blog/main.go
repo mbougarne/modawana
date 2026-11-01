@@ -38,8 +38,12 @@ func (*maintenanceJobs) Slug() string { return "maintenance" }
 
 func (m *maintenanceJobs) Register(r *extension.Registrar) error {
 	return r.Job(extension.Job{Name: "cleanup", Every: time.Hour, Timeout: 10 * time.Minute, Run: func(ctx context.Context) error {
-		_, err := operations.Cleanup(ctx, m.db, m.files)
-		return err
+		// Storage errors can carry data-root file paths, which the logging
+		// policy keeps out of logs; record a stable reason instead.
+		if _, err := operations.Cleanup(ctx, m.db, m.files); err != nil {
+			return errors.New("maintenance batch failed")
+		}
+		return nil
 	}})
 }
 
@@ -163,12 +167,16 @@ func run() int {
 	defer stop()
 	identities := learning.NewIdentity(database, cfg.LearningIdleDays, cfg.LearningMaxIdentities)
 	host := extension.NewHost(logger)
-	if err = host.Install(&maintenanceJobs{db: database, files: files}); err != nil {
-		logger.Error("maintenance job registration failed", "reason", err.Error())
-		return 1
+	domain := &httpserver.Domain{Learning: identities, SiteConfig: settings, Content: contents, Auth: authentication, Media: media.New(database, files, policy), Extensions: host}
+	// Install every built-in before the job runner starts: the runner only
+	// picks up jobs registered before it runs.
+	for _, builtin := range append([]extension.Extension{&maintenanceJobs{db: database, files: files}}, domain.Builtins()...) {
+		if err = host.Install(builtin); err != nil {
+			logger.Error("built-in extension registration failed", "extension", builtin.Slug(), "reason", err.Error())
+			return 1
+		}
 	}
 	go host.RunJobs(ctx)
-	domain := &httpserver.Domain{Learning: identities, SiteConfig: settings, Content: contents, Auth: authentication, Media: media.New(database, files, policy), Extensions: host}
 	if cfg.Environment == "production" && len(cfg.TrustedProxies) == 0 {
 		logger.Warn("no trusted proxies configured; reverse-proxy deployments must set BLOG_TRUSTED_PROXIES to observed proxy peers for per-client throttling")
 	}

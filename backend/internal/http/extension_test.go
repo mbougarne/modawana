@@ -131,3 +131,36 @@ func TestMCPToolListAndDispatchAreRegistryDriven(t *testing.T) {
 		t.Fatal("unknown tool dispatched")
 	}
 }
+
+func TestRenderedMetaKeepsLongArabicAltText(t *testing.T) {
+	const origin = "https://blog.example"
+	// 200 Arabic runes are twice as many bytes; the bound must count runes
+	// like the site configuration limits do.
+	alt := strings.Repeat("ع", 200)
+	settings := siteconfig.Public{Profile: siteconfig.Profile{BannerEnabled: true, BannerID: "banner"}, Effective: map[string]siteconfig.Effective{"banner_alt": {Text: alt}}}
+	s := New(Options{Config: config.Config{BaseURL: origin}}).(*Server)
+	got := s.renderedMeta(context.Background(), content.PageRoute{Kind: "home"}, settings, origin, "Title")
+	if got.Alt != alt || got.Image != origin+"/media/banner" {
+		t.Fatal("Arabic alt text rejected", got.Image, len(got.Alt))
+	}
+}
+
+func TestEagerBuiltinInstallKeepsLazyPathsIdempotent(t *testing.T) {
+	host := extension.NewHost(nil)
+	d := &Domain{Extensions: host}
+	for _, builtin := range d.Builtins() {
+		if err := host.Install(builtin); err != nil {
+			t.Fatal(err)
+		}
+	}
+	s := New(Options{Config: config.Config{BaseURL: "https://blog.example"}, Extensions: host}).(*Server)
+	if s.extensions() != host || d.extensions() != host {
+		t.Fatal("lazy paths replaced the shared host")
+	}
+	if got := len(d.mcpTools()); got != 4 {
+		t.Fatal("built-in tools duplicated or missing", got)
+	}
+	if got := len(host.DispatchHook(context.Background(), extension.HookRenderedMeta, []byte(`{}`))); got != 1 {
+		t.Fatal("hook registrations duplicated or missing", got)
+	}
+}

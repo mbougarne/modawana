@@ -53,6 +53,13 @@ func NewHost(logger *slog.Logger) *Host {
 	return &Host{logger: logger, slugs: map[string]bool{}, hooks: map[string][]hookRegistration{}, indexed: map[string]int{}}
 }
 
+// Installed reports whether an extension with the slug is already installed.
+func (h *Host) Installed(slug string) bool {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	return h.slugs[slug]
+}
+
 // Install registers one extension. Registrations are validated and committed
 // atomically: a rejected declaration leaves no partial state behind.
 func (h *Host) Install(x Extension) error {

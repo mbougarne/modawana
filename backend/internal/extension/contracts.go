@@ -43,7 +43,10 @@ type RenderedMetaSite struct {
 
 // RenderedMetaResult is the content.rendered_meta result contract, version 1.
 // The host bounds and sanitizes every field and keeps final say over the
-// metadata it emits.
+// metadata it emits. When several handlers return a valid result, the last
+// registered one wins: each result is sanitized against the host's default
+// card, never merged with earlier results, so a later handler resets every
+// field an earlier one set.
 type RenderedMetaResult struct {
 	Image    string `json:"image"`
 	Alt      string `json:"alt"`

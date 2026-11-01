@@ -33,16 +33,26 @@ type Domain struct {
 	builtinOnce sync.Once
 }
 
-// extensions installs the built-in publisher MCP tools exactly once on the
-// shared host, or on a private one when the caller provided none.
+// Builtins returns the HTTP layer's built-in extensions for the server main
+// to install eagerly, before the job runner starts: the runner only picks up
+// jobs registered before it runs.
+func (d *Domain) Builtins() []extension.Extension {
+	return []extension.Extension{socialCards{}, publisherTools{domain: d}}
+}
+
+// extensions installs the built-in publisher MCP tools exactly once when the
+// caller did not install Builtins eagerly — a convenience for tests that
+// construct Domain directly.
 func (d *Domain) extensions() *extension.Host {
 	d.builtinOnce.Do(func() {
 		if d.Extensions == nil {
 			d.Extensions = extension.NewHost(nil)
 		}
-		// Registration only fails on a malformed built-in declaration or a
-		// duplicate slug, both programming errors; the tests pin the list.
-		_ = d.Extensions.Install(publisherTools{domain: d})
+		if !d.Extensions.Installed("publisher-mcp") {
+			// Registration only fails on a malformed built-in declaration, a
+			// programming error; the tests pin the list.
+			_ = d.Extensions.Install(publisherTools{domain: d})
+		}
 	})
 	return d.Extensions
 }
