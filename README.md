@@ -1,6 +1,6 @@
-![Modawana: light desktop home and dark mobile reader](docs/assets/blog-preview.png)
+![Modawana: light desktop home and dark mobile reader](docs/assets/blog-preview-en.png)
 
-*Illustrative preview based on the application design; sample content.*
+*Illustrative preview rendered from the application design system with sample content.*
 
 # Modawana
 
