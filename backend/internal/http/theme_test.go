@@ -72,6 +72,14 @@ func (themeFixture) ResolvePage(_ context.Context, path string) (content.PageRou
 		page.URL = "/en/articles/math"
 		page.Content = &math
 		return page, nil
+	case "/en/articles/locked":
+		// Articles cannot actually lock (only lessons receive PublicTeaser);
+		// this pins the defensive guard in renderThemed.
+		locked := article
+		locked.Locked, locked.Markdown = true, ""
+		page.URL = "/en/articles/locked"
+		page.Content = &locked
+		return page, nil
 	case "/en", "/en/about":
 		return content.PageRoute{Kind: "home", Locale: "en", URL: "/en", Alternatives: []content.Alternative{}}, nil
 	default:
@@ -174,6 +182,11 @@ func TestThemedFallbacks(t *testing.T) {
 	}
 	if w := get(t, h, "GET", "/en/articles/missing"); w.Code != 404 || !strings.Contains(w.Body.String(), `id="root"`) {
 		t.Fatal("404 changed", w.Code)
+	}
+	// A locked content projection keeps the SPA shell even if a future kind
+	// in the allowlist could lock.
+	if body := get(t, h, "GET", "/en/articles/locked").Body.String(); !strings.Contains(body, `id="root"`) || strings.Contains(body, `data-rendered`) {
+		t.Fatal("locked content must keep the shell")
 	}
 }
 

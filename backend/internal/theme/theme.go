@@ -68,8 +68,6 @@ type Article struct {
 	DateText        string
 	ReadingEstimate string
 	StaleNotice     string
-	LockedTitle     string // nonempty renders the safe locked teaser instead of a body
-	LockedHelp      string
 	CoverURL        string
 	CoverWidth      int
 	CoverHeight     int

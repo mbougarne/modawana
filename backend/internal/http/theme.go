@@ -32,48 +32,49 @@ type taxonomyResolver interface {
 // access decisions already happened in ResolvePage.
 func (s *Server) renderThemed(ctx context.Context, page content.PageRoute, settings siteconfig.Public, head headData) ([]byte, bool) {
 	c := page.Content
-	if c == nil || page.Kind != "article" {
+	// Locked content cannot reach the themed path: only lessons receive the
+	// PublicTeaser visibility (access.Live), route() runs this branch at
+	// status 200 only, and locked pages resolve to 403. Locked teasers stay
+	// on the SPA shell until the lesson stage renders them server-side.
+	if c == nil || page.Kind != "article" || c.Locked {
 		return nil, false
 	}
 	locale := page.Locale
 	label := func(key string) string { return pageLabel(settings, key, locale) }
-	var body template.HTML
 	var islandScripts, islandStyles []string
-	if !c.Locked {
-		media := make([]render.Media, 0, len(c.Media))
-		for _, m := range c.Media {
-			media = append(media, render.Media{ID: m.ID, Kind: m.Kind, Width: m.Width, Height: m.Height})
-		}
-		presentations := make([]render.Presentation, 0, len(c.Presentations))
-		for _, p := range c.Presentations {
-			presentations = append(presentations, render.Presentation{MediaID: p.MediaID, PosterID: p.PosterID, TrackID: p.TrackID, Caption: p.Caption, Transcript: p.Transcript})
-		}
-		result, err := render.Document(c.Markdown, "", render.Options{
-			Locale:        locale,
-			Media:         media,
-			Presentations: presentations,
-			Labels: render.Labels{
-				Takeaway:         label("reader.takeaway"),
-				Table:            label("reader.table"),
-				MediaUnavailable: label("reader.mediaUnavailable"),
-				Captions:         label("reader.captions"),
-				Transcript:       label("reader.transcript"),
-			},
-		})
-		if err != nil {
-			s.options.Logger.Error("theme render fallback", "reason", "markdown", "kind", page.Kind)
+	media := make([]render.Media, 0, len(c.Media))
+	for _, m := range c.Media {
+		media = append(media, render.Media{ID: m.ID, Kind: m.Kind, Width: m.Width, Height: m.Height})
+	}
+	presentations := make([]render.Presentation, 0, len(c.Presentations))
+	for _, p := range c.Presentations {
+		presentations = append(presentations, render.Presentation{MediaID: p.MediaID, PosterID: p.PosterID, TrackID: p.TrackID, Caption: p.Caption, Transcript: p.Transcript})
+	}
+	result, err := render.Document(c.Markdown, "", render.Options{
+		Locale:        locale,
+		Media:         media,
+		Presentations: presentations,
+		Labels: render.Labels{
+			Takeaway:         label("reader.takeaway"),
+			Table:            label("reader.table"),
+			MediaUnavailable: label("reader.mediaUnavailable"),
+			Captions:         label("reader.captions"),
+			Transcript:       label("reader.transcript"),
+		},
+	})
+	if err != nil {
+		s.options.Logger.Error("theme render fallback", "reason", "markdown", "kind", page.Kind)
+		return nil, false
+	}
+	body := result.HTML
+	if result.HasMath {
+		var ok bool
+		// Only pages that contain math ship rendering JavaScript; without
+		// a built katex island the SPA keeps rendering this page.
+		islandScripts, islandStyles, ok = s.options.Assets.Island("katex")
+		if !ok {
+			s.options.Logger.Error("theme render fallback", "reason", "missing katex island")
 			return nil, false
-		}
-		body = result.HTML
-		if result.HasMath {
-			var ok bool
-			// Only pages that contain math ship rendering JavaScript; without
-			// a built katex island the SPA keeps rendering this page.
-			islandScripts, islandStyles, ok = s.options.Assets.Island("katex")
-			if !ok {
-				s.options.Logger.Error("theme render fallback", "reason", "missing katex island")
-				return nil, false
-			}
 		}
 	}
 	var category *content.Term
@@ -136,32 +137,34 @@ func (s *Server) renderThemed(ctx context.Context, page content.PageRoute, setti
 		Tags:         tags,
 	}
 	if c.ReadingMinutes > 0 {
+		// public.readTime is a single-form string in every registry locale
+		// (the plural-form labels — writing.count, search.results,
+		// post.minutes, quiz.passWith — are not used here), so plain {n}
+		// interpolation matches the SPA. pageLabel skips a plural-object
+		// owner override (string unmarshal fails) and falls through to the
+		// registry form; introducing plural variants for a themed label
+		// means porting the SPA's plural-rule selection first.
 		article.ReadingEstimate = interpolate(label("public.readTime"), map[string]string{"n": strconv.Itoa(c.ReadingMinutes)})
 	}
 	if c.Stale {
 		article.StaleNotice = label("public.stale")
 	}
-	if c.Locked {
-		article.LockedTitle = label("public.locked")
-		article.LockedHelp = label("public.lockHelp")
-	} else {
-		for _, m := range c.Media {
-			if m.ID == c.CoverID && m.Kind == "image" {
-				article.CoverURL = m.URL
-				article.CoverWidth, article.CoverHeight = m.Width, m.Height
-			}
+	for _, m := range c.Media {
+		if m.ID == c.CoverID && m.Kind == "image" {
+			article.CoverURL = m.URL
+			article.CoverWidth, article.CoverHeight = m.Width, m.Height
 		}
-		if authorName != "" {
-			arrow := "→"
-			if locale == "ar" {
-				arrow = "←"
-			}
-			article.WrittenBy = interpolate(label("post.writtenBy"), map[string]string{"name": authorName})
-			article.Bio = bioSegments(settings.Effective["bio"].Text)
-			article.MoreLabel = label("post.moreWriting")
-			article.MoreURL = "/" + locale + "/writing"
-			article.Arrow = arrow
+	}
+	if authorName != "" {
+		arrow := "→"
+		if locale == "ar" {
+			arrow = "←"
 		}
+		article.WrittenBy = interpolate(label("post.writtenBy"), map[string]string{"name": authorName})
+		article.Bio = bioSegments(settings.Effective["bio"].Text)
+		article.MoreLabel = label("post.moreWriting")
+		article.MoreURL = "/" + locale + "/writing"
+		article.Arrow = arrow
 	}
 	view := theme.ArticlePage{
 		Locale:        locale,

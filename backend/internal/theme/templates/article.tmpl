@@ -37,12 +37,10 @@
 </div>
 </header>
 {{if .StaleNotice}}<p class="public-notice">{{.StaleNotice}}</p>{{end}}
-{{if .LockedTitle}}<div class="public-locked" role="status"><h2>{{.LockedTitle}}</h2><p>{{.LockedHelp}}</p></div>{{else}}
 {{if .CoverURL}}<img class="public-cover" src="{{.CoverURL}}" alt=""{{if .CoverWidth}} width="{{.CoverWidth}}" height="{{.CoverHeight}}"{{end}}>{{end}}
 {{.Body}}
 {{if .Tags}}<div class="vb-tags public-tags">{{range .Tags}}<a href="{{.URL}}"><bdi>{{.Label}}</bdi></a>{{end}}</div>{{end}}
 {{if .WrittenBy}}<aside class="vb-author"><span class="vb-avatar" aria-hidden="true" dir="ltr">{{if .PortraitURL}}<img src="{{.PortraitURL}}" alt="">{{else}}{{.Monogram}}{{end}}</span><div><b>{{.WrittenBy}}</b><p>{{range .Bio}}{{if .Bold}}<b>{{.Text}}</b>{{else}}{{.Text}}{{end}}{{end}}</p><a class="vb-link" href="{{.MoreURL}}">{{.MoreLabel}} {{.Arrow}}</a></div></aside>{{end}}
-{{end}}
 </article>
 {{- end}}
 </main>

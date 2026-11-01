@@ -29,6 +29,12 @@ export function pickLocale(
   return v === undefined || v === '' ? value.en : v;
 }
 
+/**
+ * Server-rendered pages mirror this output in Go (`formatPublicDate` in
+ * backend/internal/http/theme.go): day month year, Latin digits, and the
+ * ar-MA month names. Change the locales, numbering system or default options
+ * here only together with that mirror.
+ */
 export function formatDate(
   iso: string,
   locale: Locale,
