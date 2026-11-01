@@ -2,7 +2,15 @@ import { readdirSync, readFileSync, existsSync, writeFileSync } from 'node:fs';
 import { join, dirname, relative, resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
-const excluded = new Set(['.git', 'node_modules', 'dist', 'build', 'coverage', 'generated_images']);
+const excluded = new Set([
+  '.git',
+  'node_modules',
+  'dist',
+  'build',
+  'coverage',
+  'generated_images',
+  '_docs',
+]);
 function walk(dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
     if (excluded.has(e.name) || (dir === root && e.name === 'internal')) {
