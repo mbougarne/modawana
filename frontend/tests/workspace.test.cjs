@@ -25,6 +25,7 @@ const pages = [
   'labels',
   'security',
   'transfer',
+  'plugins',
 ];
 async function mount(current = 'posts', locale = 'en', extra = {}) {
   const el = document.createElement('div');

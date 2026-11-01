@@ -23,6 +23,7 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/extension"
 	httpserver "github.com/mbougarne/modawana/backend/internal/http"
 	"github.com/mbougarne/modawana/backend/internal/media"
+	"github.com/mbougarne/modawana/backend/internal/plugin"
 	"github.com/mbougarne/modawana/backend/internal/siteconfig"
 	"github.com/mbougarne/modawana/backend/internal/storage"
 )
@@ -167,7 +168,14 @@ func run() int {
 	defer stop()
 	identities := learning.NewIdentity(database, cfg.LearningIdleDays, cfg.LearningMaxIdentities)
 	host := extension.NewHost(logger)
-	domain := &httpserver.Domain{Learning: identities, SiteConfig: settings, Content: contents, Auth: authentication, Media: media.New(database, files, policy), Extensions: host}
+	runtime, err := plugin.NewRuntime(ctx, database)
+	if err != nil {
+		logger.Error("plugin runtime initialization failed")
+		return 1
+	}
+	defer runtime.Close(context.Background())
+	plugins := &plugin.Service{DB: database, Dir: filepath.Join(cfg.DataRoot, "plugins"), Host: host, Runtime: runtime, Logger: logger}
+	domain := &httpserver.Domain{Learning: identities, SiteConfig: settings, Content: contents, Auth: authentication, Media: media.New(database, files, policy), Extensions: host, Plugins: plugins}
 	// Install every built-in before the job runner starts: the runner only
 	// picks up jobs registered before it runs.
 	for _, builtin := range append([]extension.Extension{&maintenanceJobs{db: database, files: files}}, domain.Builtins()...) {
@@ -175,6 +183,12 @@ func run() int {
 			logger.Error("built-in extension registration failed", "extension", builtin.Slug(), "reason", err.Error())
 			return 1
 		}
+	}
+	// Owner-approved plugins load after the built-ins; a plugin that fails
+	// verification is skipped with a logged reason, never a fatal start.
+	if err = plugins.LoadEnabled(ctx); err != nil {
+		logger.Error("plugin startup load failed", "reason", err.Error())
+		return 1
 	}
 	go host.RunJobs(ctx)
 	if cfg.Environment == "production" && len(cfg.TrustedProxies) == 0 {

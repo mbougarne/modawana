@@ -16,6 +16,7 @@ const pages = [
   'labels',
   'security',
   'transfer',
+  'plugins',
 ] as const;
 
 export function OwnerNavigation({ current }: { current?: string } = {}) {

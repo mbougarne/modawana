@@ -91,13 +91,14 @@ const (
 	ContentVersions        VersionedTable = "content_versions"
 	Collections            VersionedTable = "collections"
 	ConfigurationDocuments VersionedTable = "config_documents"
+	PluginInstalls         VersionedTable = "plugin_installs"
 )
 
 // BumpVersion must share the transaction that changes the document/pointers.
 // The table identifier is code-owned; user input is always bound as a parameter.
 func BumpVersion(ctx context.Context, tx *sql.Tx, table VersionedTable, id string, expected int64) error {
 	switch table {
-	case ContentVersions, Collections, ConfigurationDocuments:
+	case ContentVersions, Collections, ConfigurationDocuments, PluginInstalls:
 	default:
 		return errors.New("invalid versioned table")
 	}

@@ -17,6 +17,7 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/db"
 	"github.com/mbougarne/modawana/backend/internal/extension"
 	"github.com/mbougarne/modawana/backend/internal/media"
+	"github.com/mbougarne/modawana/backend/internal/plugin"
 	"github.com/mbougarne/modawana/backend/internal/siteconfig"
 )
 
@@ -29,6 +30,7 @@ type Domain struct {
 	Auth       *auth.Service
 	Media      *media.Service
 	Extensions *extension.Host
+	Plugins    *plugin.Service
 
 	builtinOnce sync.Once
 }
@@ -111,6 +113,9 @@ func (d *Domain) Handle(w http.ResponseWriter, r *http.Request) bool {
 		return true
 	}
 	if d.SiteConfig != nil && d.configurationRoutes(w, r) {
+		return true
+	}
+	if d.Plugins != nil && d.pluginRoutes(w, r) {
 		return true
 	}
 	if d.Content != nil && (d.referenceRoutes(w, r) || d.pageRoutes(w, r) || d.contentRoutes(w, r) || d.discoveryRoutes(w, r) || d.collectionRoutes(w, r)) {

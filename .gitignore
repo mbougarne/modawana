@@ -26,3 +26,6 @@ frontend/test-results/
 *.age
 /backups/
 /backend/cmd/.local-*/
+
+# Built WebAssembly plugin modules are never committed.
+*.wasm

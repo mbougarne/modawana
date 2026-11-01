@@ -95,6 +95,63 @@ func (h *Host) Install(x Extension) error {
 	return nil
 }
 
+// Uninstall removes every registration owned by the slug, atomically with
+// respect to dispatch. The WebAssembly plugin host uses it when the owner
+// disables or replaces a plugin; built-ins are never uninstalled. It does not
+// stop jobs an already-running job runner picked up — stage 1 plugins cannot
+// register jobs, and the jobs capability lands with its own lifecycle.
+func (h *Host) Uninstall(slug string) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if !h.slugs[slug] {
+		return
+	}
+	delete(h.slugs, slug)
+	for name, registrations := range h.hooks {
+		kept := registrations[:0:0]
+		for _, registration := range registrations {
+			if registration.slug != slug {
+				kept = append(kept, registration)
+			}
+		}
+		if len(kept) == 0 {
+			delete(h.hooks, name)
+		} else {
+			h.hooks[name] = kept
+		}
+	}
+	jobs := h.jobs[:0:0]
+	for _, job := range h.jobs {
+		if job.slug != slug {
+			jobs = append(jobs, job)
+		}
+	}
+	h.jobs = jobs
+	routes := h.routes[:0:0]
+	for _, route := range h.routes {
+		if route.Extension != slug {
+			routes = append(routes, route)
+		}
+	}
+	h.routes = routes
+	sections := h.sections[:0:0]
+	for _, section := range h.sections {
+		if section.Extension != slug {
+			sections = append(sections, section)
+		}
+	}
+	h.sections = sections
+	tools := h.tools[:0:0]
+	indexed := map[string]int{}
+	for _, tool := range h.tools {
+		if tool.slug != slug {
+			indexed[tool.Name] = len(tools)
+			tools = append(tools, tool)
+		}
+	}
+	h.tools, h.indexed = tools, indexed
+}
+
 // Registrar collects one extension's declarations during Install.
 type Registrar struct {
 	slug     string

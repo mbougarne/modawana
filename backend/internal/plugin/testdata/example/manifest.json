@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "host_api_version": 1,
+  "slug": "example",
+  "name": "Example plugin",
+  "version": "0.1.0",
+  "description": "First-party example used by the host integration tests.",
+  "module": "plugin.wasm",
+  "capabilities": ["hooks", "routes", "storage"],
+  "hooks": [
+    {"name": "test.echo", "version": 1},
+    {"name": "test.sandbox", "version": 1},
+    {"name": "test.storage", "version": 1},
+    {"name": "test.spin", "version": 1},
+    {"name": "test.memory", "version": 1},
+    {"name": "test.big", "version": 1}
+  ],
+  "routes": [
+    {"method": "GET", "path": "/hello", "public": true},
+    {"method": "GET", "path": "/info"},
+    {"method": "POST", "path": "/info"}
+  ]
+}

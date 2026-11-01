@@ -43,7 +43,7 @@ function LocaleRoot({
   oauth?: boolean;
   preview?: boolean;
   config?: ConfigKind;
-  owner?: 'posts' | 'editor' | 'media' | 'collections' | 'taxonomy' | 'transfer';
+  owner?: 'posts' | 'editor' | 'media' | 'collections' | 'taxonomy' | 'transfer' | 'plugins';
 }) {
   const { locale } = useParams();
   const { data } = usePublicConfiguration();
@@ -89,6 +89,7 @@ createRoot(document.getElementById('root')!).render(
             element={<LocaleRoot owner="editor" />}
           />
           <Route path="/:locale/admin/transfer" element={<LocaleRoot owner="transfer" />} />
+          <Route path="/:locale/admin/plugins" element={<LocaleRoot owner="plugins" />} />
           <Route path="/:locale/admin/media" element={<LocaleRoot owner="media" />} />
           <Route path="/:locale/admin/oauth" element={<LocaleRoot oauth />} />
           <Route path="/:locale/admin/security" element={<LocaleRoot auth />} />

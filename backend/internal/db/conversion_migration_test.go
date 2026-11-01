@@ -16,10 +16,15 @@ func TestTypeConversionMigrationPreservesPublishedRows(t *testing.T) {
 	defer d.Close()
 	d.SetMaxOpenConns(1)
 	exec(t, d, "PRAGMA foreign_keys=ON")
+	// The old schema ends right before 0012_content_type_conversion.sql, the
+	// migration under test. Drop everything from 0012 on, not a fixed list,
+	// so appending future migrations keeps this history contiguous.
 	old := migrationTestSource(t)
-	delete(old, "0012_content_type_conversion.sql")
-	delete(old, "0013_collection_removal.sql")
-	delete(old, "0014_mcp_oauth.sql")
+	for name := range old {
+		if name >= "0012" {
+			delete(old, name)
+		}
+	}
 	if err = migrate(context.Background(), d, old); err != nil {
 		t.Fatal(err)
 	}

@@ -69,7 +69,7 @@ func TestExpiredOwnerSessionRedirectsHTMLButNeverAPIs(t *testing.T) {
 func TestAdminBrowserNavigationRequiresLoginWithoutServingPrivateShell(t *testing.T) {
 	h, _ := testServer(t, nil)
 	for _, locale := range []string{"en", "ar", "fr"} {
-		for _, path := range []string{"", "/security", "/posts?q=one%26two", "/editor/private-key/ar", "/preview/private-key/fr", "/transfer"} {
+		for _, path := range []string{"", "/security", "/posts?q=one%26two", "/editor/private-key/ar", "/preview/private-key/fr", "/transfer", "/plugins"} {
 			for _, method := range []string{"GET", "HEAD"} {
 				target := "/" + locale + "/admin" + path
 				r := httptest.NewRequest(method, target, nil)
