@@ -404,13 +404,8 @@ Synced copies of one credential are not independent backups. Offer a separately
 registered backup and offline recovery codes, then restricted VPS recovery if
 necessary. Test new-device enrollment and loss/recovery, not only the happy path.
 
-يُعد [دليل الأجهزة الجديدة والاسترداد](passkey-access.ar.md) جزءاً من هذا العقد.
-ادعم عدة مفاتيح مسجلة وتدفقات WebAuthn القياسية بالهاتف أو مفتاح أمان حيث تتوفر،
-ولا تحصر التسجيل في أداة توثيق مدمجة بالجهاز. قد يتاح المفتاح المتزامن عبر مزوده،
-أو يوثّق الهاتف جهازاً جديداً دون نسخ مفتاحه الخاص إليه. النسخ المتزامنة للمفتاح
-نفسه ليست نسخاً احتياطية مستقلة. وفّر تسجيلاً لمفتاح احتياطي مستقل ورموز استرداد
-محفوظة دون اتصال، ثم استرداداً محدوداً عبر VPS عند الحاجة. اختبر التسجيل من جهاز
-جديد وفقدان الوسائل واستردادها، وليس الدخول الناجح المعتاد فقط.
+يُعد [دليل الأجهزة الجديدة والاسترداد](passkey-access.ar.md) جزءاً لا يتجزأ من هذا العقد البرمجي.
+ادعم تسجيل عدة مفاتيح مرور مستقلة وتدفقات معيار WebAuthn القياسية بالاستعانة بالهاتف الذكي أو بمفاتيح الأمان المادية حيثما تتوفر؛ وتجنب حصر التسجيل في المصادق المدمج بالجهاز فقط. قد يتوفر المفتاح المتزامن عبر مزود الخدمة السحابي، أو يمكن للهاتف مصادقة دخول جهاز حاسوب جديد دون الحاجة لنسخ مفتاحه الخاص إليه. وتذكر أن النسخ المتزامنة من بيانات الاعتماد نفسها لا تُعد عوامل مصادقة احتياطية مستقلة. وفّر إمكانية تسجيل مفتاح احتياطي مستقل ورموز استرداد غير متصلة بالإنترنت، مع إتاحة إجراء الاسترداد المقيد عبر خادم VPS عند الحاجة القصوى. واحرص على اختبار تدفقات تسجيل الأجهزة الجديدة وسيناريوهات الفقد والاسترداد، وليس مسار النجاح المعتاد فقط.
 
 ## 5. SQLite additions and file boundaries
 
@@ -507,10 +502,11 @@ for this installation.
   in this repository. Define API contracts
   independently of either UI implementation; avoid another internal SDK/service
   until needed. Keep optional future integrations behind small Go interfaces.
-- يوضع الخادم وأداة النشر و`internal/` والترحيلات داخل `backend/`،
-  والواجهة داخل `frontend/` في المستودع نفسه. تبقى `ui/` و`design-system/`
-  و`deploy/` و`docs/` مجلدات مساعدة. تُعرَّف عقود API باستقلال عن الواجهة، دون
-  إضافة SDK أو خدمة داخلية قبل الحاجة؛ تستخدم التكاملات المستقبلية واجهات Go صغيرة.
+- يُحفظ خادم التطبيق، وأداة النشر، وحزم `internal/`، وملفات الترحيل داخل مجلد `backend/`،
+  بينما تُحفظ الواجهة داخل مجلد `frontend/` في المستودع نفسه. وتظل مجلدات `ui/` و`design-system/`
+  و`deploy/` و`docs/` مجلدات مساعدة مشتركة. تُعرَّف عقود واجهات البرمجة (API) باستقلالية تامة
+  عن الواجهة الأمامية، دون إضافة حزم تطوير (SDK) أو خدمات داخلية قبل الحاجة إليها؛ مع إبقاء
+  أي تكاملات مستقبلية اختيارية خلف واجهات Go برمجية صغيرة ومحددة.
 - Ship empty content/profile data and neutral installation defaults. Onboarding
   collects the owner's name, URL, logo and contact choices. No installation-specific
   social URL, job, city, email, password, quiz progress or posts in production code.

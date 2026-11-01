@@ -1,31 +1,30 @@
-# التوثيق
+# توثيق مدوّنة (Documentation)
 
 [English](README.md) · [الرئيسية](../README.ar.md)
 
-## ابدأ هنا
+## ابدأ من هنا
 
-- [التطوير المحلي](getting-started.ar.md): التثبيت والتشغيل وإعداد المالك وHTTPS وحل المشكلات.
-- [النشر](deployment.ar.md): إعداد Docker وVPS والتخزين الخاص وHTTPS والترقيات.
-- [أدوات المالك](owner-tools.ar.md): الكتابة والتنظيم والمراجعة والنشر ومسارات التعلم.
-- [أمان المالك](owner-security.ar.md) و[مفاتيح المرور](passkey-access.ar.md): الدخول والعوامل الاحتياطية والاسترداد.
-- [الاستيراد والتصدير](api/portability.ar.md): نقل المحتوى أو استيراد Markdown من Notion كمسودات.
-- [النسخ والاسترداد](operations/recovery.md): اللقطات والاحتفاظ المشفر والاستعادة والصيانة.
+- [التطوير المحلي](getting-started.ar.md): التثبيت والتشغيل، وتهيئة حساب المالك، وإعداد اتصالات HTTPS، واستكشاف الأخطاء وحلها.
+- [دليل النشر](deployment.ar.md): إعدادات Docker وخوادم VPS، والتخزين الخاص المحمي، وتكوين HTTPS، والترقيات المستقبلية.
+- [أدوات المالك](owner-tools.ar.md): كتابة المحتوى، وتنظيم المقالات والوثائق، ومراجعة الترجمات، والنشر، وبناء مسارات التعلّم.
+- [أمان المالك](owner-security.ar.md) و[مفاتيح المرور](passkey-access.ar.md): تسجيل الدخول الآمن، وإدارة العوامل الاحتياطية، وإجراءات الاسترداد.
+- [الاستيراد والتصدير](api/portability.ar.md): تصدير المحتوى وأرشيفه، أو استيراد ملفات Markdown من Notion كمسودات.
+- [النسخ الاحتياطي والاستعادة](operations/recovery.md): أخذ اللقطات الحية، والتخزين المشفر، واستعادة البيانات، ومهام الصيانة الدورية.
 
 ## التكاملات
 
-- [API وCLI للنشر](api/publisher.ar.md): الرموز المحددة والرفع والمسودات والنشر الدقيق.
-- [MCP وOAuth](integrations/mcp-oauth.md): العملاء البعيدون الاختياريون والإلغاء.
-- [التوصيل للمدونة وNotion](integrations/lesson-delivery.ar.md): الوجهات المستقلة والإعادة الآمنة.
-- [مجدول الدروس](integrations/remote-publishing.md): التوليد الاختياري ومثال خدمة معطل افتراضياً.
+- [واجهة البرمجة (API) وأداة النشر (CLI)](api/publisher.ar.md): إدارة الرموز المحددة الصلاحيات، ورفع الوسائط، والمسودات، والنشر الدقيق.
+- [بروتوكول MCP وتكامل OAuth](integrations/mcp-oauth.md): إدارة عملاء النشر البعيد الاختياريين وإلغاء صلاحياتهم.
+- [توصيل الدروس إلى المدونة وNotion](integrations/lesson-delivery.ar.md): النشر المتزامن للوجهات المستقلة وإعادة المحاولة بأمان.
+- [جدولة نشر الدروس](integrations/remote-publishing.md): التوليد الآلي الاختياري للدروس ونموذج خدمة معطل افتراضياً.
 
-## مرجع التطوير
+## المرجع التقني للتطوير
 
-- [البنية](architecture.ar.md) و[عقود الإعدادات والتعلم](architecture-appendix-configurable-learning.ar.md).
-- [مرجع API](api/README.ar.md) و[مخطط OpenAPI](api/v1.openapi.json).
-- [التصميم](design.ar.md) و[عقود الواجهة](ui-contracts.ar.md) و[Markdown](markdown-reader.ar.md) و[المسارات العامة](public-pages.ar.md).
-- [تخزين المراجعات](revision-storage.ar.md) و[ترحيلات القاعدة](../backend/migrations/README.ar.md).
-- [المساهمة](../CONTRIBUTING.ar.md) و[الإبلاغ الأمني](../SECURITY.ar.md) و[جاهزية الإصدار](release-readiness.ar.md).
-- [التراخيص](licenses.md) و[تغطية التوثيق](documentation-coverage.ar.md).
+- [البنية المعمارية](architecture.ar.md) و[ملحق عقود الإعدادات ومسارات التعلّم](architecture-appendix-configurable-learning.ar.md).
+- [مرجع واجهة البرمجة (API)](api/README.ar.md) و[مخطط مواصفات OpenAPI](api/v1.openapi.json).
+- [نظام التصميم](design.ar.md)، و[عقود الواجهة](ui-contracts.ar.md)، و[قارئ Markdown](markdown-reader.ar.md)، و[المسارات والصفحات العامة](public-pages.ar.md).
+- [تخزين المراجعات والملفات](revision-storage.ar.md) و[ترحيلات قاعدة البيانات](../backend/migrations/README.ar.md).
+- [دليل المساهمة](../CONTRIBUTING.ar.md)، و[إرشادات الإبلاغ الأمني](../SECURITY.ar.md)، و[قائمة جاهزية الإصدار](release-readiness.ar.md).
+- [إشعارات التراخيص](licenses.md) و[تغطية التوثيق المزدوج](documentation-coverage.ar.md).
 
-لكل دليل نسخة عربية وإنجليزية أو أقسام كاملة باللغتين. لغات واجهة المنتج
-العربية والإنجليزية والفرنسية. تبقى المعرّفات التقنية دون ترجمة.
+تتوفر كافة الأدلة في نسختين متطابقتين باللغتين العربية والإنجليزية في ملفين مرتبطين أو في أقسام ثنائية اللغة بالكامل. لغات واجهة المستخدم المدعومة في التطبيق هي العربية والإنجليزية والفرنسية. وتظل المعرفات البرمجية والتقنية ثابتة دون ترجمة في كافة الوثائق.
