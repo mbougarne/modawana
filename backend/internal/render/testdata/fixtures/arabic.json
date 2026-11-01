@@ -1,0 +1,16 @@
+{
+  "locale": "ar",
+  "takeaway": "**تذكّر** هذا.",
+  "media": [
+    { "id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "kind": "video" },
+    { "id": "cccccccccccccccccccccccccccccccc", "kind": "captions" }
+  ],
+  "presentations": [
+    {
+      "media_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "caption_track_media_id": "cccccccccccccccccccccccccccccccc",
+      "caption": "تعليق",
+      "transcript": "نص مفرغ"
+    }
+  ]
+}
