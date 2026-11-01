@@ -146,6 +146,10 @@ func renderBody(markdown string, opts Options) (string, bool, error) {
 	return strings.TrimSuffix(buf.String(), "\n"), hasMath, nil
 }
 
+// SafeLink exposes the reader link policy to the theme host for
+// configuration-sourced destinations such as footer profile links.
+func SafeLink(value string) (string, bool) { return safeLink(value) }
+
 // safeLink ports the reader's link policy exactly: no control bytes or
 // backslashes raw or decoded, no scheme-relative URLs, same-site paths and
 // fragments, credential-free http(s), and plain mailto addresses.

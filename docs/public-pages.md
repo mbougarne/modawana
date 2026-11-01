@@ -5,8 +5,10 @@
 The public site connects to applied configuration and
 published revisions. The Go process serves the HTML shell and API; Webpack builds
 React. The shell contains escaped title, description, canonical URL, published
-language alternatives and Open Graph metadata. The article body still needs
-JavaScript; this is not server-side rendering or JavaScript-free indexing.
+language alternatives and Open Graph metadata. Article pages are served fully
+rendered from Go templates ([ADR 0002](decisions/0002-server-rendered-themes.md)
+stage 2) and readable without JavaScript; every other public page keeps the SPA
+shell, whose body still needs JavaScript.
 
 ## Routes and visibility
 
@@ -54,6 +56,30 @@ states, grading and completion are server decisions. `ReaderLearning` connects
 quizzes, prerequisite links, mark-as-read and browser-progress reset to the
 [learning API](api/learning.md); an explicit interaction creates the browser identity.
 
+## Server-rendered articles
+
+`/{locale}/articles/{slug}` renders through the first built-in theme: embedded
+Go templates over safe view models — `PageRoute`, public site configuration,
+labels resolved with the same Go-side fallback the shell uses, and the
+sanitized body HTML from `backend/internal/render`. Templates receive no
+database access and no secrets. The per-route switch is a code-level allowlist
+(`backend/internal/http/theme.go`); setting `BLOG_FORCE_SPA=1` forces the SPA
+shell on every public page for operator rollback. Resolution, access
+decisions, status codes (200/403-locked/404/503), `noindex` and `no-store`
+behavior are unchanged, and the document head comes from the same template as
+the SPA shell, so metadata cannot drift between the two paths.
+
+A server-rendered document contains neither the SPA bundle nor its `#root`
+mount point, so a full load stays server-rendered; navigating to an article
+from inside the SPA still renders it client-side as before. Pages containing
+math include exactly one script, the manifest-listed KaTeX island (the
+`islands` map in the asset manifest, allowed by the strict CSP's same-origin
+script source); math-free pages ship no rendering JavaScript, and a frontend
+build without the island falls back to the SPA shell for math pages. The
+header's language and phone navigation menus are native `<details>` elements
+that work without JavaScript; the theme toggle button is not rendered on
+server pages yet, so appearance follows the stored or system preference.
+
 ## Archive and reading
 
 Kind/category/tag/query combine with AND. URLs retain `kind`, `category`, `tag`,
@@ -86,7 +112,10 @@ Go tests cover canonical kind/membership checks, Unicode slugs, published-only
 metadata, locked/noindex behavior, private draft isolation and corrupted files.
 The browser checks cover empty installations at 320/390/1280px in EN/AR/FR and
 both themes; configured profile/readers/outlines; menu Escape/focus; query filters,
-Back and delayed obsolete requests; retry and missing translations. Screenshots
+Back and delayed obsolete requests; retry and missing translations. They also
+load the server-rendered article directly at 320/390/1280px in EN/AR/FR and
+both themes, assert that no SPA mounts and no script loads on math-free
+articles, and that math articles load exactly the KaTeX island. Screenshots
 are written to `frontend/test-results/` for local review. Virtual
 WebAuthn remains simulation; verify on real target devices.
 

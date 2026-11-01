@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="{{.Locale}}" dir="{{.Direction}}"><head>{{.Head}}</head><body data-rendered="server">
+<div class="vb public-site">
+<a class="vb-skip" href="#content">{{.SkipLabel}}</a>
+<div class="vb-shell">
+<header class="vb-header public-header">
+<a class="vb-brand" href="{{.Brand.HomeURL}}" dir="auto">{{if eq .Brand.Kind "image"}}<img src="{{.Brand.ImageURL}}" alt="{{.Brand.ImageAlt}}">{{else if eq .Brand.Kind "monogram"}}<span class="vb-mono">{{.Brand.Monogram}}</span>{{else if .Brand.Split}}{{.Brand.Pre}}<span>.</span>{{.Brand.Suf}}{{else}}{{.Brand.Text}}{{end}}</a>
+<nav class="vb-nav public-nav" aria-label="{{.NavLabel}}">
+{{- range .Nav}}{{if not .Current}}<a href="{{.URL}}">{{.Label}}</a>{{else}}<a href="{{.URL}}" aria-current="page">{{.Label}}</a>{{end}}{{end -}}
+</nav>
+<div class="vb-tools public-tools">
+<a class="vb-icon" href="{{.SearchURL}}" aria-label="{{.SearchLabel}}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg></a>
+<details class="public-details">
+<summary class="vb-icon public-language" aria-label="{{.LanguageLabel}}">{{.LanguageShort}}</summary>
+<div class="public-menu"><nav aria-label="{{.LanguageLabel}}">
+{{- range .Languages}}<a href="{{.URL}}" lang="{{.Code}}" dir="{{.Dir}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}</a>{{end -}}
+</nav></div>
+</details>
+<details class="public-details">
+<summary class="vb-icon vb-menu" aria-label="{{.MenuLabel}}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></summary>
+<div class="public-menu"><nav aria-label="{{.NavLabel}}">
+{{- range .MenuNav}}<a href="{{.URL}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}</a>{{end -}}
+</nav></div>
+</details>
+</div>
+</header>
+<main id="content" tabindex="-1" class="public-main">
+{{- with .Article}}
+<article class="public-reader public-reader-article">
+<header class="vb-art-head">
+{{if .CategoryURL}}<a class="vb-catlink" href="{{.CategoryURL}}"><span class="vb-sticker plain">{{.StickerLabel}}</span></a>{{else}}<span class="vb-sticker plain">{{.StickerLabel}}</span>{{end}}
+<h1 class="vb-title">{{.Title}}</h1>
+{{if .Summary}}<p class="vb-lead">{{.Summary}}</p>{{end}}
+<div class="vb-art-meta">
+{{if .AuthorName}}<span class="public-article-author ds-ui"><span class="vb-avatar" aria-hidden="true" dir="ltr">{{if .PortraitURL}}<img src="{{.PortraitURL}}" alt="">{{else}}{{.Monogram}}{{end}}</span>{{.AuthorName}}</span>{{end}}
+<span class="vb-meta"><time datetime="{{.DateISO}}">{{.DateText}}</time>{{if .ReadingEstimate}} · {{.ReadingEstimate}}{{end}}</span>
+</div>
+</header>
+{{if .StaleNotice}}<p class="public-notice">{{.StaleNotice}}</p>{{end}}
+{{if .CoverURL}}<img class="public-cover" src="{{.CoverURL}}" alt=""{{if .CoverWidth}} width="{{.CoverWidth}}" height="{{.CoverHeight}}"{{end}}>{{end}}
+{{.Body}}
+{{if .Tags}}<div class="vb-tags public-tags">{{range .Tags}}<a href="{{.URL}}"><bdi>{{.Label}}</bdi></a>{{end}}</div>{{end}}
+{{if .WrittenBy}}<aside class="vb-author"><span class="vb-avatar" aria-hidden="true" dir="ltr">{{if .PortraitURL}}<img src="{{.PortraitURL}}" alt="">{{else}}{{.Monogram}}{{end}}</span><div><b>{{.WrittenBy}}</b><p>{{range .Bio}}{{if .Bold}}<b>{{.Text}}</b>{{else}}{{.Text}}{{end}}{{end}}</p><a class="vb-link" href="{{.MoreURL}}">{{.MoreLabel}} {{.Arrow}}</a></div></aside>{{end}}
+</article>
+{{- end}}
+</main>
+<footer class="vb-footer">
+{{- with .Footer}}
+{{if .Text}}<p class="big" dir="auto">{{.Text}}</p>{{else if .Email}}<p class="big">{{.Question}} <a href="mailto:{{.Email}}">{{.SayHi}}</a></p>{{end}}
+<div class="row">
+<span class="vb-meta">{{if .Copyright}}© {{.Copyright}}{{end}}</span>
+<nav aria-label="{{.NavLabel}}">
+{{- range .Links}}<a href="{{.URL}}">{{.Label}}</a>{{end -}}
+</nav>
+</div>
+{{- end}}
+</footer>
+</div>
+</div>
+</body></html>
