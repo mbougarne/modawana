@@ -29,7 +29,7 @@ func buildFixture(t *testing.T) string {
 			t.Fatal(err)
 		}
 	}
-	m := Manifest{1, []string{scriptName}, []string{styleName}, []string{scriptName, styleName}}
+	m := Manifest{Version: 1, Scripts: []string{scriptName}, Styles: []string{styleName}, Assets: []string{scriptName, styleName}}
 	raw, _ := json.Marshal(m)
 	if err := os.WriteFile(filepath.Join(root, "manifest.json"), raw, 0600); err != nil {
 		t.Fatal(err)

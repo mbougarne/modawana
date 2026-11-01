@@ -25,6 +25,9 @@ type Config struct {
 	RPID                  string
 	WebAuthnOrigins       []string
 	TrustedProxies        []netip.Prefix
+	// ForceSPA is the operator rollback switch for ADR 0002: when set, every
+	// public page serves the SPA shell even if a server-rendered template exists.
+	ForceSPA bool
 }
 
 type Public struct {
@@ -52,6 +55,13 @@ func Load(get func(string) string, cwd string) (Config, error) {
 			}
 			*setting.target = n
 		}
+	}
+	switch get("BLOG_FORCE_SPA") {
+	case "", "0":
+	case "1":
+		c.ForceSPA = true
+	default:
+		return c, invalid("BLOG_FORCE_SPA")
 	}
 	if c.Environment == "" {
 		c.Environment = "production"

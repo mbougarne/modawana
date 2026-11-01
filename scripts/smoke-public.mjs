@@ -182,6 +182,39 @@ export async function smokePublic({ context, origin, root, locale, t }) {
       (await anon.request.get(origin + `/${locale}/articles/public-path-one`)).status(),
       404,
     );
+    // ADR 0002 stage 2: a full load of the article URL is served from Go
+    // templates with no SPA mount point; SPA-internal navigation to the same
+    // article (exercised below from the search page) keeps using React.
+    assert.ok(source.includes('data-rendered="server"'));
+    assert.ok(!source.includes('id="root"'));
+    await page.goto(origin + url);
+    await page.locator('.vb-prose').waitFor();
+    assert.equal(await page.evaluate(() => document.body.dataset.rendered), 'server');
+    assert.equal(await page.locator('#root').count(), 0);
+    assert.equal(
+      await page.locator('script[src]').count(),
+      0,
+      'math-free server article must ship no rendering JavaScript',
+    );
+    assert.ok(
+      (await page.locator('.vb-art-head .vb-sticker').textContent()).includes('Public code'),
+    );
+    assert.equal(await page.locator('.vb-reader img').getAttribute('alt'), 'Diagram');
+    await page.locator('.vb-author').waitFor();
+    assert.ok(!(await page.locator('main').textContent()).includes('PRIVATE'));
+    for (const width of [320, 390, 1280]) {
+      for (const theme of ['light', 'dark']) {
+        await shot('article-server', width, theme);
+      }
+    }
+    // Math articles load exactly one script: the manifest-listed KaTeX island.
+    const math = await save('public-math', 'article', {
+      markdown: 'Euler: $e^{i\\pi}+1=0$',
+    });
+    await publish('public-math', math);
+    await page.goto(origin + `/${locale}/articles/public-math`);
+    await page.locator('.vb-math math').waitFor();
+    assert.equal(await page.locator('script[src]').count(), 1);
     await page.goto(origin + '/' + locale);
     await page.locator('.public-hero h1').waitFor();
     assert.ok((await page.locator('.public-hero').textContent()).includes('second owner'));
@@ -279,20 +312,23 @@ export async function smokePublic({ context, origin, root, locale, t }) {
     await page.unroute('**/api/v1/public/content?**');
     assert.equal(new URL(page.url()).searchParams.get('q'), 'phasefive');
     await shot('search');
+    // Archive rows are plain anchors, so this click is a full load that now
+    // lands on the server-rendered article.
     await page.locator('.vb-post a').filter({ hasText: 'Public public-article' }).click();
     await page.locator('.vb-reader pre').waitFor();
+    assert.equal(await page.evaluate(() => document.body.dataset.rendered), 'server');
     assert.equal(await page.locator('.vb-reader img').getAttribute('alt'), 'Diagram');
     assert.ok(!(await page.locator('main').textContent()).includes('PRIVATE BODY'));
     await shot('article', 320);
     await shot('article', 1280, 'dark');
-    await page.locator('.public-language').click();
+    // The server-rendered language menu is a native <details>: missing
+    // translations offer an explicit home link in that site language.
     const missing = ['en', 'ar', 'fr'].find((l) => l !== locale);
-    await page
-      .locator('#language-menu')
-      .getByRole('button', { name: t('language.' + missing), exact: true })
-      .click();
-    await page.getByText(t('public.unavailable'), { exact: true }).waitFor();
-    await page.keyboard.press('Escape');
+    await page.locator('.public-language').click();
+    assert.equal(
+      await page.locator(`.public-details .public-menu nav a[href="/${missing}"]`).count(),
+      1,
+    );
     await page.goto(origin + `/${locale}/learn/public-path`);
     await page.locator('.public-outline li').first().waitFor();
     assert.equal(await page.locator('.public-outline li').count(), 3);
@@ -305,6 +341,15 @@ export async function smokePublic({ context, origin, root, locale, t }) {
       await page.locator('.public-neighbors a').getAttribute('href'),
       `/${locale}/learn/public-path/public-path-two`,
     );
+    // Lessons stay on the SPA, where a missing translation shows the
+    // explicit notice with site-language choices.
+    await page.locator('.public-language').click();
+    await page
+      .locator('#language-menu')
+      .getByRole('button', { name: t('language.' + missing), exact: true })
+      .click();
+    await page.getByText(t('public.unavailable'), { exact: true }).waitFor();
+    await page.keyboard.press('Escape');
     await shot('lesson', 320);
     await page.goto(origin + `/${locale}/docs/public-guide/public-guide-one`);
     await page.locator('.vb-reader').waitFor();

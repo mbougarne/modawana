@@ -15,6 +15,12 @@ import (
 func (d *Domain) ResolvePage(ctx context.Context, path string) (content.PageRoute, error) {
 	return d.Content.ResolvePage(ctx, path)
 }
+
+// PublicTaxonomy feeds the theme renderer's category sticker and tag links
+// with the same published-only terms the public taxonomy endpoint serves.
+func (d *Domain) PublicTaxonomy(ctx context.Context, locale string) ([]content.Term, error) {
+	return d.Content.Taxonomy(ctx, locale, false)
+}
 func (d *Domain) pageRoutes(w http.ResponseWriter, r *http.Request) bool {
 	if r.URL.Path == "/api/v1/public/page" && r.Method == "GET" {
 		out, e := d.ResolvePage(access.WithPrincipal(r.Context(), d.readerPrincipal(r)), r.URL.Query().Get("path"))
