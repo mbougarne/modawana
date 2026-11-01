@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"github.com/mbougarne/modawana/backend/internal/auth"
+	"github.com/mbougarne/modawana/backend/internal/extension"
 	"io"
 	"mime"
 	"mime/multipart"
@@ -175,7 +176,7 @@ func (d *Domain) mcpRoutes(w http.ResponseWriter, r *http.Request) bool {
 			reply(400, -32602, request.ID, "Invalid cursor", nil)
 			return true
 		}
-		result = map[string]any{"tools": mcpTools()}
+		result = map[string]any{"tools": d.mcpTools()}
 	case "tools/call":
 		result, err = d.mcpCall(r, params.Name, params.Arguments)
 		if err != nil {
@@ -203,6 +204,18 @@ type mcpCapture struct {
 func (w *mcpCapture) Header() http.Header    { return w.header }
 func (w *mcpCapture) WriteHeader(status int) { w.status = status }
 
+// mcpTools lists every registered tool's definition, in registration order.
+func (d *Domain) mcpTools() []any {
+	registered := d.extensions().MCPTools()
+	tools := make([]any, 0, len(registered))
+	for _, tool := range registered {
+		tools = append(tools, tool.Definition())
+	}
+	return tools
+}
+
+type mcpRequestKey struct{}
+
 func (d *Domain) mcpCall(r *http.Request, name string, raw json.RawMessage) (map[string]any, error) {
 	// Enforce each advertised tool's argument names and required fields before
 	// decoding the common envelope. Never silently ignore fields from another tool.
@@ -210,27 +223,73 @@ func (d *Domain) mcpCall(r *http.Request, name string, raw json.RawMessage) (map
 	if json.Unmarshal(raw, &fields) != nil {
 		return nil, io.ErrUnexpectedEOF
 	}
-	known := false
-	for _, definition := range mcpTools() {
-		tool := definition.(map[string]any)
-		if tool["name"] != name {
-			continue
-		}
-		known = true
-		schema := tool["inputSchema"].(map[string]any)
-		properties := schema["properties"].(map[string]any)
-		for key := range fields {
-			if _, ok := properties[key]; !ok {
-				return nil, io.ErrUnexpectedEOF
-			}
-		}
-		for _, key := range schema["required"].([]string) {
-			if value, ok := fields[key]; !ok || bytes.Equal(bytes.TrimSpace(value), []byte("null")) {
-				return nil, io.ErrUnexpectedEOF
-			}
+	tool, known := d.extensions().MCPTool(name)
+	if !known {
+		return nil, io.ErrUnexpectedEOF
+	}
+	for key := range fields {
+		if _, ok := tool.Properties[key]; !ok {
+			return nil, io.ErrUnexpectedEOF
 		}
 	}
-	if !known {
+	for _, key := range tool.Required {
+		if value, ok := fields[key]; !ok || bytes.Equal(bytes.TrimSpace(value), []byte("null")) {
+			return nil, io.ErrUnexpectedEOF
+		}
+	}
+	encoded, err := tool.Call(context.WithValue(r.Context(), mcpRequestKey{}, r), raw)
+	if err != nil {
+		return nil, err
+	}
+	var result map[string]any
+	if json.Unmarshal(encoded, &result) != nil || result == nil {
+		return nil, io.ErrUnexpectedEOF
+	}
+	return result, nil
+}
+
+// publisherTools is the built-in extension providing the four publisher MCP
+// tools. Each call re-dispatches to the publisher HTTP boundary, including
+// its transactional scope checks and idempotency ledger.
+type publisherTools struct{ domain *Domain }
+
+func (publisherTools) Slug() string { return "publisher-mcp" }
+
+func (p publisherTools) Register(r *extension.Registrar) error {
+	str := func(description string) map[string]any {
+		return map[string]any{"type": "string", "description": description}
+	}
+	identity := func() map[string]any {
+		return map[string]any{"key": map[string]any{"type": "string", "pattern": mcpKey.String()}, "locale": map[string]any{"type": "string", "enum": []string{"en", "ar", "fr"}}}
+	}
+	call := func(name string) extension.ToolFunc {
+		return func(ctx context.Context, raw json.RawMessage) ([]byte, error) {
+			return p.domain.publisherToolCall(ctx, name, raw)
+		}
+	}
+	save := identity()
+	save["idempotency_key"] = str("Stable retry key; reuse with identical payload only")
+	save["draft"] = mcpDraftSchema()
+	pub := identity()
+	pub["idempotency_key"] = str("Stable exact-publication retry key")
+	pub["publication"] = map[string]any{"type": "object", "properties": map[string]any{"expected_version": map[string]string{"type": "integer"}, "revision_id": str("Exact saved revision ID")}, "required": []string{"expected_version", "revision_id"}, "additionalProperties": false}
+	upload := map[string]any{"filename": str("Plain filename"), "mime_type": str("Declared MIME type; bytes are validated"), "data_base64": str("Standard base64 encoded file"), "idempotency_key": str("Stable upload retry key")}
+	for _, tool := range []extension.MCPTool{
+		{Name: "get_draft", Description: "Read a scoped private draft. Quiz-bearing drafts require quiz scope too.", Properties: identity(), Required: []string{"key", "locale"}, ReadOnly: true, Idempotent: true, Call: call("get_draft")},
+		{Name: "save_draft", Description: "Create/update a draft through existing scoped services, including optional immutable quiz. Stop on conflict; never bump versions automatically.", Properties: save, Required: []string{"key", "locale", "idempotency_key", "draft"}, Idempotent: true, Call: call("save_draft")},
+		{Name: "publish_revision", Description: "Publish an explicitly authorized saved revision with publish scope. Translation/assessment review remains required. No plan/gate changes.", Properties: pub, Required: []string{"key", "locale", "idempotency_key", "publication"}, Idempotent: true, Call: call("publish_revision")},
+		{Name: "upload_media", Description: "Upload a base64 content attachment, maximum 8 MiB decoded. No remote URL fetching. Requires media scope; draft media stays private.", Properties: upload, Required: []string{"filename", "mime_type", "data_base64", "idempotency_key"}, Idempotent: true, Call: call("upload_media")},
+	} {
+		if err := r.MCPTool(tool); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (d *Domain) publisherToolCall(ctx context.Context, name string, raw json.RawMessage) ([]byte, error) {
+	r, ok := ctx.Value(mcpRequestKey{}).(*http.Request)
+	if !ok {
 		return nil, io.ErrUnexpectedEOF
 	}
 	var in struct {
@@ -283,7 +342,7 @@ func (d *Domain) mcpCall(r *http.Request, name string, raw json.RawMessage) (map
 	default:
 		return nil, io.ErrUnexpectedEOF
 	}
-	next := auth.MCPInternalRequest(r.Clone(r.Context()))
+	next := auth.MCPInternalRequest(r.Clone(ctx))
 	u := *r.URL
 	u.Path, u.RawPath, u.RawQuery = path, "", ""
 	next.URL = &u
@@ -297,27 +356,7 @@ func (d *Domain) mcpCall(r *http.Request, name string, raw json.RawMessage) (map
 		payload = map[string]any{"error": map[string]string{"code": "request_failed"}}
 	}
 	encoded, _ := json.Marshal(map[string]any{"status": w.status, "data": payload})
-	return map[string]any{"content": []any{map[string]string{"type": "text", "text": string(encoded)}}, "isError": w.status >= 400}, nil
-}
-
-func mcpTools() []any {
-	str := func(description string) map[string]any {
-		return map[string]any{"type": "string", "description": description}
-	}
-	identity := func() map[string]any {
-		return map[string]any{"key": map[string]any{"type": "string", "pattern": mcpKey.String()}, "locale": map[string]any{"type": "string", "enum": []string{"en", "ar", "fr"}}}
-	}
-	tool := func(name, description string, properties map[string]any, required []string, read bool) any {
-		return map[string]any{"name": name, "description": description, "inputSchema": map[string]any{"type": "object", "properties": properties, "required": required, "additionalProperties": false}, "annotations": map[string]bool{"readOnlyHint": read, "destructiveHint": !read, "idempotentHint": true, "openWorldHint": false}}
-	}
-	get := tool("get_draft", "Read a scoped private draft. Quiz-bearing drafts require quiz scope too.", identity(), []string{"key", "locale"}, true)
-	save := identity()
-	save["idempotency_key"] = str("Stable retry key; reuse with identical payload only")
-	save["draft"] = mcpDraftSchema()
-	pub := identity()
-	pub["idempotency_key"] = str("Stable exact-publication retry key")
-	pub["publication"] = map[string]any{"type": "object", "properties": map[string]any{"expected_version": map[string]string{"type": "integer"}, "revision_id": str("Exact saved revision ID")}, "required": []string{"expected_version", "revision_id"}, "additionalProperties": false}
-	return []any{get, tool("save_draft", "Create/update a draft through existing scoped services, including optional immutable quiz. Stop on conflict; never bump versions automatically.", save, []string{"key", "locale", "idempotency_key", "draft"}, false), tool("publish_revision", "Publish an explicitly authorized saved revision with publish scope. Translation/assessment review remains required. No plan/gate changes.", pub, []string{"key", "locale", "idempotency_key", "publication"}, false), tool("upload_media", "Upload a base64 content attachment, maximum 8 MiB decoded. No remote URL fetching. Requires media scope; draft media stays private.", map[string]any{"filename": str("Plain filename"), "mime_type": str("Declared MIME type; bytes are validated"), "data_base64": str("Standard base64 encoded file"), "idempotency_key": str("Stable upload retry key")}, []string{"filename", "mime_type", "data_base64", "idempotency_key"}, false)}
+	return json.Marshal(map[string]any{"content": []any{map[string]string{"type": "text", "text": string(encoded)}}, "isError": w.status >= 400})
 }
 
 func mcpDraftSchema() map[string]any {

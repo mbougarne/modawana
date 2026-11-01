@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/mbougarne/modawana/backend/internal/config"
+	"github.com/mbougarne/modawana/backend/internal/extension"
 	"github.com/mbougarne/modawana/backend/internal/siteconfig"
 )
 
@@ -27,6 +28,7 @@ type Options struct {
 	Assets      *Assets
 	Ready       func(context.Context) error
 	Logger      *slog.Logger
+	Extensions  *extension.Host
 	Domain      interface {
 		Handle(http.ResponseWriter, *http.Request) bool
 	}
@@ -35,10 +37,12 @@ type Options struct {
 	}
 }
 type Server struct {
-	options    Options
-	socialOnce sync.Once
-	socialPNG  []byte
-	socialErr  error
+	options       Options
+	builtinOnce   sync.Once
+	extensionHost *extension.Host
+	socialOnce    sync.Once
+	socialPNG     []byte
+	socialErr     error
 }
 
 func New(options Options) http.Handler {
@@ -46,6 +50,25 @@ func New(options Options) http.Handler {
 		options.Logger = slog.Default()
 	}
 	return &Server{options: options}
+}
+
+// extensions installs the server's built-in extensions exactly once when the
+// caller did not install Domain.Builtins eagerly — a convenience for tests
+// that construct a Server without a prepared host.
+func (s *Server) extensions() *extension.Host {
+	s.builtinOnce.Do(func() {
+		host := s.options.Extensions
+		if host == nil {
+			host = extension.NewHost(s.options.Logger)
+		}
+		if !host.Installed("social-cards") {
+			if err := host.Install(socialCards{}); err != nil {
+				s.options.Logger.Error("built-in extension rejected", "extension", "social-cards", "reason", err.Error())
+			}
+		}
+		s.extensionHost = host
+	})
+	return s.extensionHost
 }
 
 type requestKey struct{}
@@ -301,7 +324,7 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 	}
 	social := socialMetadata{}
 	if status == 200 && !private && !strings.HasSuffix(r.URL.Path, "/login") {
-		social = socialFor(page, settings, s.options.Config.BaseURL, title)
+		social = s.renderedMeta(r.Context(), page, settings, s.options.Config.BaseURL, title)
 	}
 	var body bytes.Buffer
 	err := shell.Execute(&body, struct {

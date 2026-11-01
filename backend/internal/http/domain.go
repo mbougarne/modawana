@@ -8,12 +8,14 @@ import (
 	"mime"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/mbougarne/modawana/backend/internal/access"
 	"github.com/mbougarne/modawana/backend/internal/auth"
 	"github.com/mbougarne/modawana/backend/internal/content"
 	"github.com/mbougarne/modawana/backend/internal/db"
+	"github.com/mbougarne/modawana/backend/internal/extension"
 	"github.com/mbougarne/modawana/backend/internal/media"
 	"github.com/mbougarne/modawana/backend/internal/siteconfig"
 )
@@ -26,6 +28,33 @@ type Domain struct {
 	Content    *content.Service
 	Auth       *auth.Service
 	Media      *media.Service
+	Extensions *extension.Host
+
+	builtinOnce sync.Once
+}
+
+// Builtins returns the HTTP layer's built-in extensions for the server main
+// to install eagerly, before the job runner starts: the runner only picks up
+// jobs registered before it runs.
+func (d *Domain) Builtins() []extension.Extension {
+	return []extension.Extension{socialCards{}, publisherTools{domain: d}}
+}
+
+// extensions installs the built-in publisher MCP tools exactly once when the
+// caller did not install Builtins eagerly — a convenience for tests that
+// construct Domain directly.
+func (d *Domain) extensions() *extension.Host {
+	d.builtinOnce.Do(func() {
+		if d.Extensions == nil {
+			d.Extensions = extension.NewHost(nil)
+		}
+		if !d.Extensions.Installed("publisher-mcp") {
+			// Registration only fails on a malformed built-in declaration, a
+			// programming error; the tests pin the list.
+			_ = d.Extensions.Install(publisherTools{domain: d})
+		}
+	})
+	return d.Extensions
 }
 
 func domainError(w http.ResponseWriter, e error) {
