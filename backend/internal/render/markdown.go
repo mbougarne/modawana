@@ -30,7 +30,9 @@ func newMarkdown(opts Options) goldmark.Markdown {
 		goldmark.WithExtensions(
 			extension.Strikethrough,
 			// align attributes instead of inline styles: the output must stay
-			// embeddable under the strict no-inline-style CSP.
+			// embeddable under the strict no-inline-style CSP. The align
+			// attribute is obsolete HTML; at stage 2, theme-owned classes
+			// should replace it.
 			extension.NewTable(extension.WithTableCellAlignMethod(extension.TableCellAlignAttribute)),
 			extension.TaskList,
 			extension.NewLinkify(extension.WithLinkifyAllowedProtocols([]string{"http:", "https:"})),
