@@ -17,6 +17,9 @@ type Manifest struct {
 	Scripts []string `json:"scripts"`
 	Styles  []string `json:"styles"`
 	Assets  []string `json:"assets"`
+	// Islands are host-owned interactivity bundles for server-rendered pages
+	// (ADR 0002), keyed by island name; each entry lists manifest assets.
+	Islands map[string][]string `json:"islands,omitempty"`
 }
 type asset struct {
 	body        []byte
@@ -96,5 +99,37 @@ func LoadAssets(dir string) (*Assets, error) {
 			}
 		}
 	}
+	if len(m.Islands) > 16 {
+		return nil, errors.New("invalid manifest")
+	}
+	for island, paths := range m.Islands {
+		if !islandName.MatchString(island) || len(paths) == 0 || len(paths) > 8 {
+			return nil, errors.New("invalid island")
+		}
+		for _, name := range paths {
+			if _, ok := a.files[name]; !ok || (!strings.HasSuffix(name, ".js") && !strings.HasSuffix(name, ".css")) {
+				return nil, errors.New("invalid island entrypoint")
+			}
+		}
+	}
 	return a, nil
+}
+
+var islandName = regexp.MustCompile(`^[a-z][a-z0-9-]{0,31}$`)
+
+// Island returns an island's script and style assets, or ok=false when the
+// loaded frontend build does not provide it.
+func (a *Assets) Island(name string) (scripts, styles []string, ok bool) {
+	paths, ok := a.Manifest.Islands[name]
+	if !ok {
+		return nil, nil, false
+	}
+	for _, p := range paths {
+		if strings.HasSuffix(p, ".js") {
+			scripts = append(scripts, p)
+		} else {
+			styles = append(styles, p)
+		}
+	}
+	return scripts, styles, true
 }

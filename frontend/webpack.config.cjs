@@ -13,6 +13,18 @@ class AssetManifestPlugin {
         },
         () => {
           const files = compilation.entrypoints.get('app').getFiles();
+          // Every entrypoint other than the SPA is a host-owned island bundle
+          // for server-rendered pages (ADR 0002), listed so the Go server can
+          // emit it only on pages that need it.
+          const islands = {};
+          for (const [name, entrypoint] of compilation.entrypoints) {
+            if (name !== 'app') {
+              islands[name] = entrypoint
+                .getFiles()
+                .filter((f) => !f.endsWith('.map'))
+                .map((f) => '/' + f);
+            }
+          }
           const manifest = {
             version: 1,
             assets: Object.keys(compilation.assets)
@@ -23,6 +35,7 @@ class AssetManifestPlugin {
               .map((f) => '/' + f),
             scripts: files.filter((f) => f.endsWith('.js')).map((f) => '/' + f),
             styles: files.filter((f) => f.endsWith('.css')).map((f) => '/' + f),
+            ...(Object.keys(islands).length ? { islands } : {}),
           };
           compilation.emitAsset(
             'manifest.json',
@@ -35,7 +48,7 @@ class AssetManifestPlugin {
 }
 module.exports = (_, argv) => ({
   context: __dirname,
-  entry: { app: './src/main.tsx' },
+  entry: { app: './src/main.tsx', katex: './src/islands/katex.ts' },
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'assets/[name].[contenthash].js',
@@ -75,7 +88,7 @@ module.exports = (_, argv) => ({
   },
   plugins: [
     new MiniCssExtractPlugin({ filename: 'assets/[name].[contenthash].css' }),
-    new HtmlWebpackPlugin({ template: './src/index.html' }),
+    new HtmlWebpackPlugin({ template: './src/index.html', chunks: ['app'] }),
     new AssetManifestPlugin(),
   ],
   devServer: {

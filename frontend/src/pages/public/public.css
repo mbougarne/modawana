@@ -525,3 +525,11 @@
 .public-reader-article > .vb-art-head .vb-art-meta {
   justify-content: center;
 }
+/* Server-rendered theme pages (ADR 0002 stage 2): the language and phone
+   navigation menus are native <details>, so they open without JavaScript. */
+.public-details > summary {
+  list-style: none;
+}
+.public-details > summary::-webkit-details-marker {
+  display: none;
+}

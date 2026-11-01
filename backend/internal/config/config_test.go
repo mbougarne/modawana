@@ -39,7 +39,7 @@ func TestConfiguration(t *testing.T) {
 }
 func TestInvalidConfiguration(t *testing.T) {
 	for _, tc := range []struct{ name, value string }{
-		{"BLOG_ENV", "test"}, {"BLOG_BASE_URL", "http://blog.example"}, {"BLOG_BASE_URL", "https://user:secret@blog.example"}, {"BLOG_BASE_URL", "https://blog.example/path"}, {"BLOG_BASE_URL", "https://blog.example?"}, {"BLOG_BASE_URL", "https://blog.example:99999"}, {"BLOG_RP_ID", "example"}, {"BLOG_WEBAUTHN_ORIGINS", "https://evil.example"}, {"BLOG_WEBAUTHN_ORIGINS", ""}, {"BLOG_TRUSTED_PROXIES", "localhost"}, {"BLOG_LISTEN_ADDR", ":8080"}, {"BLOG_LISTEN_ADDR", "127.0.0.1:0"}, {"BLOG_DATA_ROOT", "relative"}} {
+		{"BLOG_ENV", "test"}, {"BLOG_BASE_URL", "http://blog.example"}, {"BLOG_BASE_URL", "https://user:secret@blog.example"}, {"BLOG_BASE_URL", "https://blog.example/path"}, {"BLOG_BASE_URL", "https://blog.example?"}, {"BLOG_BASE_URL", "https://blog.example:99999"}, {"BLOG_RP_ID", "example"}, {"BLOG_WEBAUTHN_ORIGINS", "https://evil.example"}, {"BLOG_WEBAUTHN_ORIGINS", ""}, {"BLOG_TRUSTED_PROXIES", "localhost"}, {"BLOG_LISTEN_ADDR", ":8080"}, {"BLOG_LISTEN_ADDR", "127.0.0.1:0"}, {"BLOG_DATA_ROOT", "relative"}, {"BLOG_FORCE_SPA", "yes"}} {
 		t.Run(tc.name+tc.value, func(t *testing.T) {
 			env, cwd := fixture(t)
 			env[tc.name] = tc.value
@@ -51,6 +51,16 @@ func TestInvalidConfiguration(t *testing.T) {
 				t.Fatal("error leaked value")
 			}
 		})
+	}
+}
+func TestForceSPAOverride(t *testing.T) {
+	env, cwd := fixture(t)
+	for value, want := range map[string]bool{"": false, "0": false, "1": true} {
+		env["BLOG_FORCE_SPA"] = value
+		cfg, err := Load(func(k string) string { return env[k] }, cwd)
+		if err != nil || cfg.ForceSPA != want {
+			t.Fatalf("%q: %v %v", value, cfg.ForceSPA, err)
+		}
 	}
 }
 func TestDataCannotLiveInsideCheckoutOrSymlink(t *testing.T) {
