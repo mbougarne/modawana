@@ -25,6 +25,9 @@ services:
       BLOG_LISTEN_ADDR: 0.0.0.0:8080
       BLOG_AUTH_KEY_FILE: /run/secrets/auth-key
       BLOG_TRUSTED_PROXIES: ${BLOG_TRUSTED_PROXIES:-}
+      # Operator rollback for server-rendered public pages (ADR 0002): set to 1
+      # to serve the SPA shell everywhere.
+      BLOG_FORCE_SPA: ${BLOG_FORCE_SPA:-}
     volumes:
       - type: bind
         source: ${BLOG_HOST_DATA:?Set the persistent host data directory}
