@@ -82,6 +82,7 @@ try {
         throw new Error('Component styles differ');
       }
       await run('npm', ['run', 'check'], resolve(root, 'frontend'));
+      await run('node', ['scripts/markdown-parity.mjs']);
       await run(
         'go',
         ['test', ...(process.argv.includes('--race') ? ['-race'] : []), './...'],

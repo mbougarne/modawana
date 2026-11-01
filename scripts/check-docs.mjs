@@ -2,7 +2,16 @@ import { readdirSync, readFileSync, existsSync, writeFileSync } from 'node:fs';
 import { join, dirname, relative, resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
-const excluded = new Set(['.git', 'node_modules', 'dist', 'build', 'coverage', 'generated_images']);
+// testdata holds Go test fixtures (Markdown as input data), not documentation.
+const excluded = new Set([
+  '.git',
+  'node_modules',
+  'dist',
+  'build',
+  'coverage',
+  'generated_images',
+  'testdata',
+]);
 function walk(dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
     if (excluded.has(e.name) || (dir === root && e.name === 'internal')) {
