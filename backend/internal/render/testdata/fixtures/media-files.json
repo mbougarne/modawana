@@ -1,0 +1,6 @@
+{
+  "media": [
+    { "id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "kind": "image", "width": 32, "height": 24 },
+    { "id": "ffffffffffffffffffffffffffffffff", "kind": "pdf" }
+  ]
+}

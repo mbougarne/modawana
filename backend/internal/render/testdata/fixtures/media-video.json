@@ -1,0 +1,17 @@
+{
+  "media": [
+    { "id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "kind": "image", "width": 32, "height": 24 },
+    { "id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "kind": "video" },
+    { "id": "11111111111111111111111111111111", "kind": "video" },
+    { "id": "cccccccccccccccccccccccccccccccc", "kind": "captions" }
+  ],
+  "presentations": [
+    {
+      "media_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "poster_media_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "caption_track_media_id": "cccccccccccccccccccccccccccccccc",
+      "caption": "A caption",
+      "transcript": "A transcript"
+    }
+  ]
+}

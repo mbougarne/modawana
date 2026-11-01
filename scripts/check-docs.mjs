@@ -2,6 +2,7 @@ import { readdirSync, readFileSync, existsSync, writeFileSync } from 'node:fs';
 import { join, dirname, relative, resolve } from 'node:path';
 
 const root = resolve(import.meta.dirname, '..');
+// testdata holds Go test fixtures (Markdown as input data), not documentation.
 const excluded = new Set([
   '.git',
   'node_modules',
@@ -9,6 +10,7 @@ const excluded = new Set([
   'build',
   'coverage',
   'generated_images',
+  'testdata',
   '_docs',
 ]);
 function walk(dir) {
