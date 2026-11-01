@@ -201,6 +201,36 @@
       "companion": "docs/architecture.ar.md"
     },
     {
+      "path": "docs/decisions/0001-wasm-plugin-host.ar.md",
+      "coverage": "ar",
+      "companion": "docs/decisions/0001-wasm-plugin-host.md"
+    },
+    {
+      "path": "docs/decisions/0001-wasm-plugin-host.md",
+      "coverage": "en",
+      "companion": "docs/decisions/0001-wasm-plugin-host.ar.md"
+    },
+    {
+      "path": "docs/decisions/0002-server-rendered-themes.ar.md",
+      "coverage": "ar",
+      "companion": "docs/decisions/0002-server-rendered-themes.md"
+    },
+    {
+      "path": "docs/decisions/0002-server-rendered-themes.md",
+      "coverage": "en",
+      "companion": "docs/decisions/0002-server-rendered-themes.ar.md"
+    },
+    {
+      "path": "docs/decisions/README.ar.md",
+      "coverage": "ar",
+      "companion": "docs/decisions/README.md"
+    },
+    {
+      "path": "docs/decisions/README.md",
+      "coverage": "en",
+      "companion": "docs/decisions/README.ar.md"
+    },
+    {
       "path": "docs/deployment.ar.md",
       "coverage": "ar",
       "companion": "docs/deployment.md"

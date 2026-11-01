@@ -11,6 +11,7 @@ const excluded = new Set([
   'coverage',
   'generated_images',
   'testdata',
+  '_docs',
 ]);
 function walk(dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
