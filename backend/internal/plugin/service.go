@@ -269,19 +269,24 @@ func (s *Service) SetEnabled(ctx context.Context, slug string, enable bool, expe
 	if _, err = tx.ExecContext(ctx, "UPDATE plugin_installs SET enabled=?, updated_at=? WHERE id=?", value, db.UTC(time.Now()), record.ID); err != nil {
 		return record, err
 	}
+	// Enabling loads before the commit so a module that fails verification
+	// rolls the flag back, and unloads again if the commit itself fails.
+	// Disabling unloads only after the commit, so the registries never run
+	// ahead of the durable flag; either failure leaves the plugin off.
 	if enable {
 		record.Enabled = true
 		if err = s.load(ctx, record); err != nil {
 			return record, err
 		}
-	} else {
-		s.unload(slug)
 	}
 	if err = tx.Commit(); err != nil {
 		if enable {
 			s.unload(slug)
 		}
 		return record, err
+	}
+	if !enable {
+		s.unload(slug)
 	}
 	return s.install(ctx, slug)
 }
@@ -290,7 +295,6 @@ func (s *Service) SetEnabled(ctx context.Context, slug string, enable bool, expe
 // plugin's storage. Files under plugins/{slug}/ stay for the operator to
 // delete: the host never removes data-root files on an API call.
 func (s *Service) Remove(ctx context.Context, slug string, expected int64, check func(*sql.Tx) error) error {
-	s.unload(slug)
 	tx, err := s.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -317,7 +321,13 @@ func (s *Service) Remove(ctx context.Context, slug string, expected int64, check
 		}
 		return db.ErrVersionConflict
 	}
-	return tx.Commit()
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+	// Unload only after the delete is durable: a refused or failed removal
+	// leaves the running plugin exactly as it was.
+	s.unload(slug)
+	return nil
 }
 
 // LoadEnabled loads every enabled, checksum-verified plugin at startup. A

@@ -38,6 +38,12 @@ var collectionPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,63}$`)
 // storage is the namespaced persistence surface behind the storage host
 // functions. Every row is keyed by the plugin's install ID: one plugin can
 // never read or write another plugin's namespace.
+//
+// The quota writes read current usage and then upsert inside one transaction.
+// That pre-check is sound only because the connection policy (db.Open's
+// _txlock=immediate) makes every transaction a write transaction from BEGIN:
+// concurrent writers serialize at BeginTx, so two invocations can never both
+// pass the usage check on stale reads and overshoot a quota.
 type storage struct {
 	db *sql.DB
 }
