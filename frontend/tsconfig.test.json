@@ -1,0 +1,35 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "outDir": ".test-output",
+    "rootDir": ".."
+  },
+  "include": [
+    "../ui/src",
+    "src/features/auth/webauthn.ts",
+    "src/features/markdown/*.tsx",
+    "src/features/owner/NotionImport.tsx",
+    "src/features/owner/BulkPublication.tsx",
+    "src/features/owner/OwnerWorkspace.tsx",
+    "src/pages/admin/labels/LabelsForm.tsx",
+    "src/pages/admin/editor/QuizBuilder.tsx",
+    "src/pages/admin/editor/EditorPage.tsx",
+    "src/features/configuration/ValidationIssues.tsx",
+    "src/features/configuration/controls.tsx",
+    "src/features/owner/ReferencePicker.tsx",
+    "src/pages/admin/editor/lessonPlan.ts",
+    "src/features/owner/CollectionContents.tsx",
+    "src/pages/admin/editor/publishDraft.ts",
+    "src/features/content/slug.ts",
+    "src/features/owner/Organization.tsx",
+    "src/pages/public/presentation.tsx",
+    "src/pages/public/writing.tsx",
+    "src/pages/public/reading.tsx",
+    "src/pages/public/PublicLayout.tsx",
+    "src/features/owner/TaxonomyCreate.tsx",
+    "src/pages/public/home.tsx",
+    "src/pages/public/social.ts"
+  ]
+}

@@ -1,0 +1,11 @@
+[Unit]
+Description=Encrypted blog backup and off-server transfer
+[Service]
+Type=oneshot
+User=blog
+Group=blog
+EnvironmentFile=/etc/personal-blog/backup.env
+ExecStart=/bin/sh /srv/personal-blog/current/scripts/backup-daily.sh
+UMask=0077
+PrivateTmp=true
+NoNewPrivileges=true

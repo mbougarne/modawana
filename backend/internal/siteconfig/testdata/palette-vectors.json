@@ -1,0 +1,688 @@
+[
+  {
+    "primary": "#2B44C4",
+    "secondary": "#F2B33D",
+    "version": 1,
+    "adjusted": false,
+    "light": {
+      "majorelle": "#2B44C4",
+      "majorelle-strong": "#1F339A",
+      "majorelle-soft": "#E3E8FB",
+      "on-majorelle": "#FFFFFF",
+      "sun": "#F2B33D",
+      "on-sun": "#15161A",
+      "shadow-pop": "4px 4px 0 0 #15161A"
+    },
+    "dark": {
+      "majorelle": "#8FA2FF",
+      "majorelle-strong": "#B3C0FF",
+      "majorelle-soft": "#1D2550",
+      "on-majorelle": "#0F1117",
+      "sun": "#F5C15A",
+      "on-sun": "#0F1117",
+      "shadow-pop": "4px 4px 0 0 #8FA2FF"
+    },
+    "checks": [
+      {
+        "theme": "light",
+        "check": "links",
+        "ratio": 7.175586488914816,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "surface",
+        "ratio": 7.701697583925889,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "focus",
+        "ratio": 6.308728478440205,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "button",
+        "ratio": 7.701697583925889,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "soft",
+        "ratio": 8.60775580223372,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "secondary",
+        "ratio": 9.720389784422181,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "links",
+        "ratio": 7.889610988209229,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "surface",
+        "ratio": 7.272547507611825,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "focus",
+        "ratio": 6.128302464254002,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "button",
+        "ratio": 7.889610988209229,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "soft",
+        "ratio": 8.306372657666397,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "secondary",
+        "ratio": 11.37436729411795,
+        "pass": true
+      }
+    ]
+  },
+  {
+    "primary": "#FFFFFF",
+    "secondary": "#FFFFFF",
+    "version": 1,
+    "adjusted": true,
+    "light": {
+      "majorelle": "#6F6F6F",
+      "majorelle-strong": "#535353",
+      "majorelle-soft": "#FFFFFF",
+      "on-majorelle": "#FFFFFF",
+      "sun": "#FFFFFF",
+      "on-sun": "#15161A",
+      "shadow-pop": "4px 4px 0 0 #15161A"
+    },
+    "dark": {
+      "majorelle": "#FFFFFF",
+      "majorelle-strong": "#FFFFFF",
+      "majorelle-soft": "#525458",
+      "on-majorelle": "#0F1117",
+      "sun": "#FFFFFF",
+      "on-sun": "#0F1117",
+      "shadow-pop": "4px 4px 0 0 #FFFFFF"
+    },
+    "checks": [
+      {
+        "theme": "light",
+        "check": "links",
+        "ratio": 4.681611225887093,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "surface",
+        "ratio": 5.024865064757633,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "focus",
+        "ratio": 5.024865064757633,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "button",
+        "ratio": 5.024865064757633,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "soft",
+        "ratio": 7.692281654833146,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "secondary",
+        "ratio": 18.079043108039247,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "links",
+        "ratio": 18.87023877938738,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "surface",
+        "ratio": 17.394356731677462,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "focus",
+        "ratio": 7.587216991372819,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "button",
+        "ratio": 18.87023877938738,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "soft",
+        "ratio": 7.587216991372819,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "secondary",
+        "ratio": 18.87023877938738,
+        "pass": true
+      }
+    ]
+  },
+  {
+    "primary": "#000000",
+    "secondary": "#000000",
+    "version": 1,
+    "adjusted": true,
+    "light": {
+      "majorelle": "#000000",
+      "majorelle-strong": "#000000",
+      "majorelle-soft": "#DEDEDE",
+      "on-majorelle": "#FFFFFF",
+      "sun": "#000000",
+      "on-sun": "#FFFFFF",
+      "shadow-pop": "4px 4px 0 0 #15161A"
+    },
+    "dark": {
+      "majorelle": "#868686",
+      "majorelle-strong": "#B0B0B0",
+      "majorelle-soft": "#0B0C11",
+      "on-majorelle": "#0F1117",
+      "sun": "#1A1A1A",
+      "on-sun": "#FFFFFF",
+      "shadow-pop": "4px 4px 0 0 #868686"
+    },
+    "checks": [
+      {
+        "theme": "light",
+        "check": "links",
+        "ratio": 19.56546782383518,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "surface",
+        "ratio": 21,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "focus",
+        "ratio": 15.609214801807074,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "button",
+        "ratio": 21,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "soft",
+        "ratio": 15.609214801807074,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "secondary",
+        "ratio": 21,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "links",
+        "ratio": 5.18298198212719,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "surface",
+        "ratio": 4.777609789943736,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "focus",
+        "ratio": 5.365973439866855,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "button",
+        "ratio": 5.18298198212719,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "soft",
+        "ratio": 9.008243440424266,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "secondary",
+        "ratio": 17.40432753274219,
+        "pass": true
+      }
+    ]
+  },
+  {
+    "primary": "#00FF00",
+    "secondary": "#FF00FF",
+    "version": 1,
+    "adjusted": true,
+    "light": {
+      "majorelle": "#008400",
+      "majorelle-strong": "#006300",
+      "majorelle-soft": "#DEFFDE",
+      "on-majorelle": "#FFFFFF",
+      "sun": "#FF00FF",
+      "on-sun": "#15161A",
+      "shadow-pop": "4px 4px 0 0 #15161A"
+    },
+    "dark": {
+      "majorelle": "#00FF00",
+      "majorelle-strong": "#59FF59",
+      "majorelle-soft": "#0B5411",
+      "on-majorelle": "#0F1117",
+      "sun": "#FF1AFF",
+      "on-sun": "#0F1117",
+      "shadow-pop": "4px 4px 0 0 #00FF00"
+    },
+    "checks": [
+      {
+        "theme": "light",
+        "check": "links",
+        "ratio": 4.549573793773996,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "surface",
+        "ratio": 4.883146701601647,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "focus",
+        "ratio": 4.526143189006707,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "button",
+        "ratio": 4.883146701601647,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "soft",
+        "ratio": 6.989784247990703,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "secondary",
+        "ratio": 5.764632031020514,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "links",
+        "ratio": 13.751911156178306,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "surface",
+        "ratio": 12.676344543885326,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "focus",
+        "ratio": 6.681647219512956,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "button",
+        "ratio": 13.751911156178306,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "soft",
+        "ratio": 6.9300797854280365,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "secondary",
+        "ratio": 6.149683029498665,
+        "pass": true
+      }
+    ]
+  },
+  {
+    "primary": "#004488",
+    "secondary": "#F2B33D",
+    "version": 1,
+    "adjusted": true,
+    "light": {
+      "majorelle": "#004488",
+      "majorelle-strong": "#003366",
+      "majorelle-soft": "#DEE7F0",
+      "on-majorelle": "#FFFFFF",
+      "sun": "#F2B33D",
+      "on-sun": "#15161A",
+      "shadow-pop": "4px 4px 0 0 #15161A"
+    },
+    "dark": {
+      "majorelle": "#648FB7",
+      "majorelle-strong": "#9AB6D0",
+      "majorelle-soft": "#0B1F37",
+      "on-majorelle": "#0F1117",
+      "sun": "#F5C15A",
+      "on-sun": "#0F1117",
+      "shadow-pop": "4px 4px 0 0 #648FB7"
+    },
+    "checks": [
+      {
+        "theme": "light",
+        "check": "links",
+        "ratio": 8.965264963404104,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "surface",
+        "ratio": 9.622594559284185,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "focus",
+        "ratio": 7.695573200776558,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "button",
+        "ratio": 9.622594559284185,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "soft",
+        "ratio": 10.084433179144408,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "secondary",
+        "ratio": 9.720389784422181,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "links",
+        "ratio": 5.53044354649262,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "surface",
+        "ratio": 5.097895636444043,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "focus",
+        "ratio": 4.863815137675219,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "button",
+        "ratio": 5.53044354649262,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "soft",
+        "ratio": 7.883726248962257,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "secondary",
+        "ratio": 11.37436729411795,
+        "pass": true
+      }
+    ]
+  },
+  {
+    "primary": "#FF0000",
+    "secondary": "#777777",
+    "version": 1,
+    "adjusted": true,
+    "light": {
+      "majorelle": "#C70000",
+      "majorelle-strong": "#950000",
+      "majorelle-soft": "#FFDEDE",
+      "on-majorelle": "#FFFFFF",
+      "sun": "#777777",
+      "on-sun": "#FFFFFF",
+      "shadow-pop": "4px 4px 0 0 #15161A"
+    },
+    "dark": {
+      "majorelle": "#FF5757",
+      "majorelle-strong": "#FF9292",
+      "majorelle-soft": "#520C11",
+      "on-majorelle": "#0F1117",
+      "sun": "#858585",
+      "on-sun": "#0F1117",
+      "shadow-pop": "4px 4px 0 0 #FF5757"
+    },
+    "checks": [
+      {
+        "theme": "light",
+        "check": "links",
+        "ratio": 5.706842215366371,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "surface",
+        "ratio": 6.12526557513217,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "focus",
+        "ratio": 4.8871731507811695,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "button",
+        "ratio": 6.12526557513217,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "soft",
+        "ratio": 7.355549363590601,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "secondary",
+        "ratio": 4.478089453577214,
+        "pass": false
+      },
+      {
+        "theme": "dark",
+        "check": "links",
+        "ratio": 6.068041566733214,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "surface",
+        "ratio": 5.593446956786797,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "focus",
+        "ratio": 4.757405432206237,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "button",
+        "ratio": 6.068041566733214,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "soft",
+        "ratio": 6.889016305318794,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "secondary",
+        "ratio": 5.11384517161129,
+        "pass": true
+      }
+    ]
+  },
+  {
+    "primary": "#123456",
+    "secondary": "#FFAA00",
+    "version": 1,
+    "adjusted": true,
+    "light": {
+      "majorelle": "#123456",
+      "majorelle-strong": "#0E2741",
+      "majorelle-soft": "#E0E5E9",
+      "on-majorelle": "#FFFFFF",
+      "sun": "#FFAA00",
+      "on-sun": "#15161A",
+      "shadow-pop": "4px 4px 0 0 #15161A"
+    },
+    "dark": {
+      "majorelle": "#6F8599",
+      "majorelle-strong": "#A1B0BD",
+      "majorelle-soft": "#101B29",
+      "on-majorelle": "#0F1117",
+      "sun": "#FFB31A",
+      "on-sun": "#0F1117",
+      "shadow-pop": "4px 4px 0 0 #6F8599"
+    },
+    "checks": [
+      {
+        "theme": "light",
+        "check": "links",
+        "ratio": 11.848571608705763,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "surface",
+        "ratio": 12.717304079982272,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "focus",
+        "ratio": 10.024761166159278,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "button",
+        "ratio": 12.717304079982272,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "soft",
+        "ratio": 11.950399041898391,
+        "pass": true
+      },
+      {
+        "theme": "light",
+        "check": "secondary",
+        "ratio": 9.47160221532014,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "links",
+        "ratio": 4.934023389830742,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "surface",
+        "ratio": 4.548122785754314,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "focus",
+        "ratio": 4.534840875007149,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "button",
+        "ratio": 4.934023389830742,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "soft",
+        "ratio": 7.813167727931372,
+        "pass": true
+      },
+      {
+        "theme": "dark",
+        "check": "secondary",
+        "ratio": 10.526858044668604,
+        "pass": true
+      }
+    ]
+  }
+]

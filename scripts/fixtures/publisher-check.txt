@@ -1,0 +1,7 @@
+# Publisher connection check
+
+This private draft checks that the local publishing tool can save an article to the blog using a scoped publisher token.
+
+The check exercises draft creation and a subsequent read. It does not publish the article, upload media, change a learning path or configure a scheduled lesson.
+
+Once the connection has been verified, this draft can be kept unpublished or removed through the owner dashboard. No credentials belong in its content.

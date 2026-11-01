@@ -1,0 +1,370 @@
+{
+  "documents": [
+    {
+      "path": "AGENTS.ar.md",
+      "coverage": "ar",
+      "companion": "AGENTS.md"
+    },
+    {
+      "path": "AGENTS.md",
+      "coverage": "en",
+      "companion": "AGENTS.ar.md"
+    },
+    {
+      "path": "CONTRIBUTING.ar.md",
+      "coverage": "ar",
+      "companion": "CONTRIBUTING.md"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "coverage": "en",
+      "companion": "CONTRIBUTING.ar.md"
+    },
+    {
+      "path": "README.ar.md",
+      "coverage": "ar",
+      "companion": "README.md"
+    },
+    {
+      "path": "README.md",
+      "coverage": "en",
+      "companion": "README.ar.md"
+    },
+    {
+      "path": "SECURITY.ar.md",
+      "coverage": "ar",
+      "companion": "SECURITY.md"
+    },
+    {
+      "path": "SECURITY.md",
+      "coverage": "en",
+      "companion": "SECURITY.ar.md"
+    },
+    {
+      "path": "backend/README.ar.md",
+      "coverage": "ar",
+      "companion": "backend/README.md"
+    },
+    {
+      "path": "backend/README.md",
+      "coverage": "en",
+      "companion": "backend/README.ar.md"
+    },
+    {
+      "path": "backend/migrations/README.ar.md",
+      "coverage": "ar",
+      "companion": "backend/migrations/README.md"
+    },
+    {
+      "path": "backend/migrations/README.md",
+      "coverage": "en",
+      "companion": "backend/migrations/README.ar.md"
+    },
+    {
+      "path": "deploy/README.ar.md",
+      "coverage": "ar",
+      "companion": "deploy/README.md"
+    },
+    {
+      "path": "deploy/README.md",
+      "coverage": "en",
+      "companion": "deploy/README.ar.md"
+    },
+    {
+      "path": "design-system/BRAND.ar.md",
+      "coverage": "ar",
+      "companion": "design-system/BRAND.md"
+    },
+    {
+      "path": "design-system/BRAND.md",
+      "coverage": "en",
+      "companion": "design-system/BRAND.ar.md"
+    },
+    {
+      "path": "design-system/README.ar.md",
+      "coverage": "ar",
+      "companion": "design-system/README.md"
+    },
+    {
+      "path": "design-system/README.md",
+      "coverage": "en",
+      "companion": "design-system/README.ar.md"
+    },
+    {
+      "path": "docs/README.ar.md",
+      "coverage": "ar",
+      "companion": "docs/README.md"
+    },
+    {
+      "path": "docs/README.md",
+      "coverage": "en",
+      "companion": "docs/README.ar.md"
+    },
+    {
+      "path": "docs/api/README.ar.md",
+      "coverage": "ar",
+      "companion": "docs/api/README.md"
+    },
+    {
+      "path": "docs/api/README.md",
+      "coverage": "en",
+      "companion": "docs/api/README.ar.md"
+    },
+    {
+      "path": "docs/api/configuration.ar.md",
+      "coverage": "ar",
+      "companion": "docs/api/configuration.md"
+    },
+    {
+      "path": "docs/api/configuration.md",
+      "coverage": "en",
+      "companion": "docs/api/configuration.ar.md"
+    },
+    {
+      "path": "docs/api/content.ar.md",
+      "coverage": "ar",
+      "companion": "docs/api/content.md"
+    },
+    {
+      "path": "docs/api/content.md",
+      "coverage": "en",
+      "companion": "docs/api/content.ar.md"
+    },
+    {
+      "path": "docs/api/learning.ar.md",
+      "coverage": "ar",
+      "companion": "docs/api/learning.md"
+    },
+    {
+      "path": "docs/api/learning.md",
+      "coverage": "en",
+      "companion": "docs/api/learning.ar.md"
+    },
+    {
+      "path": "docs/api/media.ar.md",
+      "coverage": "ar",
+      "companion": "docs/api/media.md"
+    },
+    {
+      "path": "docs/api/media.md",
+      "coverage": "en",
+      "companion": "docs/api/media.ar.md"
+    },
+    {
+      "path": "docs/api/owner.ar.md",
+      "coverage": "ar",
+      "companion": "docs/api/owner.md"
+    },
+    {
+      "path": "docs/api/owner.md",
+      "coverage": "en",
+      "companion": "docs/api/owner.ar.md"
+    },
+    {
+      "path": "docs/api/portability.ar.md",
+      "coverage": "ar",
+      "companion": "docs/api/portability.md"
+    },
+    {
+      "path": "docs/api/portability.md",
+      "coverage": "en",
+      "companion": "docs/api/portability.ar.md"
+    },
+    {
+      "path": "docs/api/publisher.ar.md",
+      "coverage": "ar",
+      "companion": "docs/api/publisher.md"
+    },
+    {
+      "path": "docs/api/publisher.md",
+      "coverage": "en",
+      "companion": "docs/api/publisher.ar.md"
+    },
+    {
+      "path": "docs/architecture-appendix-configurable-learning.ar.md",
+      "coverage": "ar",
+      "companion": "docs/architecture-appendix-configurable-learning.md"
+    },
+    {
+      "path": "docs/architecture-appendix-configurable-learning.md",
+      "coverage": "en",
+      "companion": "docs/architecture-appendix-configurable-learning.ar.md"
+    },
+    {
+      "path": "docs/architecture.ar.md",
+      "coverage": "ar",
+      "companion": "docs/architecture.md"
+    },
+    {
+      "path": "docs/architecture.md",
+      "coverage": "en",
+      "companion": "docs/architecture.ar.md"
+    },
+    {
+      "path": "docs/deployment.ar.md",
+      "coverage": "ar",
+      "companion": "docs/deployment.md"
+    },
+    {
+      "path": "docs/deployment.md",
+      "coverage": "en",
+      "companion": "docs/deployment.ar.md"
+    },
+    {
+      "path": "docs/design.ar.md",
+      "coverage": "ar",
+      "companion": "docs/design.md"
+    },
+    {
+      "path": "docs/design.md",
+      "coverage": "en",
+      "companion": "docs/design.ar.md"
+    },
+    {
+      "path": "docs/documentation-coverage.ar.md",
+      "coverage": "ar",
+      "companion": "docs/documentation-coverage.md"
+    },
+    {
+      "path": "docs/documentation-coverage.md",
+      "coverage": "en",
+      "companion": "docs/documentation-coverage.ar.md"
+    },
+    {
+      "path": "docs/getting-started.ar.md",
+      "coverage": "ar",
+      "companion": "docs/getting-started.md"
+    },
+    {
+      "path": "docs/getting-started.md",
+      "coverage": "en",
+      "companion": "docs/getting-started.ar.md"
+    },
+    {
+      "path": "docs/integrations/lesson-delivery.ar.md",
+      "coverage": "ar",
+      "companion": "docs/integrations/lesson-delivery.md"
+    },
+    {
+      "path": "docs/integrations/lesson-delivery.md",
+      "coverage": "en",
+      "companion": "docs/integrations/lesson-delivery.ar.md"
+    },
+    {
+      "path": "docs/integrations/mcp-oauth.md",
+      "coverage": "bilingual"
+    },
+    {
+      "path": "docs/integrations/remote-publishing.md",
+      "coverage": "bilingual"
+    },
+    {
+      "path": "docs/licenses.md",
+      "coverage": "bilingual"
+    },
+    {
+      "path": "docs/markdown-reader.ar.md",
+      "coverage": "ar",
+      "companion": "docs/markdown-reader.md"
+    },
+    {
+      "path": "docs/markdown-reader.md",
+      "coverage": "en",
+      "companion": "docs/markdown-reader.ar.md"
+    },
+    {
+      "path": "docs/operations/recovery.md",
+      "coverage": "bilingual"
+    },
+    {
+      "path": "docs/owner-security.ar.md",
+      "coverage": "ar",
+      "companion": "docs/owner-security.md"
+    },
+    {
+      "path": "docs/owner-security.md",
+      "coverage": "en",
+      "companion": "docs/owner-security.ar.md"
+    },
+    {
+      "path": "docs/owner-tools.ar.md",
+      "coverage": "ar",
+      "companion": "docs/owner-tools.md"
+    },
+    {
+      "path": "docs/owner-tools.md",
+      "coverage": "en",
+      "companion": "docs/owner-tools.ar.md"
+    },
+    {
+      "path": "docs/passkey-access.ar.md",
+      "coverage": "ar",
+      "companion": "docs/passkey-access.md"
+    },
+    {
+      "path": "docs/passkey-access.md",
+      "coverage": "en",
+      "companion": "docs/passkey-access.ar.md"
+    },
+    {
+      "path": "docs/public-pages.ar.md",
+      "coverage": "ar",
+      "companion": "docs/public-pages.md"
+    },
+    {
+      "path": "docs/public-pages.md",
+      "coverage": "en",
+      "companion": "docs/public-pages.ar.md"
+    },
+    {
+      "path": "docs/release-readiness.ar.md",
+      "coverage": "ar",
+      "companion": "docs/release-readiness.md"
+    },
+    {
+      "path": "docs/release-readiness.md",
+      "coverage": "en",
+      "companion": "docs/release-readiness.ar.md"
+    },
+    {
+      "path": "docs/revision-storage.ar.md",
+      "coverage": "ar",
+      "companion": "docs/revision-storage.md"
+    },
+    {
+      "path": "docs/revision-storage.md",
+      "coverage": "en",
+      "companion": "docs/revision-storage.ar.md"
+    },
+    {
+      "path": "docs/ui-contracts.ar.md",
+      "coverage": "ar",
+      "companion": "docs/ui-contracts.md"
+    },
+    {
+      "path": "docs/ui-contracts.md",
+      "coverage": "en",
+      "companion": "docs/ui-contracts.ar.md"
+    },
+    {
+      "path": "frontend/README.ar.md",
+      "coverage": "ar",
+      "companion": "frontend/README.md"
+    },
+    {
+      "path": "frontend/README.md",
+      "coverage": "en",
+      "companion": "frontend/README.ar.md"
+    },
+    {
+      "path": "ui/README.ar.md",
+      "coverage": "ar",
+      "companion": "ui/README.md"
+    },
+    {
+      "path": "ui/README.md",
+      "coverage": "en",
+      "companion": "ui/README.ar.md"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "enabled": false,
+  "monthly_micro_usd": 10000000,
+  "jobs": [
+    {
+      "id": "example-course",
+      "start_date": "2030-01-01",
+      "start_number": 1,
+      "end_number": 10,
+      "utc": "19:00",
+      "weekdays": [
+        1,
+        3,
+        5
+      ],
+      "collection": "REPLACE_WITH_EXISTING_COLLECTION_KEY",
+      "notion_parent": "REPLACE_WITH_VERIFIED_PARENT_ID",
+      "locale": "en",
+      "model": "gpt-5.4-mini",
+      "max_output_tokens": 8192,
+      "auto_publish": false,
+      "prompt": "Write one progressive lesson for an introductory programming course. Include a clear objective, explanation, worked example and exercise. Use the lesson number in the title.",
+      "continuity_context": "Replace with your course outline and verified starting point before enabling this job."
+    }
+  ]
+}

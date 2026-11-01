@@ -1,0 +1,127 @@
+/* Modawana — generated from tokens.json by scripts/build-tokens.mjs. Do not edit by hand. */
+
+:root, [data-theme="light"] {
+  --paper: #F7F7F4;
+  --surface: #FFFFFF;
+  --sunk: #EEEEE8;
+  --ink: #15161A;
+  --ink-muted: #5A5D66;
+  --hairline: #E2E2DC;
+  --border-strong: #8A8D94;
+  --majorelle: #2B44C4;
+  --majorelle-strong: #1F339A;
+  --majorelle-soft: #E3E8FB;
+  --on-majorelle: #FFFFFF;
+  --sun: #F2B33D;
+  --on-sun: #15161A;
+  --rose: #B23356;
+  --code-bg: #14161D;
+  --code-ink: #E6E8EF;
+  --code-muted: #9CA1AE;
+  --focus: var(--majorelle);
+  --shadow-pop: 4px 4px 0 0 #15161A;
+  color-scheme: light;
+}
+[data-theme="dark"] {
+  --paper: #0F1117;
+  --surface: #171A22;
+  --sunk: #1F232D;
+  --ink: #ECEDF1;
+  --ink-muted: #9CA1AE;
+  --hairline: #262A35;
+  --border-strong: #6B7080;
+  --majorelle: #8FA2FF;
+  --majorelle-strong: #B3C0FF;
+  --majorelle-soft: #1D2550;
+  --on-majorelle: #0F1117;
+  --sun: #F5C15A;
+  --on-sun: #0F1117;
+  --rose: #F08AA0;
+  --code-bg: #14161D;
+  --code-ink: #E6E8EF;
+  --code-muted: #9CA1AE;
+  --focus: var(--majorelle);
+  --shadow-pop: 4px 4px 0 0 #8FA2FF;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0F1117;
+    --surface: #171A22;
+    --sunk: #1F232D;
+    --ink: #ECEDF1;
+    --ink-muted: #9CA1AE;
+    --hairline: #262A35;
+    --border-strong: #6B7080;
+    --majorelle: #8FA2FF;
+    --majorelle-strong: #B3C0FF;
+    --majorelle-soft: #1D2550;
+    --on-majorelle: #0F1117;
+    --sun: #F5C15A;
+    --on-sun: #0F1117;
+    --rose: #F08AA0;
+    --code-bg: #14161D;
+    --code-ink: #E6E8EF;
+    --code-muted: #9CA1AE;
+    --focus: var(--majorelle);
+    --shadow-pop: 4px 4px 0 0 #8FA2FF;
+    color-scheme: dark;
+  }
+}
+
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 40px;
+  --space-7: 64px;
+  --space-8: 96px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 24px;
+  --radius-pill: 999px;
+  --measure: 680px;
+  --shell: 1296px;
+  --target: 44px;
+  --font-display: "Bricolage Grotesque", "IBM Plex Sans", system-ui, sans-serif;
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-arabic: "IBM Plex Sans Arabic", "IBM Plex Sans", Tahoma, sans-serif;
+  --preset-primary-majorelle: #2B44C4;
+  --preset-primary-terracotta: #B23F26;
+  --preset-primary-teal: #1D6B58;
+  --preset-primary-violet: #7A3E9D;
+  --preset-primary-ink: #15161A;
+  --preset-secondary-sun: #F2B33D;
+  --preset-secondary-coral: #F28C6B;
+  --preset-secondary-mint: #8FD3C1;
+  --preset-secondary-rose: #F5B8D0;
+  --preset-secondary-lime: #C9E265;
+}
+
+/* Type styles: one class per tokens.json type style. */
+.brand-preset-primary-majorelle { background: var(--preset-primary-majorelle); }
+.brand-preset-primary-terracotta { background: var(--preset-primary-terracotta); }
+.brand-preset-primary-teal { background: var(--preset-primary-teal); }
+.brand-preset-primary-violet { background: var(--preset-primary-violet); }
+.brand-preset-primary-ink { background: var(--preset-primary-ink); }
+.brand-preset-secondary-sun { background: var(--preset-secondary-sun); }
+.brand-preset-secondary-coral { background: var(--preset-secondary-coral); }
+.brand-preset-secondary-mint { background: var(--preset-secondary-mint); }
+.brand-preset-secondary-rose { background: var(--preset-secondary-rose); }
+.brand-preset-secondary-lime { background: var(--preset-secondary-lime); }
+.ds-hero { font-family: var(--font-display); font-size: 72px; line-height: 72px; font-weight: 700; letter-spacing: -0.035em; }
+.ds-title { font-family: var(--font-display); font-size: 52px; line-height: 56px; font-weight: 700; letter-spacing: -0.03em; }
+.ds-h2 { font-family: var(--font-display); font-size: 28px; line-height: 34px; font-weight: 700; letter-spacing: -0.02em; }
+.ds-h3 { font-family: var(--font-display); font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em; }
+.ds-lead { font-family: var(--font-sans); font-size: 21px; line-height: 33px; font-weight: 400; }
+.ds-body { font-family: var(--font-sans); font-size: 18px; line-height: 31px; font-weight: 400; }
+.ds-ui { font-family: var(--font-sans); font-size: 15px; line-height: 22px; font-weight: 500; }
+.ds-meta { font-family: var(--font-mono); font-size: 13px; line-height: 20px; font-weight: 400; }
+.ds-code { font-family: var(--font-mono); font-size: 14.5px; line-height: 24px; font-weight: 400; }
+.ds-hero-ar { font-family: var(--font-arabic); font-size: 64px; line-height: 84px; font-weight: 700; }
+.ds-title-ar { font-family: var(--font-arabic); font-size: 48px; line-height: 64px; font-weight: 700; }
+.ds-body-ar { font-family: var(--font-arabic); font-size: 19px; line-height: 36px; font-weight: 400; }
+.ds-ui-ar { font-family: var(--font-arabic); font-size: 15px; line-height: 24px; font-weight: 500; }

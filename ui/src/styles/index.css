@@ -1,0 +1,5 @@
+/* One import for the whole design system:  import '@ui/styles/index.css';  (or the path to ui/src) */
+@import '../fonts/fonts.css';
+@import '../tokens/tokens.css';
+@import './base.css';
+@import './components.css';

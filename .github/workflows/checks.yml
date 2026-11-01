@@ -1,0 +1,83 @@
+name: Checks
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: backend/go.mod
+          cache: true
+          # PRs own race checks; main/manual runs keep race work in parallel.
+          cache-dependency-path: |
+            backend/go.sum
+            ${{ github.event_name == 'pull_request' && 'backend/go.mod' || '' }}
+      - run: node scripts/project.mjs install
+      - name: Source checks (PRs include the full Go race suite)
+        run: node scripts/project.mjs check ${{ github.event_name == 'pull_request' && '--race' || '' }}
+      - run: go mod verify
+        working-directory: backend
+      - run: npm --prefix frontend audit --audit-level=moderate
+      - run: go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
+        working-directory: backend
+      - run: node scripts/project.mjs build
+      - run: node scripts/release/check-secrets.mjs
+      - run: go mod download all
+        working-directory: backend
+      - run: node scripts/release/notices.mjs
+      - run: node scripts/release/package.mjs acceptance
+      - run: node scripts/release/smoke-package.mjs
+      - run: node scripts/release/smoke-backup.mjs
+      - run: node scripts/smoke-production.mjs --http-only
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: native-linux-release
+          path: build/releases/acceptance.tar.gz
+
+  container:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: backend/go.mod
+          cache: true
+          # Keep race outputs separate from the full native job.
+          cache-dependency-path: |
+            backend/go.sum
+            backend/go.mod
+      - name: Run all Go tests with race detection
+        run: go test -race ./...
+        working-directory: backend
+      - name: Set up isolated Docker builder
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+      - name: Build the acceptance image with reusable layers
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        env:
+          DOCKER_BUILD_RECORD_UPLOAD: 'false'
+        with:
+          context: .
+          file: deploy/Dockerfile
+          load: true
+          tags: blog-acceptance:ci
+          cache-from: type=gha,version=2,scope=blog-acceptance,timeout=2m
+          cache-to: type=gha,version=2,mode=max,scope=blog-acceptance,timeout=2m,ignore-error=true

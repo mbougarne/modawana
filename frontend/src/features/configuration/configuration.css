@@ -1,0 +1,524 @@
+.config-page {
+  min-block-size: 100vh;
+  padding-inline: var(--space-4);
+}
+.config-fields {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-inline-size: 0;
+}
+.config-panel {
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  margin-block-end: var(--space-4);
+  min-inline-size: 0;
+}
+.config-panel > .vb-btn {
+  margin-inline-end: var(--space-2);
+  margin-block-end: var(--space-2);
+}
+.config-panel h2 {
+  margin-block: 0 var(--space-4);
+}
+.config-panel summary {
+  min-block-size: var(--target);
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.config-panel summary span {
+  margin-inline-start: var(--space-3);
+  color: var(--ink-muted);
+}
+.config-field,
+.config-panel .vb-field {
+  display: grid;
+  gap: var(--space-2);
+  margin-block-end: var(--space-4);
+  max-inline-size: var(--measure);
+}
+.config-page textarea {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  min-block-size: var(--target);
+  max-inline-size: 100%;
+  inline-size: 100%;
+  padding: var(--space-3);
+  box-sizing: border-box;
+}
+.config-page textarea {
+  min-block-size: 7em;
+  resize: vertical;
+}
+.config-page input[type='color'] {
+  min-block-size: var(--target);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  max-inline-size: 10em;
+  padding: var(--space-2);
+}
+.config-check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-block-size: var(--target);
+  margin-block: var(--space-3);
+}
+.config-check input {
+  inline-size: var(--space-4);
+  block-size: var(--space-4);
+  accent-color: var(--majorelle);
+}
+.config-localized,
+.config-label-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+.config-localized,
+.config-row,
+.config-media,
+.config-label-grid fieldset {
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-block: var(--space-4);
+  min-inline-size: 0;
+}
+.config-media img {
+  display: block;
+  max-inline-size: 10em;
+  max-block-size: 8em;
+  object-fit: contain;
+  margin-block: var(--space-3);
+}
+.config-preview-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+.config-brand-preview {
+  background: var(--paper);
+  color: var(--ink);
+  padding: var(--space-5);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-strong);
+  overflow-wrap: anywhere;
+}
+.config-brand-preview .vb-brand {
+  display: block;
+  margin-block-end: var(--space-4);
+}
+.config-checks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  padding-inline-start: var(--space-4);
+}
+.config-save {
+  position: sticky;
+  inset-block-end: 0;
+  background: var(--paper);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  z-index: 2;
+}
+.config-notice {
+  padding: var(--space-4);
+  border: 1px solid var(--majorelle);
+  border-radius: var(--radius-sm);
+}
+.config-history {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: center;
+  margin-block: var(--space-3);
+}
+.config-profile-preview {
+  background: var(--paper);
+  padding: var(--space-5);
+  margin-block-start: var(--space-4);
+  border-radius: var(--radius-lg);
+  overflow-wrap: anywhere;
+}
+.config-hero {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-5);
+  align-items: center;
+}
+.config-banner {
+  inline-size: 100%;
+  max-block-size: 18em;
+  aspect-ratio: 3/1;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+}
+.config-fallback {
+  font-size: inherit;
+  color: var(--ink-muted);
+}
+
+@media (max-width: 700px) {
+  .config-localized,
+  .config-label-grid,
+  .config-preview-pair,
+  .config-checks,
+  .config-hero {
+    grid-template-columns: 1fr;
+  }
+  .config-panel {
+    padding: var(--space-4);
+  }
+  .config-page input,
+  .config-page select,
+  .config-page textarea {
+    font-size: 16px;
+  }
+  .config-profile-preview {
+    padding: var(--space-4);
+  }
+  .config-hero .vb-portrait {
+    max-inline-size: 15em;
+    margin-inline: auto;
+  }
+}
+
+/* Version B Labels: a compact toolbar and aligned translation rows. */
+.config-page .config-main {
+  padding-block-end: calc(var(--space-7) * 4);
+}
+.labels-page .config-fields {
+  margin-block-end: var(--space-4);
+}
+.labels-editor {
+  display: grid;
+  gap: var(--space-4);
+}
+.labels-toolbar {
+  gap: var(--space-3);
+}
+.labels-toolbar .labels-search {
+  flex: 1 1 260px;
+  min-inline-size: 0;
+}
+.labels-toolbar select {
+  inline-size: auto;
+  max-inline-size: 100%;
+}
+.labels-toolbar .vb-check {
+  align-items: center;
+  margin: 0;
+}
+.labels-toolbar p {
+  margin: 0;
+}
+.labels-cell {
+  min-inline-size: 0;
+}
+.labels-cell .vb-input {
+  font: inherit;
+  min-block-size: var(--target);
+  padding: var(--space-2) var(--space-3);
+}
+.labels-cell[lang='ar'] {
+  font-family: var(--font-arabic);
+  letter-spacing: normal;
+}
+.labels-cell textarea.vb-input {
+  min-block-size: calc(var(--target) * 2);
+}
+.labels-cell .vb-input[data-changed='true'],
+.labels-cell[data-changed='true'] > .labels-plural {
+  box-shadow: none;
+  border-inline-start: var(--space-1) solid var(--sun);
+}
+.labels-cell-options > summary,
+.labels-plural > summary,
+.labels-add > summary,
+.labels-transfer > summary {
+  cursor: pointer;
+  min-block-size: var(--target);
+  align-content: center;
+}
+.labels-cell-options {
+  font-size: 0.8125rem;
+  color: var(--ink-muted);
+}
+.labels-cell-options .vb-check {
+  align-items: center;
+  margin-block: var(--space-2);
+}
+.labels-cell-options .vb-btn {
+  max-inline-size: 100%;
+  white-space: normal;
+}
+.labels-add-fields {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-block: var(--space-4);
+}
+.labels-transfer-controls,
+.labels-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+.labels-pagination {
+  justify-content: space-between;
+}
+.config-page .config-save {
+  position: fixed;
+  inset-block-end: var(--space-3);
+  inset-inline: var(--space-4);
+  max-inline-size: var(--shell);
+  margin-inline: auto;
+  box-shadow: var(--shadow-pop);
+}
+.config-page .config-save > span {
+  margin-inline-end: auto;
+}
+@media (max-width: 900px) {
+  .labels-add-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .labels-cell .lang {
+    margin-block: var(--space-2);
+  }
+}
+@media (max-width: 600px) {
+  .labels-add-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .labels-toolbar .vb-ltools > * {
+    flex: 1 1 100%;
+  }
+  .labels-cell .vb-input {
+    font-size: 1rem;
+  }
+}
+
+.labels-transfer-controls .vb-file-drop {
+  flex: 1 1 100%;
+}
+
+.config-editor-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
+  gap: var(--space-5);
+  align-items: start;
+}
+.config-edit-controls {
+  min-inline-size: 0;
+}
+.config-live-preview {
+  position: sticky;
+  inset-block-start: var(--space-4);
+  max-block-size: calc(100vh - var(--space-7) * 2);
+  overflow: auto;
+  display: grid;
+  gap: var(--space-4);
+}
+.config-preview-heading,
+.config-preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.config-preview-actions {
+  justify-content: start;
+}
+.config-live-preview .config-preview-pair {
+  grid-template-columns: minmax(0, 1fr);
+}
+.config-live-preview .config-brand-preview {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+.config-live-preview .config-profile-preview {
+  padding: 0;
+  margin: 0;
+  background: transparent;
+}
+.config-live-preview .config-hero {
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: var(--space-3);
+}
+.config-live-preview .config-hero h2 {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  line-height: 1.25;
+}
+.config-live-preview .config-checks {
+  grid-template-columns: minmax(0, 1fr);
+}
+.config-live-preview .vb-btn[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+@media (max-width: 1000px) {
+  .config-editor-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .config-live-preview {
+    position: static;
+    max-block-size: none;
+    overflow: visible;
+  }
+}
+
+/* Explicit gaps win over generic workspace label margins. */
+.owner-workspace .config-settings-editor .config-edit-controls .config-panel {
+  display: grid;
+  gap: var(--space-4);
+}
+.owner-workspace .config-settings-editor .config-edit-controls .config-panel > h2 {
+  margin: 0;
+}
+.owner-workspace .config-media {
+  display: grid;
+  gap: var(--space-4);
+}
+.config-media > .vb-btn {
+  justify-self: start;
+}
+.config-media > img {
+  margin: 0;
+}
+.owner-workspace .config-history-panel {
+  padding-block-start: var(--space-5);
+}
+.owner-workspace .config-history-panel > h2 {
+  margin-block-end: var(--space-5);
+}
+.owner-workspace .config-colour-field {
+  display: grid;
+  gap: var(--space-3);
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+.config-colour-field > legend {
+  margin-block-end: var(--space-2);
+}
+.owner-workspace .config-colour-field input[type='color'] {
+  inline-size: calc(var(--target) + var(--space-2));
+  block-size: var(--target);
+  padding: var(--space-1);
+}
+.config-colour-field input[type='text'] {
+  font-family: var(--font-mono);
+}
+.config-colour-field .vb-swatch {
+  inline-size: var(--target);
+  block-size: var(--target);
+}
+
+.owner-workspace .config-settings-editor .config-panel > .vb-field,
+.owner-workspace .config-settings-editor .config-panel > .config-field,
+.owner-workspace .config-settings-editor .config-media,
+.owner-workspace .config-media > .vb-field {
+  margin: 0;
+}
+.config-colour-field > legend {
+  font-weight: 600;
+}
+
+.config-validation ul {
+  padding-inline-start: var(--space-5);
+}
+.config-validation li {
+  padding-block: var(--space-2);
+}
+.config-field-link {
+  color: var(--ink);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  background: transparent;
+  border: 0;
+  padding: var(--space-2);
+  cursor: pointer;
+  min-block-size: var(--target);
+}
+.config-page [aria-invalid='true'] {
+  border-color: var(--rose);
+  border-style: dashed;
+}
+
+.config-link-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: center;
+  margin-block-start: var(--space-4);
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--hairline);
+}
+.config-link-actions .config-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.config-month-picker {
+  position: relative;
+  display: grid;
+  gap: var(--space-2);
+  margin-block: var(--space-3);
+}
+.config-month-trigger {
+  justify-content: space-between;
+  inline-size: 100%;
+}
+.config-month-panel {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+}
+.config-month-year {
+  display: flex;
+  align-items: end;
+  gap: var(--space-3);
+}
+.config-month-year label {
+  flex: 1;
+  min-inline-size: 0;
+}
+.config-month-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+.config-month-grid button {
+  padding-inline: var(--space-1);
+  white-space: normal;
+}
+.config-month-grid button[aria-pressed='true'] {
+  background: var(--majorelle);
+  color: var(--on-majorelle);
+}

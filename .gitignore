@@ -1,0 +1,27 @@
+node_modules/
+frontend/dist/
+build/
+coverage/
+*.log
+.env
+.env.*
+!.env.example
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+data/
+.DS_Store
+frontend/.test-output/
+frontend/test-results/
+/internal/
+
+# Private working material and operator credentials are not source inputs.
+/generated_images/
+*.pem
+*.key
+*.p12
+*.pfx
+*.age
+/backups/
+/backend/cmd/.local-*/

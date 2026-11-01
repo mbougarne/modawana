@@ -1,0 +1,8 @@
+[Unit]
+Description=Daily blog backup (24-hour target RPO)
+[Timer]
+OnCalendar=*-*-* 02:00:00 UTC
+Persistent=true
+RandomizedDelaySec=0
+[Install]
+WantedBy=timers.target

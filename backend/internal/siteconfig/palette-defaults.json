@@ -1,0 +1,42 @@
+{
+  "light": {
+    "paper": "#F7F7F4",
+    "surface": "#FFFFFF",
+    "sunk": "#EEEEE8",
+    "ink": "#15161A",
+    "ink-muted": "#5A5D66",
+    "hairline": "#E2E2DC",
+    "border-strong": "#8A8D94",
+    "majorelle": "#2B44C4",
+    "majorelle-strong": "#1F339A",
+    "majorelle-soft": "#E3E8FB",
+    "on-majorelle": "#FFFFFF",
+    "sun": "#F2B33D",
+    "on-sun": "#15161A",
+    "rose": "#B23356",
+    "code-bg": "#14161D",
+    "code-ink": "#E6E8EF",
+    "code-muted": "#9CA1AE",
+    "focus": "#2B44C4"
+  },
+  "dark": {
+    "paper": "#0F1117",
+    "surface": "#171A22",
+    "sunk": "#1F232D",
+    "ink": "#ECEDF1",
+    "ink-muted": "#9CA1AE",
+    "hairline": "#262A35",
+    "border-strong": "#6B7080",
+    "majorelle": "#8FA2FF",
+    "majorelle-strong": "#B3C0FF",
+    "majorelle-soft": "#1D2550",
+    "on-majorelle": "#0F1117",
+    "sun": "#F5C15A",
+    "on-sun": "#0F1117",
+    "rose": "#F08AA0",
+    "code-bg": "#14161D",
+    "code-ink": "#E6E8EF",
+    "code-muted": "#9CA1AE",
+    "focus": "#8FA2FF"
+  }
+}

@@ -1,0 +1,45 @@
+name: personal-blog
+services:
+  blog:
+    image: ${BLOG_IMAGE:?Set BLOG_IMAGE to the tested release image}
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    restart: unless-stopped
+    init: true
+    read_only: true
+    user: '65532:65532'
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 128
+    mem_limit: 768m
+    stop_grace_period: 20s
+    ports: ['127.0.0.1:8080:8080']
+    environment:
+      BLOG_ENV: production
+      BLOG_BASE_URL: ${BLOG_BASE_URL:?Set the HTTPS origin}
+      BLOG_RP_ID: ${BLOG_RP_ID:?Set the exact hostname}
+      BLOG_WEBAUTHN_ORIGINS: ${BLOG_BASE_URL}
+      BLOG_DATA_ROOT: /var/lib/blog
+      BLOG_FRONTEND_DIST: /app/frontend
+      BLOG_LISTEN_ADDR: 0.0.0.0:8080
+      BLOG_AUTH_KEY_FILE: /run/secrets/auth-key
+      BLOG_TRUSTED_PROXIES: ${BLOG_TRUSTED_PROXIES:-}
+    volumes:
+      - type: bind
+        source: ${BLOG_HOST_DATA:?Set the persistent host data directory}
+        target: /var/lib/blog
+      - type: bind
+        source: ${BLOG_AUTH_KEY_HOST_FILE:?Set the protected 32-byte auth key file}
+        target: /run/secrets/auth-key
+        read_only: true
+      - type: bind
+        source: ${BLOG_HOST_BACKUPS:?Set the private host backup directory}
+        target: /backups
+    tmpfs: ['/tmp:rw,noexec,nosuid,nodev,size=64m,mode=1777']
+    healthcheck:
+      test: ['CMD', '/app/blog', 'ready']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s

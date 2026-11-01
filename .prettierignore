@@ -1,0 +1,16 @@
+**/node_modules/**
+**/dist/**
+**/.test-output/**
+**/test-results/**
+build/**
+frontend/package-lock.json
+ui/src/tokens/**
+ui/src/fonts/**
+design-system/tokens.css
+design-system/prototype/**
+design-system/previews/**
+backend/internal/siteconfig/labels.json
+backend/internal/siteconfig/palette-defaults.json
+backend/internal/siteconfig/testdata/**
+docs/**
+**/*.md
