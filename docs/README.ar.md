@@ -21,6 +21,7 @@
 ## المرجع التقني للتطوير
 
 - [البنية المعمارية](architecture.ar.md) و[ملحق عقود الإعدادات ومسارات التعلّم](architecture-appendix-configurable-learning.ar.md).
+- [سجلات القرارات المعمارية](decisions/README.ar.md): مضيف الإضافات والصفحات المولّدة على الخادم.
 - [مرجع واجهة البرمجة (API)](api/README.ar.md) و[مخطط مواصفات OpenAPI](api/v1.openapi.json).
 - [نظام التصميم](design.ar.md)، و[عقود الواجهة](ui-contracts.ar.md)، و[قارئ Markdown](markdown-reader.ar.md)، و[المسارات والصفحات العامة](public-pages.ar.md).
 - [تخزين المراجعات والملفات](revision-storage.ar.md) و[ترحيلات قاعدة البيانات](../backend/migrations/README.ar.md).

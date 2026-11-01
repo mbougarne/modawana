@@ -17,6 +17,7 @@ frontend/test-results/
 /internal/
 
 # Private working material and operator credentials are not source inputs.
+/_docs/
 /generated_images/
 *.pem
 *.key
