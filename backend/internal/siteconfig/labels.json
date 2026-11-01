@@ -1505,6 +1505,216 @@
       "ar": "استورد صفحات Notion كمسودات أو انقل أرشيف الموقع الأصلي بالأدوات المستقلة أدناه."
     }
   },
+  "workspace.pluginsHelp": {
+    "section": "workspace",
+    "description": "Interface text: workspace.pluginsHelp",
+    "placeholders": [],
+    "values": {
+      "en": "Review each plugin manifest, then approve, enable, disable or remove it. Plugin folders are added under plugins/ in the data directory; sensitive changes ask for a recent sign-in.",
+      "fr": "Examinez le manifeste de chaque extension, puis approuvez, activez, désactivez ou supprimez-la. Les dossiers d’extensions s’ajoutent sous plugins/ dans le répertoire de données ; les changements sensibles exigent une connexion récente.",
+      "ar": "راجع بيان كل إضافة ثم اعتمدها أو فعّلها أو عطّلها أو أزلها. تُضاف مجلدات الإضافات داخل plugins/ في مجلد البيانات، وتتطلب التغييرات الحساسة تسجيل دخول حديثًا."
+    }
+  },
+  "plugins.empty": {
+    "section": "plugins",
+    "description": "Interface text: plugins.empty",
+    "placeholders": [],
+    "values": {
+      "en": "No plugins found. Add a plugin folder under plugins/ in the data directory.",
+      "fr": "Aucune extension. Ajoutez un dossier d’extension sous plugins/ dans le répertoire de données.",
+      "ar": "لا توجد إضافات. أضف مجلد إضافة داخل plugins/ في مجلد البيانات."
+    }
+  },
+  "plugins.state.available": {
+    "section": "plugins",
+    "description": "Interface text: plugins.state.available",
+    "placeholders": [],
+    "values": {
+      "en": "Ready to install",
+      "fr": "Prête à installer",
+      "ar": "جاهزة للتثبيت"
+    }
+  },
+  "plugins.state.installed": {
+    "section": "plugins",
+    "description": "Interface text: plugins.state.installed",
+    "placeholders": [],
+    "values": {
+      "en": "Installed",
+      "fr": "Installée",
+      "ar": "مثبّتة"
+    }
+  },
+  "plugins.state.changed": {
+    "section": "plugins",
+    "description": "Interface text: plugins.state.changed",
+    "placeholders": [],
+    "values": {
+      "en": "Files changed since approval",
+      "fr": "Fichiers modifiés depuis l’approbation",
+      "ar": "تغيّرت الملفات منذ الاعتماد"
+    }
+  },
+  "plugins.state.missing": {
+    "section": "plugins",
+    "description": "Interface text: plugins.state.missing",
+    "placeholders": [],
+    "values": {
+      "en": "Files missing",
+      "fr": "Fichiers manquants",
+      "ar": "الملفات مفقودة"
+    }
+  },
+  "plugins.state.invalid": {
+    "section": "plugins",
+    "description": "Interface text: plugins.state.invalid",
+    "placeholders": [],
+    "values": {
+      "en": "Rejected manifest",
+      "fr": "Manifeste rejeté",
+      "ar": "بيان مرفوض"
+    }
+  },
+  "plugins.enabled": {
+    "section": "plugins",
+    "description": "Interface text: plugins.enabled",
+    "placeholders": [],
+    "values": {
+      "en": "Enabled",
+      "fr": "Activée",
+      "ar": "مفعّلة"
+    }
+  },
+  "plugins.disabled": {
+    "section": "plugins",
+    "description": "Interface text: plugins.disabled",
+    "placeholders": [],
+    "values": {
+      "en": "Disabled",
+      "fr": "Désactivée",
+      "ar": "معطّلة"
+    }
+  },
+  "plugins.capabilities": {
+    "section": "plugins",
+    "description": "Interface text: plugins.capabilities",
+    "placeholders": [],
+    "values": {
+      "en": "Capabilities",
+      "fr": "Capacités",
+      "ar": "الصلاحيات"
+    }
+  },
+  "plugins.addedCapabilities": {
+    "section": "plugins",
+    "description": "Interface text: plugins.addedCapabilities",
+    "placeholders": [],
+    "values": {
+      "en": "New capabilities to approve",
+      "fr": "Nouvelles capacités à approuver",
+      "ar": "صلاحيات جديدة تتطلب الاعتماد"
+    }
+  },
+  "plugins.install": {
+    "section": "plugins",
+    "description": "Interface text: plugins.install",
+    "placeholders": [],
+    "values": {
+      "en": "Approve and install",
+      "fr": "Approuver et installer",
+      "ar": "اعتماد وتثبيت"
+    }
+  },
+  "plugins.reapprove": {
+    "section": "plugins",
+    "description": "Interface text: plugins.reapprove",
+    "placeholders": [],
+    "values": {
+      "en": "Approve update",
+      "fr": "Approuver la mise à jour",
+      "ar": "اعتماد التحديث"
+    }
+  },
+  "plugins.enable": {
+    "section": "plugins",
+    "description": "Interface text: plugins.enable",
+    "placeholders": [],
+    "values": {
+      "en": "Enable",
+      "fr": "Activer",
+      "ar": "تفعيل"
+    }
+  },
+  "plugins.disable": {
+    "section": "plugins",
+    "description": "Interface text: plugins.disable",
+    "placeholders": [],
+    "values": {
+      "en": "Disable",
+      "fr": "Désactiver",
+      "ar": "تعطيل"
+    }
+  },
+  "plugins.remove": {
+    "section": "plugins",
+    "description": "Interface text: plugins.remove",
+    "placeholders": [],
+    "values": {
+      "en": "Remove",
+      "fr": "Supprimer",
+      "ar": "إزالة"
+    }
+  },
+  "plugins.removeConfirm": {
+    "section": "plugins",
+    "description": "Interface text: plugins.removeConfirm",
+    "placeholders": [],
+    "values": {
+      "en": "Remove this plugin and its stored data? Files under plugins/ are kept on disk.",
+      "fr": "Supprimer cette extension et ses données stockées ? Les fichiers sous plugins/ restent sur le disque.",
+      "ar": "أتريد إزالة هذه الإضافة وبياناتها المخزنة؟ تبقى الملفات داخل plugins/ على القرص."
+    }
+  },
+  "plugins.saved": {
+    "section": "plugins",
+    "description": "Interface text: plugins.saved",
+    "placeholders": [],
+    "values": {
+      "en": "Saved.",
+      "fr": "Enregistré.",
+      "ar": "تم الحفظ."
+    }
+  },
+  "plugins.failed": {
+    "section": "plugins",
+    "description": "Interface text: plugins.failed",
+    "placeholders": [],
+    "values": {
+      "en": "The operation failed.",
+      "fr": "L’opération a échoué.",
+      "ar": "فشلت العملية."
+    }
+  },
+  "plugins.reauth": {
+    "section": "plugins",
+    "description": "Interface text: plugins.reauth",
+    "placeholders": [],
+    "values": {
+      "en": "Sign in again to continue.",
+      "fr": "Reconnectez-vous pour continuer.",
+      "ar": "سجّل الدخول من جديد للمتابعة."
+    }
+  },
+  "plugins.conflict": {
+    "section": "plugins",
+    "description": "Interface text: plugins.conflict",
+    "placeholders": [],
+    "values": {
+      "en": "A newer version exists. Reload the page.",
+      "fr": "Une version plus récente existe. Rechargez la page.",
+      "ar": "توجد نسخة أحدث. أعد تحميل الصفحة."
+    }
+  },
   "workspace.editorHelp": {
     "section": "workspace",
     "description": "Interface text: workspace.editorHelp",
@@ -5746,6 +5956,16 @@
       "en": "Security",
       "fr": "Sécurité",
       "ar": "الأمان"
+    }
+  },
+  "owner.plugins": {
+    "section": "owner",
+    "description": "Interface text: owner.plugins",
+    "placeholders": [],
+    "values": {
+      "en": "Plugins",
+      "fr": "Extensions",
+      "ar": "الإضافات"
     }
   },
   "editor.createCategory": {

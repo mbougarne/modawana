@@ -337,6 +337,16 @@
       "companion": "docs/passkey-access.ar.md"
     },
     {
+      "path": "docs/plugins.ar.md",
+      "coverage": "ar",
+      "companion": "docs/plugins.md"
+    },
+    {
+      "path": "docs/plugins.md",
+      "coverage": "en",
+      "companion": "docs/plugins.ar.md"
+    },
+    {
       "path": "docs/public-pages.ar.md",
       "coverage": "ar",
       "companion": "docs/public-pages.md"
