@@ -6,7 +6,7 @@
 
 ```sh
 node scripts/project.mjs install
-export BLOG_DATA_ROOT="$HOME/.local/share/personal-blog-dev"
+export BLOG_DATA_ROOT="$HOME/.local/share/modawana-dev"
 node scripts/project.mjs dev
 ```
 
@@ -25,12 +25,12 @@ node scripts/project.mjs dev
 أوقف بيئة تطوير HTTP أولاً. بعد تثبيت أداة `mkcert`، أنشئ شهادة localhost موثوقة في مسار خارج مجلد Git. قد يتطلب تثبيت المرجع المصدق المحلي (Local CA) الحصول على صلاحيات مدير النظام:
 
 ```sh
-mkdir -p /tmp/personal-blog-local-tls
-chmod 700 /tmp/personal-blog-local-tls
+mkdir -p /tmp/modawana-local-tls
+chmod 700 /tmp/modawana-local-tls
 mkcert -install
-mkcert -cert-file /tmp/personal-blog-local-tls/cert.pem -key-file /tmp/personal-blog-local-tls/key.pem localhost 127.0.0.1
-export BLOG_DEV_TLS_CERT=/tmp/personal-blog-local-tls/cert.pem
-export BLOG_DEV_TLS_KEY=/tmp/personal-blog-local-tls/key.pem
+mkcert -cert-file /tmp/modawana-local-tls/cert.pem -key-file /tmp/modawana-local-tls/key.pem localhost 127.0.0.1
+export BLOG_DEV_TLS_CERT=/tmp/modawana-local-tls/cert.pem
+export BLOG_DEV_TLS_KEY=/tmp/modawana-local-tls/key.pem
 node scripts/project.mjs dev:https
 ```
 

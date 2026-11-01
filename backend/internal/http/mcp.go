@@ -156,7 +156,7 @@ func (d *Domain) mcpRoutes(w http.ResponseWriter, r *http.Request) bool {
 		reply(400, -32600, nil, "Invalid request ID", nil)
 		return true
 	}
-	info := map[string]string{"name": "personal-blog-publisher", "version": "1.0.0"}
+	info := map[string]string{"name": "modawana-publisher", "version": "1.0.0"}
 	capabilities := map[string]any{"tools": map[string]bool{"listChanged": false}}
 	var result map[string]any
 	switch request.Method {

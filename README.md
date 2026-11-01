@@ -33,7 +33,7 @@ this repository), then:
 git clone https://github.com/mbougarne/modawana.git
 cd modawana
 node scripts/project.mjs install
-export BLOG_DATA_ROOT="$HOME/.local/share/personal-blog-dev"
+export BLOG_DATA_ROOT="$HOME/.local/share/modawana-dev"
 node scripts/project.mjs dev
 ```
 
@@ -41,7 +41,7 @@ Open [localhost:3000/en](http://localhost:3000/en), or use `/ar` or `/fr`.
 In another terminal, from the same checkout:
 
 ```sh
-export BLOG_DATA_ROOT="$HOME/.local/share/personal-blog-dev"
+export BLOG_DATA_ROOT="$HOME/.local/share/modawana-dev"
 node scripts/project.mjs bootstrap
 ```
 

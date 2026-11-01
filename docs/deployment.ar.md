@@ -7,9 +7,9 @@
 انسخ الملف `.env.example` إلى ملف خاص خارج شجرة مستودع Git، واستبدل كافة القيم المؤقتة بالقيم الحقيقية الخاصة بك. يقرأ الملف التنفيذي لـ Go متغيرات البيئة من النظام مباشرة ولا يقرأ ملفات `.env` تلقائياً. ولتشغيل الأوامر الأصلية المباشرة، حمّل ملف متغيرات بيئة موثوقاً في الطرفية عبر: `set -a; . /private/blog.env; set +a`. استخدم اسم نطاق HTTPS حقيقياً ومطابقاً بدقة لمعرف الطرف المعتمد (RP ID)؛ فتغيير النطاق لاحقاً يفرض إعادة تسجيل كافة مفاتيح المرور (passkeys) ولا ينقل بيانات اعتماد المزود السحابي تلقائياً. تُرفض نطاقات النماذج الافتراضية مثل `.invalid` في بيئة الإنتاج. جهز مجلدات خاصة للبيانات والنسخ الاحتياطية، وأنشئ مفتاح تشفير ثنائياً منفصلاً بطول 32 بايت، مع قصر صلاحيات الوصول على المشغل والمستخدم ذي المعرف UID/GID 65532 فقط:
 
 ```sh
-sudo install -d -m 700 -o 65532 -g 65532 /srv/personal-blog/data /srv/personal-blog/backups /srv/personal-blog/secrets
-sudo sh -c 'umask 077; test ! -e /srv/personal-blog/secrets/auth-key && openssl rand 32 > /srv/personal-blog/secrets/auth-key'
-sudo chown 65532:65532 /srv/personal-blog/secrets/auth-key
+sudo install -d -m 700 -o 65532 -g 65532 /srv/modawana/data /srv/modawana/backups /srv/modawana/secrets
+sudo sh -c 'umask 077; test ! -e /srv/modawana/secrets/auth-key && openssl rand 32 > /srv/modawana/secrets/auth-key'
+sudo chown 65532:65532 /srv/modawana/secrets/auth-key
 # نفّذ الأوامر من المجلد الجذري للمستودع مع تمرير ملف البيئة الخاص من /private/blog.env
 docker compose --env-file /private/blog.env -f deploy/compose.yml build
 # احتفظ بتصريح المالك الأولي في مكان سري؛ لا يتضمن النظام أي مالك أو محتوى تجريبي مُعد مسبقاً

@@ -1,5 +1,5 @@
 [Unit]
-Description=Check personal blog lesson delivery every minute
+Description=Check Modawana lesson delivery every minute
 
 [Timer]
 OnCalendar=*-*-* *:*:00 UTC

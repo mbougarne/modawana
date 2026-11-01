@@ -1,4 +1,4 @@
-name: personal-blog
+name: modawana
 services:
   blog:
     image: ${BLOG_IMAGE:?Set BLOG_IMAGE to the tested release image}

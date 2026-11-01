@@ -1,16 +1,16 @@
 [Unit]
-Description=Personal blog lesson generation and independent delivery
+Description=Modawana lesson generation and independent delivery
 Wants=network-online.target
 After=network-online.target
-ConditionPathExists=/srv/personal-blog/lesson-runner/schedule.json
+ConditionPathExists=/srv/modawana/lesson-runner/schedule.json
 
 [Service]
 Type=oneshot
 User=65532
 Group=65532
 UMask=0077
-EnvironmentFile=/srv/personal-blog/secrets/lesson-runner.env
-ExecStart=/opt/personal-blog/runner/publisher schedule --input /srv/personal-blog/lesson-runner/schedule.json --state-dir /srv/personal-blog/lesson-runner/state
+EnvironmentFile=/srv/modawana/secrets/lesson-runner.env
+ExecStart=/opt/modawana/runner/publisher schedule --input /srv/modawana/lesson-runner/schedule.json --state-dir /srv/modawana/lesson-runner/state
 TimeoutStartSec=11min
 NoNewPrivileges=true
 ProtectSystem=strict
@@ -22,6 +22,6 @@ ProtectKernelModules=true
 ProtectControlGroups=true
 RestrictSUIDSGID=true
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
-ReadWritePaths=/srv/personal-blog/lesson-runner/state
+ReadWritePaths=/srv/modawana/lesson-runner/state
 MemoryMax=256M
 TasksMax=32

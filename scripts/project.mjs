@@ -16,7 +16,7 @@ function developmentEnv(secure) {
       process.env.BLOG_DATA_ROOT ||
       resolve(
         tmpdir(),
-        'personal-blog-dev-' + createHash('sha256').update(root).digest('hex').slice(0, 12),
+        'modawana-dev-' + createHash('sha256').update(root).digest('hex').slice(0, 12),
       ),
     BLOG_LISTEN_ADDR: process.env.BLOG_LISTEN_ADDR || '127.0.0.1:8082',
     BLOG_BASE_URL: origin,

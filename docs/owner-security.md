@@ -59,8 +59,8 @@ private directory with the service account:
 
 ```sh
 umask 077
-openssl rand -out /srv/personal-blog-secrets/auth.key 32
-export BLOG_AUTH_KEY_FILE=/srv/personal-blog-secrets/auth.key
+openssl rand -out /srv/modawana-secrets/auth.key 32
+export BLOG_AUTH_KEY_FILE=/srv/modawana-secrets/auth.key
 ```
 
 Do not overwrite an existing key. The file must be regular, private (0600 or

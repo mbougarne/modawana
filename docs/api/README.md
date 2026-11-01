@@ -46,7 +46,7 @@ BLOG_ENV=production \
 BLOG_BASE_URL=https://blog.example \
 BLOG_RP_ID=blog.example \
 BLOG_WEBAUTHN_ORIGINS=https://blog.example \
-BLOG_DATA_ROOT=/var/lib/personal-blog \
+BLOG_DATA_ROOT=/var/lib/modawana \
 BLOG_FRONTEND_DIST="$PWD/frontend/dist" \
 ./build/blog
 ```

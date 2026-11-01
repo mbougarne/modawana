@@ -33,7 +33,7 @@ Restore drill (use the matching release and loaded private environment):
 
 ```sh
 age -d -i /offline/age-identity -o /private/restore.zip /private/snapshot.zip.age
-BLOG_DATA_ROOT=/srv/personal-blog/restored ./blog restore --file /private/restore.zip
+BLOG_DATA_ROOT=/srv/modawana/restored ./blog restore --file /private/restore.zip
 ```
 
 The destination must not exist. Restore verifies the exact schema, checksums,
@@ -83,7 +83,7 @@ virtual passkey re-enrollment and reopening; it does not prove physical-key supp
 
 ```sh
 age -d -i /offline/age-identity -o /private/restore.zip /private/snapshot.zip.age
-BLOG_DATA_ROOT=/srv/personal-blog/restored ./blog restore --file /private/restore.zip
+BLOG_DATA_ROOT=/srv/modawana/restored ./blog restore --file /private/restore.zip
 ```
 
 يجب ألا يكون مجلد الوجهة المستهدفة موجوداً مسبقاً على القرص. يتحقق أمر الاستعادة من البنية الدقيقة لمخطط البيانات، وبصمات التجزئة، والمراجع، والحدود القصوى للملفات قبل التثبيت الذري النهائي. ويقوم الإجراء عمداً بحذف كافة مفاتيح المرور، وكلمات المرور، ورموز TOTP، والجلسات النشطة، ورموز API، وتصاريح النشر، ورموز الاسترداد السابقة المستعادة من الأرشيف، مع تصفير هويات المتصفح ومحاولات الاختبار وتقدم التعلّم للقراء. ولا يمكن لأي اعتماد تم إلغاؤه بعد أخذ النسخة أن يعود صالحاً للاستخدام. ويبقى عنوان البريد الإلكتروني معرّفاً للاسترداد فقط وليس عاملاً للمصادقة. وتُنشئ عملية الاستعادة علامة صيانة مؤقتة: حيث تُرْجع الصفحات العامة، والوسائط، وواجهات الناشر، وفحص الجاهزية رمز الخطأ 503؛ بينما تظل واجهات مصادقة المالك وإعادة التسجيل متاحة. وجّه إعدادات الخدمة إلى المجلد المستعاد الجديد وشغّلها، ثم نفّذ الأوامر التالية:

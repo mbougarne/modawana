@@ -8,7 +8,7 @@ Use the versions pinned in `.node-version`, `frontend/package.json`, and
 
 ```sh
 node scripts/project.mjs install
-export BLOG_DATA_ROOT="$HOME/.local/share/personal-blog-dev"
+export BLOG_DATA_ROOT="$HOME/.local/share/modawana-dev"
 node scripts/project.mjs dev
 ```
 
@@ -41,12 +41,12 @@ Stop HTTP development first. With `mkcert` installed, create a trusted localhost
 certificate outside Git. Installing its local CA may need operating-system permission.
 
 ```sh
-mkdir -p /tmp/personal-blog-local-tls
-chmod 700 /tmp/personal-blog-local-tls
+mkdir -p /tmp/modawana-local-tls
+chmod 700 /tmp/modawana-local-tls
 mkcert -install
-mkcert -cert-file /tmp/personal-blog-local-tls/cert.pem -key-file /tmp/personal-blog-local-tls/key.pem localhost 127.0.0.1
-export BLOG_DEV_TLS_CERT=/tmp/personal-blog-local-tls/cert.pem
-export BLOG_DEV_TLS_KEY=/tmp/personal-blog-local-tls/key.pem
+mkcert -cert-file /tmp/modawana-local-tls/cert.pem -key-file /tmp/modawana-local-tls/key.pem localhost 127.0.0.1
+export BLOG_DEV_TLS_CERT=/tmp/modawana-local-tls/cert.pem
+export BLOG_DEV_TLS_KEY=/tmp/modawana-local-tls/key.pem
 node scripts/project.mjs dev:https
 ```
 

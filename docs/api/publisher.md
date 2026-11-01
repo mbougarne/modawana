@@ -71,7 +71,7 @@ means failure. Retry an interrupted operation with the same payload and key.
 
 ## Local publisher launcher
 
-Save only these values in `~/.config/personal-blog/publisher.env`, outside
+Save only these values in `~/.config/modawana/publisher.env`, outside
 Git, with directory permissions 0700 and file permissions 0600:
 
 ```sh
@@ -150,6 +150,6 @@ Use [MCP/OAuth](../integrations/mcp-oauth.md) for supported remote clients and
 [the scheduler](../integrations/remote-publishing.md) for optional generated lessons.
 Both reuse publisher permissions; AI-generation credentials are separate.
 
-The launcher defaults to `~/.config/personal-blog/publisher.env`. Existing installations
+The launcher defaults to `~/.config/modawana/publisher.env`. Existing installations
 can keep their current private file by setting `BLOG_PUBLISHER_CONFIG` to its absolute
 path before running the launcher. No credentials are moved automatically.

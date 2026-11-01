@@ -17,9 +17,9 @@ rejected in production. Allocate private data/backups directories and a separate
 32-byte binary key, all accessible only to UID/GID 65532 and the operator:
 
 ```sh
-sudo install -d -m 700 -o 65532 -g 65532 /srv/personal-blog/data /srv/personal-blog/backups /srv/personal-blog/secrets
-sudo sh -c 'umask 077; test ! -e /srv/personal-blog/secrets/auth-key && openssl rand 32 > /srv/personal-blog/secrets/auth-key'
-sudo chown 65532:65532 /srv/personal-blog/secrets/auth-key
+sudo install -d -m 700 -o 65532 -g 65532 /srv/modawana/data /srv/modawana/backups /srv/modawana/secrets
+sudo sh -c 'umask 077; test ! -e /srv/modawana/secrets/auth-key && openssl rand 32 > /srv/modawana/secrets/auth-key'
+sudo chown 65532:65532 /srv/modawana/secrets/auth-key
 # Run from this repository root, with your private values in /private/blog.env.
 docker compose --env-file /private/blog.env -f deploy/compose.yml build
 # Keep the first owner grant private; no owner/content is seeded.

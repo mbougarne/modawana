@@ -71,7 +71,7 @@ build/publisher publish --key lesson-001 --locale en --revision SAVED_REVISION_I
 
 ## مشغّل الناشر المحلي
 
-احفظ القيم التالية فقط في الملف `~/.config/personal-blog/publisher.env` خارج مستودع Git، مع ضبط
+احفظ القيم التالية فقط في الملف `~/.config/modawana/publisher.env` خارج مستودع Git، مع ضبط
 أذونات الدليل على 0700 وأذونات الملف على 0600:
 
 ```sh
@@ -145,6 +145,6 @@ node scripts/publish.mjs get --key publisher-connection-check --locale en
 [أداة الجدولة](../integrations/remote-publishing.md) لتوليد الدروس المجدولة اختيارياً. وتعيد كلاهما استخدام
 صلاحيات الناشر المحددة؛ بينما تظل بيانات اعتماد توليد الذكاء الاصطناعي منفصلة ومستقلة.
 
-يعتمد المشغّل افتراضياً المسار `~/.config/personal-blog/publisher.env`. ويمكن للتثبيتات القائمة الإبقاء على
+يعتمد المشغّل افتراضياً المسار `~/.config/modawana/publisher.env`. ويمكن للتثبيتات القائمة الإبقاء على
 ملفها الخاص الحالي عن طريق تعيين متغير البيئة `BLOG_PUBLISHER_CONFIG` إلى مساره المطلق قبل تشغيل المشغّل.
 ولا يتم نقل بيانات الاعتماد تلقائياً إطلاقاً.

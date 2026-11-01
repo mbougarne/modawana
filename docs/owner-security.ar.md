@@ -25,8 +25,8 @@
 
 ```sh
 umask 077
-openssl rand -out /srv/personal-blog-secrets/auth.key 32
-export BLOG_AUTH_KEY_FILE=/srv/personal-blog-secrets/auth.key
+openssl rand -out /srv/modawana-secrets/auth.key 32
+export BLOG_AUTH_KEY_FILE=/srv/modawana-secrets/auth.key
 ```
 
 احذر من الكتابة فوق أي مفتاح موجود مسبقاً. يجب أن يكون الملف ملفاً عادياً خاصاً (بصلاحيات 0600 أو أشد صرامة)، وألا يكون رابطاً رمزياً، وأن يقع خارج جذر البيانات المعتمد. احتفظ بنسخة احتياطية منه ضمن حزمة استرداد محمية ومستقلة؛ إذ يؤدي فقدانه إلى تعطل كافة بذور TOTP الحالية واستحالة فك تشفيرها. لا يقوم التطبيق بتوليد مفتاح تشفير تلقائياً بصورة صامتة؛ وفي حال عدم توفر المفتاح فلن يتاح تسجيل رموز TOTP، بينما تستمر مفاتيح المرور وآليات الاسترداد المحلي بالعمل دون تأثر.

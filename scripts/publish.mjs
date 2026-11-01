@@ -58,7 +58,7 @@ function runPublisher(
   {
     environment = process.env,
     file = environment.BLOG_PUBLISHER_CONFIG ||
-      resolve(homedir(), '.config/personal-blog/publisher.env'),
+      resolve(homedir(), '.config/modawana/publisher.env'),
     binary = resolve(root, 'build/publisher'),
     stdio = 'inherit',
   } = {},
