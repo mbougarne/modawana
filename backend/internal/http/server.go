@@ -167,6 +167,9 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 		writeError(w, MethodNotAllowed)
 		return
 	}
+	if s.syndicationRoutes(w, r) {
+		return
+	}
 	switch r.URL.Path {
 	case "/social-card.png":
 		s.serveSocialImage(w, r)
@@ -339,6 +342,10 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 		social = s.renderedMeta(r.Context(), page, settings, s.options.Config.BaseURL, metadata.Title)
 	}
 	head := headData{Locale: locale, Direction: dir, Nonce: nonce, Scripts: s.options.Assets.Manifest.Scripts, Styles: s.options.Assets.Manifest.Styles, BrandCSS: brandCSS, Boot: boot, Favicon: favicon, Title: metadata.Title, Description: metadata.Description, Canonical: canonicalURL, Alternatives: alternatives, Social: social}
+	if status == http.StatusOK && public && s.syndicationSource() != nil {
+		head.Feed = s.options.Config.BaseURL + feedPath(locale)
+	}
+
 	if public || preview || status >= 400 {
 		if preview {
 			settings.Site.PublicTheme = previewTheme.ID
@@ -360,7 +367,7 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 				key = "foundation.notFound"
 			}
 			head.Title = pageLabel(settings, key, locale)
-			head.Description, head.Canonical, head.Alternatives, head.Social = "", "", nil, socialMetadata{}
+			head.Description, head.Canonical, head.Feed, head.Alternatives, head.Social = "", "", "", nil, socialMetadata{}
 			head.NoIndex = true
 			w.Header().Set("X-Robots-Tag", "noindex")
 			body, ok = s.renderThemed(ctx, r, content.PageRoute{Kind: "error", Locale: locale}, settings, head)
@@ -396,6 +403,7 @@ type headData struct {
 	NoIndex                       bool
 	Favicon                       string
 	Title, Description, Canonical string
+	Feed                          string
 	Alternatives                  []content.Alternative
 	Social                        socialMetadata
 }
@@ -419,7 +427,7 @@ func (s *Server) serveAsset(w http.ResponseWriter, r *http.Request) {
 // headSource is the single source of the document head: the shell and the
 // theme renderer both execute it, so metadata cannot drift between the SPA
 // and server-rendered pages.
-const headSource = `<meta charset="utf-8"><meta name="csp-nonce" content="{{.Nonce}}"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{.Title}}</title>{{if .NoIndex}}<meta name="robots" content="noindex">{{end}}<meta name="description" content="{{.Description}}"><meta property="og:title" content="{{.Title}}"><meta property="og:description" content="{{.Description}}">{{if .Social.Image}}<meta property="og:type" content="{{.Social.Type}}"><meta property="og:site_name" content="{{.Social.SiteName}}"><meta property="og:image" content="{{.Social.Image}}"><meta property="og:image:alt" content="{{.Social.Alt}}">{{if .Social.Width}}<meta property="og:image:width" content="{{.Social.Width}}"><meta property="og:image:height" content="{{.Social.Height}}">{{end}}<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{{.Title}}"><meta name="twitter:description" content="{{.Description}}"><meta name="twitter:image" content="{{.Social.Image}}"><meta name="twitter:image:alt" content="{{.Social.Alt}}">{{end}}{{if .Canonical}}<link rel="canonical" href="{{.Canonical}}"><meta property="og:url" content="{{.Canonical}}">{{end}}{{range .Alternatives}}<link rel="alternate" hreflang="{{.Locale}}" href="{{.URL}}">{{end}}<script nonce="{{.Nonce}}">try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>{{range .Styles}}<link rel="stylesheet" href="{{.}}">{{end}}{{if .BrandCSS}}<style id="initial-brand" nonce="{{.Nonce}}">{{.BrandCSS}}</style>{{end}}{{if .ExtraCSS}}<style nonce="{{.Nonce}}">{{.ExtraCSS}}</style>{{end}}{{if .ThemeCSS}}<style id="builtin-theme" nonce="{{.Nonce}}">{{.ThemeCSS}}</style>{{end}}{{if .Favicon}}<link rel="icon" href="{{.Favicon}}">{{end}}{{if .Boot}}<script id="public-configuration" type="application/json" nonce="{{.Nonce}}">{{.Boot}}</script>{{end}}{{if .ReaderLabels}}<script id="reader-labels" type="application/json" nonce="{{.Nonce}}">{{.ReaderLabels}}</script>{{end}}{{range .Scripts}}<script defer src="{{.}}" nonce="{{$.Nonce}}"></script>{{end}}`
+const headSource = `<meta charset="utf-8"><meta name="csp-nonce" content="{{.Nonce}}"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{.Title}}</title>{{if .NoIndex}}<meta name="robots" content="noindex">{{end}}<meta name="description" content="{{.Description}}"><meta property="og:title" content="{{.Title}}"><meta property="og:description" content="{{.Description}}">{{if .Social.Image}}<meta property="og:type" content="{{.Social.Type}}"><meta property="og:site_name" content="{{.Social.SiteName}}"><meta property="og:image" content="{{.Social.Image}}"><meta property="og:image:alt" content="{{.Social.Alt}}">{{if .Social.Width}}<meta property="og:image:width" content="{{.Social.Width}}"><meta property="og:image:height" content="{{.Social.Height}}">{{end}}<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{{.Title}}"><meta name="twitter:description" content="{{.Description}}"><meta name="twitter:image" content="{{.Social.Image}}"><meta name="twitter:image:alt" content="{{.Social.Alt}}">{{end}}{{if .Canonical}}<link rel="canonical" href="{{.Canonical}}"><meta property="og:url" content="{{.Canonical}}">{{end}}{{if .Feed}}<link rel="alternate" type="application/rss+xml" title="RSS" href="{{.Feed}}">{{end}}{{range .Alternatives}}<link rel="alternate" hreflang="{{.Locale}}" href="{{.URL}}">{{end}}<script nonce="{{.Nonce}}">try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>{{range .Styles}}<link rel="stylesheet" href="{{.}}">{{end}}{{if .BrandCSS}}<style id="initial-brand" nonce="{{.Nonce}}">{{.BrandCSS}}</style>{{end}}{{if .ExtraCSS}}<style nonce="{{.Nonce}}">{{.ExtraCSS}}</style>{{end}}{{if .ThemeCSS}}<style id="builtin-theme" nonce="{{.Nonce}}">{{.ThemeCSS}}</style>{{end}}{{if .Favicon}}<link rel="icon" href="{{.Favicon}}">{{end}}{{if .Boot}}<script id="public-configuration" type="application/json" nonce="{{.Nonce}}">{{.Boot}}</script>{{end}}{{if .ReaderLabels}}<script id="reader-labels" type="application/json" nonce="{{.Nonce}}">{{.ReaderLabels}}</script>{{end}}{{range .Scripts}}<script defer src="{{.}}" nonce="{{$.Nonce}}"></script>{{end}}`
 
 var shell = template.Must(template.New("shell").Parse(`<!doctype html><html lang="{{.Locale}}" dir="{{.Direction}}"><head>` + headSource + `</head><body><div id="root"></div><noscript lang="en" dir="ltr">JavaScript is required. <span lang="ar" dir="rtl">يتطلب JavaScript.</span> <span lang="fr">JavaScript est nécessaire.</span></noscript></body></html>`))
 

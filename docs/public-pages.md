@@ -151,7 +151,29 @@ Writing shows category/tag filters without an additional search form; use the he
 
 ## Footer destinations
 
-Footer navigation links to localized Writing, Learning and Docs, then the first safe visible configured profile link for each GitHub, LinkedIn and RSS icon. Missing destinations are omitted; choosing RSS does not create a feed endpoint. Owner navigation remains restricted by session state. Primary Home/About styling follows Profile Main action; symbols do not select button color. [Owner setup](owner-tools.md#quizzes-and-lesson-gates).
+Footer navigation links to localized Writing, Learning and Docs, then the first safe visible configured profile link for each GitHub, LinkedIn and RSS icon. The footer uses the built-in feed for the active language when no RSS destination is configured. GitHub and LinkedIn links are omitted when their destinations are missing. Owner navigation remains restricted by session state. Primary Home/About styling follows Profile Main action; symbols do not select button color. [Owner setup](owner-tools.md#quizzes-and-lesson-gates).
+
+## RSS and sitemap
+
+Subscribe at `/en/feed.xml`, `/ar/feed.xml`, or `/fr/feed.xml`. The shortcut
+`/feed.xml` redirects to the default-language feed. Public pages advertise
+their localized feed in the HTML head. Each RSS 2.0 channel lists up to 30
+recent articles, documents, and lessons readable without signing in. Entries
+include the published title, summary, canonical link, and latest publication
+date. An entry keeps its ID across updates to the same language version.
+
+`/sitemap.xml` lists canonical Home, About, Writing, Learn, and Docs pages in
+all supported languages, plus anonymously readable content and collection
+outlines with at least one readable published member. `/robots.txt` advertises
+the sitemap. Public URLs use `BLOG_BASE_URL`, including encoded slugs. The
+sitemap follows the protocol's single-file limits and returns 503 if the
+generated document exceeds those limits. [Sitemaps protocol](https://www.sitemaps.org/protocol.html)
+
+Feeds and the sitemap use anonymous access even when the request carries an
+owner session or a learning identity. Locked lessons, planned entries, and
+drafts are excluded. Feed summaries come from published revisions and are
+escaped as text. Both XML endpoints support GET and HEAD and use `no-store`
+so publication and access changes appear on subsequent requests.
 
 ## Installable theme packs
 

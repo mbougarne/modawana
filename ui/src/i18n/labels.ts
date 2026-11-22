@@ -2101,9 +2101,9 @@ export const DEFAULT_LABELS = {
     'اختر نوع الدرس وعيّن مسار تعلم قبل إضافة شرط الفتح.',
   ),
   'config.mainActionHelp': l(
-    'Main action uses your primary brand color on Home and About. The icon only changes its symbol. To make Read writing primary, use it as the main action. GitHub, LinkedIn and RSS footer links come from visible links with those icons.',
-    'L’action principale utilise votre couleur principale sur Accueil et À propos. L’icône ne change que le symbole. Pour mettre Lire les articles en avant, utilisez-le comme action principale. Les liens GitHub, LinkedIn et RSS du pied proviennent des liens visibles portant ces icônes.',
-    'يستعمل الإجراء الرئيسي لون الهوية الأساسي في الرئيسية والنبذة. تغير الأيقونة الرمز فقط. لجعل رابط الكتابات أساسياً عيّنه إجراءً رئيسياً. تؤخذ روابط GitHub وLinkedIn وRSS في التذييل من الروابط الظاهرة ذات هذه الأيقونات.',
+    'Main action uses your primary brand color on Home and About. The icon only changes its symbol. To make Read writing primary, use it as the main action. Visible GitHub, LinkedIn and RSS links supply the footer destinations. The site feed is used when no RSS link is configured.',
+    'L’action principale utilise votre couleur principale sur Accueil et À propos. L’icône ne change que le symbole. Pour mettre Lire les articles en avant, utilisez-le comme action principale. Le pied de page utilise les liens GitHub, LinkedIn et RSS visibles. Le flux du site est utilisé en l’absence de lien RSS configuré.',
+    'يستعمل الإجراء الرئيسي لون الهوية الأساسي في الرئيسية والنبذة. تغير الأيقونة الرمز فقط. لجعل رابط الكتابات أساسياً عيّنه إجراءً رئيسياً. يعرض التذييل روابط GitHub وLinkedIn وRSS الظاهرة. وتُستخدم خلاصة الموقع عند غياب رابط RSS مخصّص.',
   ),
   'config.useMainAction': l(
     'Use as main action',
