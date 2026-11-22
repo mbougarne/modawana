@@ -3856,6 +3856,56 @@
       "ar": "اللون الأساسي"
     }
   },
+  "ownerAppearance.title": {
+    "section": "ownerAppearance",
+    "description": "Interface text: ownerAppearance.title",
+    "placeholders": [],
+    "values": {
+      "en": "Admin appearance",
+      "fr": "Apparence de l’administration",
+      "ar": "مظهر الإدارة"
+    }
+  },
+  "ownerAppearance.theme": {
+    "section": "ownerAppearance",
+    "description": "Interface text: ownerAppearance.theme",
+    "placeholders": [],
+    "values": {
+      "en": "Dashboard theme",
+      "fr": "Thème du tableau de bord",
+      "ar": "سمة لوحة التحكم"
+    }
+  },
+  "ownerAppearance.classic": {
+    "section": "ownerAppearance",
+    "description": "Interface text: ownerAppearance.classic",
+    "placeholders": [],
+    "values": {
+      "en": "Classic",
+      "fr": "Classique",
+      "ar": "كلاسيكي"
+    }
+  },
+  "ownerAppearance.sidebar": {
+    "section": "ownerAppearance",
+    "description": "Interface text: ownerAppearance.sidebar",
+    "placeholders": [],
+    "values": {
+      "en": "Sidebar",
+      "fr": "Barre latérale",
+      "ar": "شريط جانبي"
+    }
+  },
+  "ownerAppearance.help": {
+    "section": "ownerAppearance",
+    "description": "Interface text: ownerAppearance.help",
+    "placeholders": [],
+    "values": {
+      "en": "Your dashboard theme is saved in this browser.",
+      "fr": "Le thème du tableau de bord est enregistré dans ce navigateur.",
+      "ar": "تُحفظ سمة لوحة التحكم في هذا المتصفح."
+    }
+  },
   "config.publicAppearance": {
     "section": "config",
     "description": "Interface text: config.publicAppearance",

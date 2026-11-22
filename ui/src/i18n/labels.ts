@@ -985,6 +985,15 @@ export const DEFAULT_LABELS = {
   ),
   'config.secondary': l('Secondary colour', 'Couleur secondaire', 'اللون الثانوي'),
   'config.primary': l('Primary colour', 'Couleur principale', 'اللون الأساسي'),
+  'ownerAppearance.title': l('Admin appearance', 'Apparence de l’administration', 'مظهر الإدارة'),
+  'ownerAppearance.theme': l('Dashboard theme', 'Thème du tableau de bord', 'سمة لوحة التحكم'),
+  'ownerAppearance.classic': l('Classic', 'Classique', 'كلاسيكي'),
+  'ownerAppearance.sidebar': l('Sidebar', 'Barre latérale', 'شريط جانبي'),
+  'ownerAppearance.help': l(
+    'Your dashboard theme is saved in this browser.',
+    'Le thème du tableau de bord est enregistré dans ce navigateur.',
+    'تُحفظ سمة لوحة التحكم في هذا المتصفح.',
+  ),
   'config.publicAppearance': l(
     'Public appearance',
     'Apparence du site public',

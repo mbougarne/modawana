@@ -12,6 +12,7 @@ import type {
   SiteSettings,
   ProfileSettings,
 } from '../../api/configuration';
+import { OwnerAppearanceSettings } from '../owner/OwnerAppearance';
 import { SettingsForm } from '../../pages/admin/settings/SettingsForm';
 import { ProfileForm } from '../../pages/admin/profile/ProfileForm';
 import { LabelsForm } from '../../pages/admin/labels/LabelsForm';
@@ -202,6 +203,7 @@ export function ConfigPage({ kind }: { kind: ConfigKind }) {
         </p>
       )}
       <ValidationIssues issues={issues} />
+      {kind === 'settings' && <OwnerAppearanceSettings />}
       {base && working && (
         <>
           <FieldIssues.Provider value={issues}>

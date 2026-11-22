@@ -4,6 +4,7 @@ import { useTheme } from '../../../../ui/src/theme/ThemeProvider';
 import { Button } from '../../../../ui/src/components/primitives';
 import { Icon } from '../../../../ui/src/components/Icon';
 import { OwnerLanguageMenu } from './OwnerLanguageMenu';
+import { OwnerAppearanceContext, useOwnerAppearance } from './OwnerAppearance';
 import { call } from '../auth/api';
 
 const pages = [
@@ -81,6 +82,7 @@ export function OwnerWorkspace({
 }) {
   const { locale, dir, t } = useI18n();
   const { toggle } = useTheme();
+  const appearance = useOwnerAppearance();
   const [signingOut, setSigningOut] = useState(false);
   const [failed, setFailed] = useState(false);
   const path =
@@ -104,43 +106,59 @@ export function OwnerWorkspace({
     }
   }
   return (
-    <div className={`vb owner-workspace ds-ui ${className}`} lang={locale} dir={dir}>
-      <a className="vb-skip" href={'#' + mainId}>
-        {t('nav.skip')}
-      </a>
-      <div className="workspace-shell">
-        <header className="workspace-header">
-          <a className="vb-brand" href={'/' + locale + '/admin/posts'}>
-            {t('config.owner')}
-          </a>
-          <div className="config-actions workspace-actions">
-            <OwnerLanguageMenu path={path} />
-            <Button href={'/' + locale} size="sm">
-              {t('auth.viewSite')}
-            </Button>
-            <button type="button" className="vb-icon" aria-label={t('nav.theme')} onClick={toggle}>
-              <Icon name="moon" />
-            </button>
-            <Button
-              variant="quiet"
-              size="sm"
-              disabled={busy || signingOut || !csrf}
-              onClick={() => void signOut()}
-            >
-              {t('auth.signout')}
-            </Button>
+    <OwnerAppearanceContext.Provider value={appearance}>
+      <div
+        className={`vb owner-workspace ds-ui ${className}`}
+        data-admin-theme={appearance.theme}
+        lang={locale}
+        dir={dir}
+      >
+        <a className="vb-skip" href={'#' + mainId}>
+          {t('nav.skip')}
+        </a>
+        <div className="workspace-shell">
+          <header className="workspace-header">
+            <a className="vb-brand" href={'/' + locale + '/admin/posts'}>
+              {t('config.owner')}
+            </a>
+            <div className="config-actions workspace-actions">
+              <OwnerLanguageMenu path={path} />
+              <Button href={'/' + locale} size="sm">
+                {t('auth.viewSite')}
+              </Button>
+              <button
+                type="button"
+                className="vb-icon"
+                aria-label={t('nav.theme')}
+                onClick={toggle}
+              >
+                <Icon name="moon" />
+              </button>
+              <Button
+                variant="quiet"
+                size="sm"
+                disabled={busy || signingOut || !csrf}
+                onClick={() => void signOut()}
+              >
+                {t('auth.signout')}
+              </Button>
+            </div>
+          </header>
+          <div className="workspace-navigation">
+            <OwnerNavigation current={current} />
           </div>
-          <OwnerNavigation current={current} />
-        </header>
-        {failed && (
-          <p role="alert" className="owner-notice">
-            {t('auth.network')}
-          </p>
-        )}
-        <main id={mainId} className="workspace-main config-main" aria-busy={busy}>
-          {children}
-        </main>
+          <div className="workspace-content">
+            {failed && (
+              <p role="alert" className="owner-notice">
+                {t('auth.network')}
+              </p>
+            )}
+            <main id={mainId} className="workspace-main config-main" aria-busy={busy}>
+              {children}
+            </main>
+          </div>
+        </div>
       </div>
-    </div>
+    </OwnerAppearanceContext.Provider>
   );
 }

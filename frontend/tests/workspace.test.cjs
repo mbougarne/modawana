@@ -7,11 +7,15 @@ const dom = new JSDOM('<!doctype html><html><body></body></html>', {
 global.window = dom.window;
 global.document = dom.window.document;
 global.HTMLElement = dom.window.HTMLElement;
+global.localStorage = dom.window.localStorage;
 global.IS_REACT_ACT_ENVIRONMENT = true;
 const React = require('react');
 const { act } = React;
 const { createRoot } = require('react-dom/client');
 const { OwnerWorkspace } = require('../.test-output/frontend/src/features/owner/OwnerWorkspace');
+const {
+  OwnerAppearanceSettings,
+} = require('../.test-output/frontend/src/features/owner/OwnerAppearance');
 const { I18nProvider } = require('../.test-output/ui/src/i18n/I18nProvider');
 const { ThemeProvider } = require('../.test-output/ui/src/theme/ThemeProvider');
 const { DEFAULT_LABELS } = require('../.test-output/ui/src/i18n/labels');
@@ -27,7 +31,7 @@ const pages = [
   'transfer',
   'plugins',
 ];
-async function mount(current = 'posts', locale = 'en', extra = {}) {
+async function mount(current = 'posts', locale = 'en', extra = {}, children) {
   const el = document.createElement('div');
   document.body.append(el);
   const root = createRoot(el);
@@ -42,7 +46,7 @@ async function mount(current = 'posts', locale = 'en', extra = {}) {
           React.createElement(
             OwnerWorkspace,
             { current, csrf: 'test-csrf', languagePath: '/admin/' + current, ...extra },
-            React.createElement('h1', {}, current),
+            children ?? React.createElement('h1', {}, current),
           ),
         ),
       ),
@@ -148,5 +152,45 @@ test('Workspace invokes the supplied security sign-out and reports failures with
     assert.equal(disabled.el.querySelector('.workspace-actions').lastElementChild.disabled, true);
   } finally {
     await disabled.cleanup();
+  }
+});
+
+test('The admin theme switches in place, persists between pages and stays independent of color mode', async () => {
+  const key = 'modawana.adminTheme';
+  localStorage.setItem(key, 'unknown');
+  const settings = await mount('settings', 'en', {}, React.createElement(OwnerAppearanceSettings));
+  const workspace = settings.el.querySelector('.owner-workspace');
+  const select = settings.el.querySelector('.owner-appearance select');
+  const choose = async (choice) => {
+    await act(async () => {
+      select.value = choice;
+      select.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+    });
+  };
+  try {
+    assert.equal(workspace.dataset.adminTheme, 'classic');
+    await choose('sidebar');
+    assert.equal(workspace.dataset.adminTheme, 'sidebar');
+    assert.equal(localStorage.getItem(key), 'sidebar');
+    assert.equal(document.documentElement.dataset.theme, 'light');
+    const posts = await mount('posts', 'ar');
+    try {
+      const sidebar = posts.el.querySelector('.owner-workspace');
+      assert.equal(sidebar.dataset.adminTheme, 'sidebar');
+      assert.equal(sidebar.dir, 'rtl');
+      assert.deepEqual(
+        [...sidebar.querySelectorAll('nav a')].map((a) => a.pathname),
+        pages.map((page) => '/ar/admin/' + page),
+      );
+      assert.equal(sidebar.querySelector('nav [aria-current="page"]').pathname, '/ar/admin/posts');
+    } finally {
+      await posts.cleanup();
+    }
+    await choose('classic');
+    assert.equal(workspace.dataset.adminTheme, 'classic');
+    assert.equal(localStorage.getItem(key), 'classic');
+  } finally {
+    await settings.cleanup();
+    localStorage.removeItem(key);
   }
 });

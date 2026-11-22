@@ -4,6 +4,7 @@ import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-
 import { I18nProvider, ThemeProvider, Label, type Locale } from '@ui';
 import '@ui/styles/index.css';
 import './features/owner/owner.css';
+import './features/owner/sidebar-theme.css';
 import './pages/public/public.css';
 import {
   PublicConfigurationProvider,

@@ -1,0 +1,76 @@
+.owner-workspace[data-admin-theme='sidebar'] .workspace-shell {
+  max-inline-size: 96rem;
+}
+
+.owner-workspace[data-admin-theme='sidebar'] .workspace-header {
+  border-block-end: 1px solid var(--hairline);
+}
+
+.owner-workspace[data-admin-theme='sidebar'] .workspace-navigation {
+  margin-block-start: var(--space-4);
+  padding-block-end: 0;
+  border: 0;
+}
+
+.owner-workspace[data-admin-theme='sidebar'] .owner-navigation {
+  justify-content: start;
+  padding: var(--space-2);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.owner-workspace[data-admin-theme='sidebar'] .owner-navigation a {
+  border-radius: var(--radius-md);
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+
+.owner-workspace[data-admin-theme='sidebar'] .owner-navigation a[aria-current='page'] {
+  color: var(--majorelle-strong);
+  background: var(--majorelle-soft);
+  box-shadow: none;
+}
+
+.owner-workspace[data-admin-theme='sidebar'] .owner-page-heading {
+  padding-block-end: var(--space-4);
+  border-block-end: 1px solid var(--hairline);
+}
+
+@media (min-width: 1100px) {
+  .owner-workspace[data-admin-theme='sidebar'] {
+    padding-inline: var(--space-6);
+  }
+
+  .owner-workspace[data-admin-theme='sidebar'] .workspace-shell {
+    display: grid;
+    grid-template-columns: 13.5rem minmax(0, 1fr);
+    align-items: start;
+    column-gap: var(--space-6);
+  }
+
+  .owner-workspace[data-admin-theme='sidebar'] .workspace-header {
+    grid-column: 1 / -1;
+  }
+
+  .owner-workspace[data-admin-theme='sidebar'] .workspace-navigation {
+    position: sticky;
+    inset-block-start: var(--space-4);
+  }
+
+  .owner-workspace[data-admin-theme='sidebar'] .owner-navigation {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    max-block-size: calc(100dvh - 2 * var(--space-4));
+    overflow: auto;
+  }
+
+  .owner-workspace[data-admin-theme='sidebar'] .owner-navigation a {
+    justify-content: start;
+    padding-inline: var(--space-4);
+  }
+
+  .owner-workspace[data-admin-theme='sidebar'] .workspace-content {
+    grid-column: 2;
+  }
+}

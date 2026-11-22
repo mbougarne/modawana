@@ -21,3 +21,7 @@ node frontend/tests/visual.cjs
 ```
 
 The visual check requires Playwright Chromium (`cd frontend && npx playwright install --with-deps chromium` on a supported CI host). It renders built assets for EN/AR/FR at 320/1280px in light/dark mode, checks language/direction/overflow and captures screenshots for inspection. DOM tests exercise the quiz failure/retry/version behavior and label rules. Neither simulated quiz fixtures nor browser screenshots prove server grading, WebAuthn or hardware compatibility.
+
+## Admin appearance
+
+Use **Settings → Admin appearance** to select **Classic** or **Sidebar**. Sidebar places the admin navigation beside the workspace on wide screens and above it on smaller screens. Modawana saves the choice in the current browser and applies it immediately. Both themes follow the light or dark appearance preference.
