@@ -1,0 +1,68 @@
+{{define "reading-pager"}}
+{{if or .PreviousURL .NextURL}}<nav class="public-pagination" aria-label="{{.Label}}">
+{{if .PreviousURL}}<a class="vb-btn vb-btn-secondary" href="{{.PreviousURL}}">{{.Previous}}</a>{{end}}
+{{if .NextURL}}<a class="vb-btn vb-btn-secondary" href="{{.NextURL}}">{{.Next}}</a>{{end}}
+</nav>{{end}}
+{{end}}
+
+{{define "reading-outline"}}
+<aside class="public-outline public-reference-outline"{{if .Refresh}} data-learning-navigation="outline"{{end}}>
+<nav class="vb-side" aria-label="{{.Label}}">
+<h4>{{.Title}}{{if .Progress}} · {{.Progress}}{{end}}</h4>
+<ol>{{range .Items}}
+<li>
+{{if .URL}}<a href="{{.URL}}"{{if .Current}} aria-current="page"{{end}}>{{if .Position}}<span class="n">{{.Position}}</span>{{end}}{{.Title}}{{if .Status}}<small>{{.Status}}</small>{{end}}</a>
+{{else if eq .State "locked"}}<span class="locked"{{if .Current}} aria-current="page"{{end}}><span class="n">{{.Position}}</span>{{.Title}}<span class="vb-lock">{{template "public-icon" "lock"}}</span><span class="vb-visually-hidden"> ({{.Status}})</span></span>
+{{else}}<span class="soon"><span class="n">{{.Position}}</span>{{.Title}}<small>{{.Status}}</small></span>{{end}}
+</li>
+{{end}}</ol>
+{{template "reading-pager" .Pager}}
+</nav>
+</aside>
+{{end}}
+
+{{define "reading-neighbors"}}
+<nav class="vb-lessonnav public-neighbors" aria-label="{{.Label}}"{{if .Refresh}} data-learning-navigation="neighbors"{{end}}>
+{{range .Items}}
+{{if .URL}}<a href="{{.URL}}"{{if .Next}} class="next"{{end}}><span class="vb-meta">{{.Label}}</span><b>{{.Title}}</b></a>
+{{else}}<div class="public-neighbor-soon"><span class="vb-meta">{{.Label}}</span><b>{{.Title}}</b></div>{{end}}
+{{end}}
+</nav>
+{{end}}
+
+{{define "locked-reader"}}
+<div class="public-locked">
+<h2>{{.Title}}</h2>
+<p>{{.Help}}</p>
+{{if .Unavailable}}<p>{{.Unavailable}}</p>{{end}}
+{{if .Links}}<nav aria-label="{{.Prerequisite}}"><p>{{.Prerequisite}}</p>
+{{range .Links}}<a href="{{.URL}}" lang="{{.Code}}" dir="{{.Dir}}">{{.Label}}</a> {{end}}
+</nav>{{end}}
+<div data-browser-progress></div>
+</div>
+{{end}}
+
+{{define "public-reading"}}
+{{if .Title}}
+<header class="vb-pagehead"><h1>{{.Title}}</h1>{{if .Intro}}<p>{{.Intro}}</p>{{end}}</header>
+{{end}}
+{{if .Counts}}<p class="vb-meta">{{.Counts}}</p>{{end}}
+{{if .Progress}}<div data-browser-progress></div>{{end}}
+{{if eq .Kind "learning-index"}}
+{{if .Collections}}{{template "public-collection-cards" .Collections}}{{else}}<p class="public-empty">{{.Empty}}</p>{{end}}
+{{template "reading-pager" .Pager}}
+{{else if eq .Kind "collection"}}
+{{template "reading-outline" .Outline}}
+{{else}}
+<div class="{{if .Outline}}vb-split public-reading-layout{{end}}">
+{{with .Outline}}{{template "reading-outline" .}}{{end}}
+<div class="public-reading-main">
+{{if .Reader}}{{template "public-article" .Reader}}{{else if .DocumentError}}<p class="public-notice" role="alert">{{.DocumentError}}</p>{{else}}<p class="public-empty">{{.Empty}}</p>{{end}}
+{{with .Neighbors}}{{template "reading-neighbors" .}}{{end}}
+</div>
+</div>
+{{if or .Collections .Pager.PreviousURL}}
+<section class="public-section"><h2 class="vb-h2">{{.CollectionTitle}}</h2>{{template "public-collection-cards" .Collections}}{{template "reading-pager" .Pager}}</section>
+{{end}}
+{{end}}
+{{end}}

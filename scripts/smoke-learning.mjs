@@ -117,6 +117,8 @@ export async function smokeLearning({ context, origin, root, locale, t }) {
     }
     assert.equal((await page.goto(origin + base + keys[3])).status(), 403);
     await page.getByText(t('progress.prerequisite'), { exact: true }).waitFor();
+    assert.equal(await page.locator('body').getAttribute('data-rendered'), 'server');
+    assert.equal(await page.locator('#root').count(), 0);
     assert.equal(await page.locator('meta[name="robots"]').getAttribute('content'), 'noindex');
     assert.doesNotMatch(await page.content(), /PROTECTED FOURTH|Withheld explanation/);
     await page.setViewportSize({ width: 390, height: 844 });
@@ -139,6 +141,8 @@ export async function smokeLearning({ context, origin, root, locale, t }) {
     await page.getByRole('button', { name: t('quiz.check'), exact: true }).click();
     await page.locator('.vb-result[data-pass="true"]').waitFor();
     await page.getByRole('link', { name: new RegExp(t('quiz.continue')) }).waitFor();
+    await page.locator(`.public-outline a[href="${base + keys[1]}"]`).waitFor();
+    await page.locator(`.public-neighbors a[href="${base + keys[1]}"]`).waitFor();
     await page.screenshot({
       path: resolve(root, `frontend/test-results/learning-${locale}-passed.png`),
       fullPage: true,

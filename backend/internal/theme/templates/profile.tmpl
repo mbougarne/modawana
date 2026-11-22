@@ -36,7 +36,7 @@
 {{if .LearningTitle}}
 <section class="public-section">
 <div class="vb-sechead public-section-heading"><h2 class="vb-h2">{{.LearningTitle}}</h2><a class="vb-link" href="{{.LearningURL}}">{{.MoreLabel}} {{.Arrow}}</a></div>
-{{if .Collections}}<div class="vb-learn">{{range .Collections}}<a class="vb-course" href="{{.URL}}"><span class="vb-badge b{{.Badge}}" aria-hidden="true">{{.Initials}}</span><div><h3>{{.Title}}</h3>{{if .Summary}}<p>{{.Summary}}</p>{{end}}<span class="vb-meta">{{.Counts}}</span></div></a>{{end}}</div>{{else}}<p class="public-empty">{{.Empty}}</p>{{end}}
+{{if .Collections}}{{template "public-collection-cards" .Collections}}{{else}}<p class="public-empty">{{.Empty}}</p>{{end}}
 </section>
 {{end}}
 {{end}}
@@ -61,7 +61,7 @@
 <div class="public-about-main">
 <h1 class="vb-title">{{.Title}}</h1>
 {{if .Bio.Value}}<p class="vb-lead" lang="{{.Bio.Lang}}" dir="{{.Bio.Dir}}">{{template "profile-bio" .BioSegments}}</p>{{end}}
-{{if .Body}}<div class="vb-reader">{{.Body}}</div>{{end}}
+{{.Body}}
 {{if .Email}}
 <div class="vb-email"><a href="mailto:{{.Email}}"><bdi>{{.Email}}</bdi></a>{{if .Copy}}<button type="button" data-copy-email="{{.Email}}" data-copied="{{.Copied}}" data-copy-failed="{{.CopyFailed}}" hidden>{{.Copy}}</button>{{end}}</div>
 {{if .Copy}}<p role="status" data-copy-status></p>{{end}}
@@ -70,4 +70,8 @@
 {{template "profile-actions" .Actions}}
 </div>
 </div>
+{{end}}
+
+{{define "public-collection-cards"}}
+<div class="vb-learn">{{range .}}<a class="vb-course" href="{{.URL}}"><span class="vb-badge b{{.Badge}}" aria-hidden="true">{{.Initials}}</span><div><h3>{{.Title}}</h3>{{if .Summary}}<p>{{.Summary}}</p>{{end}}<span class="vb-meta">{{.Counts}}</span></div></a>{{end}}</div>
 {{end}}

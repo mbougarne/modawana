@@ -3,10 +3,11 @@
 [العربية](public-pages.ar.md) · [API](api/README.md)
 
 The public site uses applied settings and published revisions. Go renders Home,
-About, Writing, Search and articles from the first built-in theme. Their content
-and navigation work without JavaScript. React serves the owner dashboard,
-collection pages and lesson readers. Both public rendering paths use the same
-Go metadata, canonical URLs and published language alternatives.
+About, Writing, Search, collection indexes, outlines, and readers from the
+first built-in theme. Published text and navigation are available without
+JavaScript. React powers the owner dashboard and interactive reader controls.
+Both public rendering paths use the same Go metadata, canonical URLs and
+published language alternatives.
 
 ## Routes and visibility
 
@@ -68,13 +69,27 @@ routes. Full loads render on the server by default. In-app navigation from a
 React page can still use the React fallback. Access decisions, status codes,
 `noindex` and `no-store` are shared.
 
-The server response has no SPA mount or bundle. Search uses a GET form, and
-archive filters and pagination use ordinary links. The `public-controls`
+The server renders the complete reading and navigation layout. Search uses a GET
+form, and archive filters and pagination use ordinary links. The `public-controls`
 island debounces live searches, cancels obsolete requests, and progressively
 enhances appearance, menus and About email copying. Articles retain native
 menus and follow the stored or system appearance preference. Articles with math
-load only the manifest-listed KaTeX island, and About adds it when needed.
-Math pages fall back to React if the build lacks KaTeX.
+load the manifest-listed KaTeX island; About, lessons, and documents add it when
+needed. Math pages fall back to React if the build lacks KaTeX.
+
+Learning paths and guides render their current server-resolved outline. Open
+members link to their readers. Locked and announced members appear as text.
+A locked lesson returns HTTP 403 with a public summary, available prerequisite
+links, and `noindex`. Its Markdown, media, and quiz questions stay behind the
+same access decision as the public APIs.
+
+The `reader-learning` island mounts the shared quiz and browser-progress
+controls. It reads quiz state through the existing learning API. Grading and
+mark-as-read use their existing server endpoints. Progress changes refresh
+the outline and neighboring links while retaining the current quiz result.
+If the reader bundle is missing, routes that need it use the React fallback.
+The documentation index also links to published guides and allows a published
+document to be selected with `?doc=…`.
 
 ## Archive and reading
 
@@ -102,7 +117,9 @@ content, illustrative UI-kit examples or credentials are seeded.
 Run `node scripts/project.mjs check`, `go -C backend test -race ./...`, and
 `node scripts/project.mjs build`. After installing Playwright Chromium, run
 `node scripts/smoke-production.mjs` and `node scripts/smoke-auth.mjs`.
-The latter invokes `smoke-public.mjs` with temporary owner/content fixtures. It loads all four themed index and profile pages with JavaScript disabled and submits a Search form.
+The latter invokes the public and learning smoke tests with temporary fixtures.
+It loads the themed indexes and a lesson with JavaScript disabled, submits a
+Search form, and exercises quiz submission, lesson unlock, and progress reset.
 
 Go tests cover canonical kind/membership checks, Unicode slugs, published-only
 metadata, locked/noindex behavior, private draft isolation and corrupted files.
@@ -110,8 +127,8 @@ The browser checks cover empty installations at 320/390/1280px in EN/AR/FR and
 both themes; configured profile/readers/outlines; menu Escape/focus; query filters,
 Back and delayed obsolete requests; retry and missing translations. They also
 load the server-rendered article directly at 320/390/1280px in EN/AR/FR and
-both themes, assert that no SPA mounts and no script loads on math-free
-articles, and that math articles load exactly the KaTeX island. Screenshots
+both themes. Plain articles omit the SPA bundle and reader islands. The math
+article fixture loads the KaTeX island. Screenshots
 are written to `frontend/test-results/` for local review. Virtual
 WebAuthn remains simulation; verify on real target devices.
 

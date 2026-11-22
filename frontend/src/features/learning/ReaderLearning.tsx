@@ -9,7 +9,9 @@ export function progressChanged() {
   window.dispatchEvent(new Event('learning-progress'));
 }
 
-export function ReaderLearning({ content }: { content: PublicContent }) {
+type LearningContent = Pick<PublicContent, 'key' | 'kind' | 'locale' | 'locked' | 'learning'>;
+
+export function ReaderLearning({ content }: { content: LearningContent }) {
   const { t } = useI18n();
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);

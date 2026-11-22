@@ -55,8 +55,11 @@ type BioSegment struct {
 	Bold bool
 }
 
-// Article is the reader view of one published article.
+// Article is the reader view of one published item or a locked lesson teaser.
 type Article struct {
+	Kind, Position  string
+	Locked          *LockedLesson
+	Learning        *LearningMount
 	StickerLabel    string
 	CategoryURL     string
 	Title           string
@@ -113,6 +116,7 @@ type Page struct {
 	Home          *Home
 	About         *About
 	Discovery     *Discovery
+	Reading       *Reading
 	Footer        Footer
 }
 

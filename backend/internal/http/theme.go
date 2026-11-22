@@ -3,6 +3,7 @@ package httpserver
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"html/template"
 	"net/http"
@@ -22,7 +23,10 @@ import (
 // themedKinds is the ADR 0002 per-route switch: only resolved page kinds
 // listed here render through the built-in theme; everything else keeps the
 // SPA shell. BLOG_FORCE_SPA=1 is the operator rollback override.
-var themedKinds = map[string]bool{"article": true, "home": true, "about": true, "writing": true, "search": true}
+var themedKinds = map[string]bool{
+	"article": true, "home": true, "about": true, "writing": true, "search": true,
+	"learn": true, "docs": true, "collection": true, "lesson": true, "doc": true,
+}
 
 var errThemeUnavailable = errors.New("theme view unavailable")
 
@@ -41,6 +45,13 @@ func (s *Server) renderThemed(ctx context.Context, r *http.Request, page content
 		current = ""
 	case "article":
 		current = "writing"
+	case "lesson":
+		current = "learn"
+	case "doc", "collection":
+		current = "docs"
+		if page.Collection != nil && page.Collection.Kind == "learning" {
+			current = "learn"
+		}
 	}
 	view := theme.Page{
 		Locale: locale, Direction: head.Direction, SkipLabel: label("foundation.skip"),
@@ -61,16 +72,30 @@ func (s *Server) renderThemed(ctx context.Context, r *http.Request, page content
 			view.Footer.Links = append(view.Footer.Links, theme.Link{Label: label("public.owner"), URL: "/" + locale + "/admin"})
 		}
 	}
+	if needsReaderIsland(page) {
+		if !s.addThemeIsland(&head, "reader-learning") {
+			return nil, false
+		}
+		if len(settings.Labels) > 0 {
+			raw, err := json.Marshal(settings.Labels)
+			if err != nil {
+				return nil, false
+			}
+			head.ReaderLabels = template.JS(raw)
+		}
+	}
 	var err error
 	switch page.Kind {
 	case "article":
-		view.Article, err = s.themeArticle(ctx, page, settings, &head, label)
+		view.Article, err = s.themeReader(ctx, page.Content, settings, &head, label)
 	case "home":
 		view.Home, head.ExtraCSS, err = s.themeHome(ctx, settings, locale, label)
 	case "about":
 		view.About, err = s.themeAbout(ctx, settings, locale, &head, label)
 	case "writing", "search":
 		view.Discovery, err = s.themeDiscovery(ctx, r.URL.Query(), page, label)
+	case "learn", "docs", "collection", "doc", "lesson":
+		view.Reading, err = s.themeReading(ctx, r.URL.Query(), page, settings, &head, label)
 	}
 	if err != nil {
 		s.options.Logger.Error("theme view unavailable", "kind", page.Kind)
@@ -128,12 +153,20 @@ func (s *Server) themeMarkdown(c *content.PublicContent, locale string, head *he
 	return result.HTML, nil
 }
 
-func (s *Server) themeArticle(ctx context.Context, page content.PageRoute, settings siteconfig.Public, head *headData, label func(string) string) (*theme.Article, error) {
-	c := page.Content
-	if c == nil || c.Locked {
+func (s *Server) themeReader(ctx context.Context, c *content.PublicContent, settings siteconfig.Public, head *headData, label func(string) string) (*theme.Article, error) {
+	if c == nil {
 		return nil, errThemeUnavailable
 	}
-	locale := page.Locale
+	locale := c.Locale
+	if c.Locked {
+		if c.Kind != "lesson" {
+			return nil, errThemeUnavailable
+		}
+		return &theme.Article{
+			Kind: c.Kind, StickerLabel: label("public.lesson"), Title: c.Title, Summary: c.Summary,
+			Locked: themeLocked(c.Learning, label),
+		}, nil
+	}
 	body, err := s.themeMarkdown(c, locale, head, label)
 	if err != nil {
 		return nil, err
@@ -173,6 +206,7 @@ func (s *Server) themeArticle(ctx context.Context, page content.PageRoute, setti
 		portraitURL = "/media/" + settings.Profile.PortraitID
 	}
 	article := theme.Article{
+		Kind:         c.Kind,
 		StickerLabel: sticker,
 		CategoryURL:  categoryURL,
 		Title:        c.Title,
@@ -203,6 +237,9 @@ func (s *Server) themeArticle(ctx context.Context, page content.PageRoute, setti
 			article.CoverURL = m.URL
 			article.CoverWidth, article.CoverHeight = m.Width, m.Height
 		}
+	}
+	if c.Kind == "lesson" || hasQuizControls(c) {
+		article.Learning = &theme.LearningMount{Key: c.Key, Locale: locale, Kind: c.Kind}
 	}
 	if authorName != "" {
 		article.WrittenBy = interpolate(label("post.writtenBy"), map[string]string{"name": authorName})

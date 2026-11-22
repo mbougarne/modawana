@@ -24,18 +24,25 @@ import (
 )
 
 const katexScript = "/assets/katex.0123456789abcdef0123.js"
+const readerScript = "/assets/reader-learning.0123456789abcdef0123.js"
 
-// buildThemeFixture extends the shell fixture with a katex island entry.
+// buildThemeFixture extends the shell fixture with the reader islands.
 func buildThemeFixture(t *testing.T, withIsland bool) string {
 	t.Helper()
 	root := buildFixture(t)
 	if !withIsland {
 		return root
 	}
-	if err := os.WriteFile(filepath.Join(root, katexScript), []byte("island"), 0600); err != nil {
-		t.Fatal(err)
+	for _, script := range []string{katexScript, readerScript} {
+		if err := os.WriteFile(filepath.Join(root, script), []byte("island"), 0600); err != nil {
+			t.Fatal(err)
+		}
 	}
-	m := Manifest{Version: 1, Scripts: []string{scriptName}, Styles: []string{styleName}, Assets: []string{scriptName, styleName, katexScript}, Islands: map[string][]string{"katex": {katexScript}}}
+	m := Manifest{
+		Version: 1, Scripts: []string{scriptName}, Styles: []string{styleName},
+		Assets:  []string{scriptName, styleName, katexScript, readerScript},
+		Islands: map[string][]string{"katex": {katexScript}, "reader-learning": {readerScript}},
+	}
 	raw, _ := json.Marshal(m)
 	if err := os.WriteFile(filepath.Join(root, "manifest.json"), raw, 0600); err != nil {
 		t.Fatal(err)
@@ -161,8 +168,9 @@ func TestThemedArticleReplacesShell(t *testing.T) {
 
 func TestThemedMathIncludesIslandOnly(t *testing.T) {
 	h := themeServer(t, true, false)
-	math := get(t, h, "GET", "/en/articles/math").Body.String()
-	if !strings.Contains(math, `<script defer src="`+katexScript+`"></script>`) {
+	response := get(t, h, "GET", "/en/articles/math")
+	math := response.Body.String()
+	if !strings.Contains(math, `<script defer src="`+katexScript+`" nonce="`+response.Header().Get("X-Request-ID")+`"></script>`) {
 		t.Fatal("math page without katex island", math)
 	}
 	plain := get(t, h, "GET", "/en/articles/plain").Body.String()
@@ -187,7 +195,7 @@ func TestThemedFallbacks(t *testing.T) {
 			t.Fatal("BLOG_FORCE_SPA ignored on", path)
 		}
 	}
-	// Kinds outside the allowlist keep today's shell exactly.
+	// Without collection and discovery support, the indexes retain the shell.
 	h = themeServer(t, true, false)
 	for _, path := range []string{"/en/learn", "/en/docs"} {
 		if body := get(t, h, "GET", path).Body.String(); !strings.Contains(body, `id="root"`) || strings.Contains(body, `data-rendered`) {
@@ -317,22 +325,22 @@ func TestThemedLabelsRespectMissingAndExplicitEmptyOverrides(t *testing.T) {
 	}
 }
 
-func TestThemedProfileUsesAppliedSettingsAndPublishedRevisions(t *testing.T) {
-	ctx := context.Background()
+func newThemeContent(t *testing.T) (*content.Service, string) {
+	t.Helper()
 	root := t.TempDir()
 	if err := os.Chmod(root, 0700); err != nil {
 		t.Fatal(err)
 	}
-	database, err := db.Open(ctx, root)
+	database, err := db.Open(t.Context(), root)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer database.Close()
+	t.Cleanup(func() { database.Close() })
 	files, err := storage.Open(root)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer files.Close()
+	t.Cleanup(func() { files.Close() })
 	owner, err := db.NewID()
 	if err != nil {
 		t.Fatal(err)
@@ -341,7 +349,13 @@ func TestThemedProfileUsesAppliedSettingsAndPublishedRevisions(t *testing.T) {
 		t.Fatal(err)
 	}
 	c := &content.Service{DB: database, Files: files, Access: &access.Live{DB: database}}
-	cfg := &siteconfig.Service{DB: database, Files: files}
+	return c, owner
+}
+
+func TestThemedProfileUsesAppliedSettingsAndPublishedRevisions(t *testing.T) {
+	ctx := t.Context()
+	c, owner := newThemeContent(t)
+	cfg := &siteconfig.Service{DB: c.DB, Files: c.Files}
 	save := func(key, kind, title, markdown string, publish bool) {
 		t.Helper()
 		zero := int64(0)

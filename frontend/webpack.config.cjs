@@ -52,6 +52,7 @@ module.exports = (_, argv) => ({
     app: './src/main.tsx',
     katex: './src/islands/katex.ts',
     'public-controls': './src/islands/publicControls.ts',
+    'reader-learning': './src/islands/readerLearning.tsx',
   },
   output: {
     path: path.resolve(__dirname, 'dist'),

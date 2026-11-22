@@ -26,7 +26,7 @@
 </div>
 </header>
 <main id="content" tabindex="-1" class="public-main{{if not .Article}} public-themed-index{{end}}">
-{{if .Article}}{{template "public-article" .Article}}{{else if .Home}}{{template "public-home" .Home}}{{else if .About}}{{template "public-about" .About}}{{else if .Discovery}}{{template "public-discovery" .Discovery}}{{end}}
+{{if .Article}}{{template "public-article" .Article}}{{else if .Home}}{{template "public-home" .Home}}{{else if .About}}{{template "public-about" .About}}{{else if .Discovery}}{{template "public-discovery" .Discovery}}{{else if .Reading}}{{template "public-reading" .Reading}}{{end}}
 </main>
 <footer class="vb-footer">
 {{- with .Footer}}

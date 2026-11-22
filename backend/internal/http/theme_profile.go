@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"html/template"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -117,9 +116,7 @@ func (s *Server) themeHome(ctx context.Context, settings siteconfig.Public, loca
 		view.Posts = themePosts(result.Items, terms, locale, label)
 	}
 	if p.ShowLearning {
-		collections, ok := s.options.Domain.(interface {
-			PublicCollections(context.Context, string, string, string, int) (content.CollectionPage, error)
-		})
+		collections, ok := s.options.Domain.(collectionsResolver)
 		if !ok || p.LearningLimit < 1 {
 			return nil, "", errThemeUnavailable
 		}
@@ -128,16 +125,7 @@ func (s *Server) themeHome(ctx context.Context, settings siteconfig.Public, loca
 			return nil, "", err
 		}
 		view.LearningTitle, view.LearningURL = label("page.learn"), "/"+locale+"/learn"
-		for i, item := range result.Items {
-			initials := []rune(strings.TrimSpace(item.Title))
-			view.Collections = append(view.Collections, theme.Collection{
-				Title: item.Title, URL: item.URL, Summary: item.Summary, Badge: i%3 + 1,
-				Initials: strings.ToUpper(string(initials[:min(2, len(initials))])),
-				Counts: interpolate(label("public.counts"), map[string]string{
-					"published": strconv.Itoa(item.PublishedCount), "announced": strconv.Itoa(item.AnnouncedCount),
-				}),
-			})
-		}
+		view.Collections = themeCollections(result.Items, label)
 	}
 	return view, css, nil
 }
