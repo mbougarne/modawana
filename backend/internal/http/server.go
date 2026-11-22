@@ -8,7 +8,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"github.com/mbougarne/modawana/backend/internal/content"
 	"html/template"
 	"log/slog"
 	"net/http"
@@ -17,6 +16,7 @@ import (
 	"time"
 
 	"github.com/mbougarne/modawana/backend/internal/config"
+	"github.com/mbougarne/modawana/backend/internal/content"
 	"github.com/mbougarne/modawana/backend/internal/extension"
 	"github.com/mbougarne/modawana/backend/internal/siteconfig"
 )
@@ -152,6 +152,12 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 	if s.options.Auth != nil && s.options.Auth.Handle(w, r) {
 		return
 	}
+	if r.URL.Path == "/api/v1/public/page" && r.Method == http.MethodGet {
+		if resolver, ok := s.options.Domain.(pageResolver); ok {
+			s.publicPage(w, r, resolver)
+			return
+		}
+	}
 	if s.options.Domain != nil && s.options.Domain.Handle(w, r) {
 		return
 	}
@@ -234,20 +240,14 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 		locale, status = parts[0], 200
 	}
 	var page content.PageRoute
+	ctx := r.Context()
 	if len(parts) > 0 && (parts[0] == "en" || parts[0] == "ar" || parts[0] == "fr") {
 		locale = parts[0]
 	}
 	if !private && !strings.HasSuffix(r.URL.Path, "/login") {
-		if resolver, ok := s.options.Domain.(interface {
-			ResolvePage(context.Context, string) (content.PageRoute, error)
-		}); ok {
+		if resolver, ok := s.options.Domain.(pageResolver); ok {
 			var e error
-			ctx := r.Context()
-			if principal, ok := s.options.Domain.(interface {
-				ReaderContext(*http.Request) context.Context
-			}); ok {
-				ctx = principal.ReaderContext(r)
-			}
+			ctx = s.readerContext(r)
 			page, e = resolver.ResolvePage(ctx, r.URL.Path)
 			switch {
 			case e == nil:
@@ -296,23 +296,7 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 			favicon = "/media/" + out.Site.FaviconID
 		}
 	}
-	title, description := page.Title, page.Summary
-	if title == "" {
-		key := "page." + page.Kind
-		if status == 404 {
-			key = "foundation.notFound"
-		}
-		title = pageLabel(settings, key, locale)
-		if title == "" {
-			title = "Personal blog"
-		}
-		if page.Kind == "home" || page.Kind == "about" {
-			if name := settings.Effective["name"].Text; name != "" {
-				title = name + " · " + title
-			}
-			description = settings.Effective["bio"].Text
-		}
-	}
+	metadata := pageMetadata(page, settings, locale, status)
 	canonicalURL := ""
 	alternatives := []content.Alternative{}
 	if status == 200 && page.URL != "" {
@@ -324,11 +308,11 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 	}
 	social := socialMetadata{}
 	if status == 200 && !private && !strings.HasSuffix(r.URL.Path, "/login") {
-		social = s.renderedMeta(r.Context(), page, settings, s.options.Config.BaseURL, title)
+		social = s.renderedMeta(r.Context(), page, settings, s.options.Config.BaseURL, metadata.Title)
 	}
-	head := headData{Locale: locale, Direction: dir, Nonce: nonce, Scripts: s.options.Assets.Manifest.Scripts, Styles: s.options.Assets.Manifest.Styles, BrandCSS: brandCSS, Boot: boot, Favicon: favicon, Title: title, Description: description, Canonical: canonicalURL, Alternatives: alternatives, Social: social}
+	head := headData{Locale: locale, Direction: dir, Nonce: nonce, Scripts: s.options.Assets.Manifest.Scripts, Styles: s.options.Assets.Manifest.Styles, BrandCSS: brandCSS, Boot: boot, Favicon: favicon, Title: metadata.Title, Description: metadata.Description, Canonical: canonicalURL, Alternatives: alternatives, Social: social}
 	if status == 200 && !private && themedKinds[page.Kind] && !s.options.Config.ForceSPA {
-		if body, ok := s.renderThemed(r.Context(), page, settings, head); ok {
+		if body, ok := s.renderThemed(ctx, r, page, settings, head); ok {
 			w.WriteHeader(status)
 			if r.Method != "HEAD" {
 				_, _ = w.Write(body)
@@ -352,7 +336,7 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 type headData struct {
 	Locale, Direction, Nonce      string
 	Scripts, Styles               []string
-	BrandCSS                      template.CSS
+	BrandCSS, ExtraCSS            template.CSS
 	Boot                          template.JS
 	Favicon                       string
 	Title, Description, Canonical string
@@ -379,7 +363,7 @@ func (s *Server) serveAsset(w http.ResponseWriter, r *http.Request) {
 // headSource is the single source of the document head: the shell and the
 // theme renderer both execute it, so metadata cannot drift between the SPA
 // and server-rendered pages.
-const headSource = `<meta charset="utf-8"><meta name="csp-nonce" content="{{.Nonce}}"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{.Title}}</title><meta name="description" content="{{.Description}}"><meta property="og:title" content="{{.Title}}"><meta property="og:description" content="{{.Description}}">{{if .Social.Image}}<meta property="og:type" content="{{.Social.Type}}"><meta property="og:site_name" content="{{.Social.SiteName}}"><meta property="og:image" content="{{.Social.Image}}"><meta property="og:image:alt" content="{{.Social.Alt}}">{{if .Social.Width}}<meta property="og:image:width" content="{{.Social.Width}}"><meta property="og:image:height" content="{{.Social.Height}}">{{end}}<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{{.Title}}"><meta name="twitter:description" content="{{.Description}}"><meta name="twitter:image" content="{{.Social.Image}}"><meta name="twitter:image:alt" content="{{.Social.Alt}}">{{end}}{{if .Canonical}}<link rel="canonical" href="{{.Canonical}}"><meta property="og:url" content="{{.Canonical}}">{{end}}{{range .Alternatives}}<link rel="alternate" hreflang="{{.Locale}}" href="{{.URL}}">{{end}}<script nonce="{{.Nonce}}">try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>{{range .Styles}}<link rel="stylesheet" href="{{.}}">{{end}}{{if .BrandCSS}}<style id="initial-brand" nonce="{{.Nonce}}">{{.BrandCSS}}</style>{{end}}{{if .Favicon}}<link rel="icon" href="{{.Favicon}}">{{end}}{{if .Boot}}<script id="public-configuration" type="application/json" nonce="{{.Nonce}}">{{.Boot}}</script>{{end}}{{range .Scripts}}<script defer src="{{.}}"></script>{{end}}`
+const headSource = `<meta charset="utf-8"><meta name="csp-nonce" content="{{.Nonce}}"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{.Title}}</title><meta name="description" content="{{.Description}}"><meta property="og:title" content="{{.Title}}"><meta property="og:description" content="{{.Description}}">{{if .Social.Image}}<meta property="og:type" content="{{.Social.Type}}"><meta property="og:site_name" content="{{.Social.SiteName}}"><meta property="og:image" content="{{.Social.Image}}"><meta property="og:image:alt" content="{{.Social.Alt}}">{{if .Social.Width}}<meta property="og:image:width" content="{{.Social.Width}}"><meta property="og:image:height" content="{{.Social.Height}}">{{end}}<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{{.Title}}"><meta name="twitter:description" content="{{.Description}}"><meta name="twitter:image" content="{{.Social.Image}}"><meta name="twitter:image:alt" content="{{.Social.Alt}}">{{end}}{{if .Canonical}}<link rel="canonical" href="{{.Canonical}}"><meta property="og:url" content="{{.Canonical}}">{{end}}{{range .Alternatives}}<link rel="alternate" hreflang="{{.Locale}}" href="{{.URL}}">{{end}}<script nonce="{{.Nonce}}">try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>{{range .Styles}}<link rel="stylesheet" href="{{.}}">{{end}}{{if .BrandCSS}}<style id="initial-brand" nonce="{{.Nonce}}">{{.BrandCSS}}</style>{{end}}{{if .ExtraCSS}}<style nonce="{{.Nonce}}">{{.ExtraCSS}}</style>{{end}}{{if .Favicon}}<link rel="icon" href="{{.Favicon}}">{{end}}{{if .Boot}}<script id="public-configuration" type="application/json" nonce="{{.Nonce}}">{{.Boot}}</script>{{end}}{{range .Scripts}}<script defer src="{{.}}"></script>{{end}}`
 
 var shell = template.Must(template.New("shell").Parse(`<!doctype html><html lang="{{.Locale}}" dir="{{.Direction}}"><head>` + headSource + `</head><body><div id="root"></div><noscript lang="en" dir="ltr">JavaScript is required. <span lang="ar" dir="rtl">يتطلب JavaScript.</span> <span lang="fr">JavaScript est nécessaire.</span></noscript></body></html>`))
 

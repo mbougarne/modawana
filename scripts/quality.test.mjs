@@ -22,6 +22,10 @@ test('configured import rules still reject misplaced and duplicate imports', asy
 test('configured lint globs include sources and exclude generated output', async () => {
   assert.equal(await eslint.isPathIgnored('frontend/src/lint-regression.ts'), false);
   assert.equal(await eslint.isPathIgnored('frontend/dist/lint-regression.js'), true);
+  assert.equal(
+    await eslint.isPathIgnored('generated_images/design-system/previews/desk/desk.js'),
+    true,
+  );
   assert.equal(await eslint.isPathIgnored('ui/src/tokens/lint-regression.ts'), true);
   const [result] = await eslint.lintText(
     "import { useState, useEffect } from 'react';\n\nconsole.log(useState, useEffect);\n",

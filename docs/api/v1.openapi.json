@@ -4436,7 +4436,7 @@
     "/api/v1/public/page": {
       "get": {
         "operationId": "resolvePublicPage",
-        "description": "Shared HTML/SPA resolver; public content only. Locked 403 uses PublicPage without body/media. / محلّل مشترك لـHTML والواجهة؛ محتوى عام فقط. يستخدم 403 المقفل PublicPage دون جسم أو وسائط.",
+        "description": "Shared HTML/SPA resolver; public content only. Locked 403 uses PublicPage without body, media, or metadata. / محلّل مشترك لـHTML والواجهة؛ محتوى عام فقط. يستخدم 403 المقفل PublicPage دون متن أو وسائط أو بيانات وصفية.",
         "parameters": [
           {
             "name": "path",
@@ -8871,6 +8871,29 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Alternative"
+            }
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Canonical head metadata, included only on success. / بيانات رأس الصفحة الأساسية، وتُدرج في الاستجابات الناجحة فقط.",
+            "additionalProperties": false,
+            "required": ["title", "description", "social"],
+            "properties": {
+              "title": { "type": "string" },
+              "description": { "type": "string" },
+              "social": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["image", "alt", "type", "site_name", "width", "height"],
+                "properties": {
+                  "image": { "type": "string" },
+                  "alt": { "type": "string" },
+                  "type": { "type": "string" },
+                  "site_name": { "type": "string" },
+                  "width": { "type": "integer", "minimum": 0 },
+                  "height": { "type": "integer", "minimum": 0 }
+                }
+              }
             }
           },
           "content": {

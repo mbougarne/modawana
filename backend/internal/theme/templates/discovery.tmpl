@@ -1,0 +1,55 @@
+{{define "public-discovery"}}
+<header class="vb-pagehead"><h1>{{.Title}}</h1>{{if .Intro}}<p>{{.Intro}}</p>{{end}}</header>
+{{if .Search}}
+<form class="public-search-panel public-server-search" action="{{.URL}}" method="get" data-live-search data-live-error="{{.LiveError}}">
+<label class="vb-search public-search-field">
+{{template "public-icon" "search"}}
+<input aria-label="{{.QueryLabel}}" placeholder="{{.QueryLabel}}" name="q" type="search" maxlength="200" value="{{.Query}}">
+<kbd aria-hidden="true" hidden>/</kbd>
+</label>
+<label class="public-kind"><span>{{.KindLabel}}</span><select name="kind">{{range .Kinds}}<option value="{{.Value}}"{{if .Selected}} selected{{end}}>{{.Label}}</option>{{end}}</select></label>
+{{range .Fields}}<input type="hidden" name="{{.Name}}" value="{{.Value}}">{{end}}
+<button class="vb-btn vb-btn-primary" type="submit">{{.Submit}}</button>
+</form>
+<p class="public-notice" role="alert" data-live-status hidden></p>
+{{end}}
+{{range $group := .Filters}}
+<div role="group" aria-label="{{.Label}}" class="vb-filterrow public-filters public-filter-row{{if .Tag}} tag{{else}} category{{end}}">
+<span class="vb-meta" aria-hidden="true">{{.Label}}</span>
+{{range .Items}}<a class="{{if $group.Tag}}vb-tagchip{{else}}vb-chip{{end}}" href="{{.URL}}"{{if .Current}} aria-current="true"{{end}}><bdi>{{if $group.Tag}}#{{end}}{{.Label}}</bdi>{{with .Count}} <small>{{.}}</small>{{end}}</a>{{end}}
+</div>
+{{end}}
+<div data-discovery-results>
+{{if .Active}}<div class="public-active"><span><bdi>{{.Active}}</bdi></span><a class="vb-btn vb-btn-quiet" href="{{.URL}}">{{.Clear}}</a></div>{{end}}
+{{if .Problem}}
+<p class="public-notice" role="alert">{{.Problem}}</p>
+{{if .RetryURL}}<a class="vb-btn vb-btn-secondary" href="{{.RetryURL}}">{{.RetryLabel}}</a>{{end}}
+<a class="vb-btn vb-btn-quiet" href="{{.URL}}">{{.Clear}}</a>
+{{else}}
+<p class="vb-meta" role="status">{{.Count}}</p>
+{{if .Posts}}{{template "public-posts" .Posts}}{{else}}<p class="public-empty">{{.Empty}}</p>{{end}}
+{{if or .PreviousURL .NextURL}}<nav class="public-pagination" aria-label="{{.PagesLabel}}">
+{{if .PreviousURL}}<a class="vb-btn vb-btn-secondary" href="{{.PreviousURL}}">{{.Previous}}</a>{{end}}
+{{if .NextURL}}<a class="vb-btn vb-btn-secondary" href="{{.NextURL}}">{{.Next}}</a>{{end}}
+</nav>{{end}}
+{{end}}
+</div>
+{{end}}
+{{define "public-post"}}
+<time datetime="{{.DateISO}}">{{.DateText}}</time>
+<span class="vb-post-main">
+<b>{{.Title}}</b>
+{{if .Summary}}<span class="public-post-summary">{{.Summary}}</span>{{end}}
+{{if .Tags}}<span class="vb-post-tags">{{range $index, $tag := .Tags}}{{if $index}} · {{end}}<bdi>#{{$tag}}</bdi>{{end}}</span>{{end}}
+</span>
+{{if .Badge}}<span class="vb-tag {{.Kind}}">{{.Badge}}{{if .LockLabel}}<span class="vb-visually-hidden"> {{.LockLabel}}</span>{{end}}</span>{{else}}<span></span>{{end}}
+<span class="vb-arrow" aria-hidden="true">{{if .LockLabel}}{{template "public-icon" "lock"}}{{else}}<span class="public-directional-arrow">→</span>{{end}}</span>
+{{end}}
+{{define "public-posts"}}
+{{range .}}<div class="vb-year">
+<h3><bdi>{{.Number}}</bdi></h3>
+<ul class="vb-posts">{{range .Posts}}<li class="vb-post">
+{{if .URL}}<a href="{{.URL}}">{{template "public-post" .}}</a>{{else}}<div class="vb-post-locked">{{template "public-post" .}}</div>{{end}}
+</li>{{end}}</ul>
+</div>{{end}}
+{{end}}

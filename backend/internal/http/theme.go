@@ -3,7 +3,9 @@ package httpserver
 import (
 	"bytes"
 	"context"
+	"errors"
 	"html/template"
+	"net/http"
 	"net/url"
 	"regexp"
 	"strconv"
@@ -20,28 +22,83 @@ import (
 // themedKinds is the ADR 0002 per-route switch: only resolved page kinds
 // listed here render through the built-in theme; everything else keeps the
 // SPA shell. BLOG_FORCE_SPA=1 is the operator rollback override.
-var themedKinds = map[string]bool{"article": true}
+var themedKinds = map[string]bool{"article": true, "home": true, "about": true, "writing": true, "search": true}
+
+var errThemeUnavailable = errors.New("theme view unavailable")
 
 type taxonomyResolver interface {
 	PublicTaxonomy(context.Context, string) ([]content.Term, error)
 }
 
-// renderThemed assembles the safe article view model and renders the built-in
-// theme. It returns ok=false — and the caller serves today's SPA shell — when
-// anything needed is unavailable: assembly stays fail-open for delivery while
-// access decisions already happened in ResolvePage.
-func (s *Server) renderThemed(ctx context.Context, page content.PageRoute, settings siteconfig.Public, head headData) ([]byte, bool) {
-	c := page.Content
-	// Locked content cannot reach the themed path: only lessons receive the
-	// PublicTeaser visibility (access.Live), route() runs this branch at
-	// status 200 only, and locked pages resolve to 403. Locked teasers stay
-	// on the SPA shell until the lesson stage renders them server-side.
-	if c == nil || page.Kind != "article" || c.Locked {
-		return nil, false
-	}
+// renderThemed renders the public projection resolved for this request.
+// Returning false leaves the route available through the React fallback.
+func (s *Server) renderThemed(ctx context.Context, r *http.Request, page content.PageRoute, settings siteconfig.Public, head headData) ([]byte, bool) {
 	locale := page.Locale
 	label := func(key string) string { return pageLabel(settings, key, locale) }
-	var islandScripts, islandStyles []string
+	current := page.Kind
+	switch current {
+	case "home":
+		current = ""
+	case "article":
+		current = "writing"
+	}
+	view := theme.Page{
+		Locale: locale, Direction: head.Direction, SkipLabel: label("foundation.skip"),
+		Brand: themeBrand(settings.Site, locale), Nav: themeNav(locale, current, false, label),
+		MenuNav: themeNav(locale, current, true, label), NavLabel: label("nav.main"),
+		SearchLabel: label("nav.search"), SearchURL: "/" + locale + "/search",
+		LanguageLabel: label("foundation.language"), LanguageShort: languageShort(locale),
+		Languages: themeLanguages(page, locale, label), MenuLabel: label("nav.menu"),
+		Footer: s.themeFooter(settings, locale, label),
+	}
+	head.Boot = ""
+	head.Scripts = nil
+	if page.Kind != "article" {
+		if s.addThemeIsland(&head, "public-controls") {
+			view.ThemeLabel = label("nav.theme")
+		}
+		if guard, ok := s.options.Auth.(interface{ Authorized(*http.Request) bool }); ok && guard.Authorized(r) {
+			view.Footer.Links = append(view.Footer.Links, theme.Link{Label: label("public.owner"), URL: "/" + locale + "/admin"})
+		}
+	}
+	var err error
+	switch page.Kind {
+	case "article":
+		view.Article, err = s.themeArticle(ctx, page, settings, &head, label)
+	case "home":
+		view.Home, head.ExtraCSS, err = s.themeHome(ctx, settings, locale, label)
+	case "about":
+		view.About, err = s.themeAbout(ctx, settings, locale, &head, label)
+	case "writing", "search":
+		view.Discovery, err = s.themeDiscovery(ctx, r.URL.Query(), page, label)
+	}
+	if err != nil {
+		s.options.Logger.Error("theme view unavailable", "kind", page.Kind)
+		return nil, false
+	}
+	var headHTML, out bytes.Buffer
+	if err := pageHead.Execute(&headHTML, head); err != nil {
+		return nil, false
+	}
+	view.Head = template.HTML(headHTML.String())
+	if err := theme.Render(&out, view); err != nil {
+		s.options.Logger.Error("theme render fallback", "reason", "template", "kind", page.Kind)
+		return nil, false
+	}
+	return out.Bytes(), true
+}
+
+func (s *Server) addThemeIsland(head *headData, name string) bool {
+	scripts, styles, ok := s.options.Assets.Island(name)
+	if !ok || len(scripts) == 0 {
+		return false
+	}
+	head.Scripts = append(head.Scripts, scripts...)
+	head.Styles = append(append([]string{}, head.Styles...), styles...)
+	return true
+}
+
+func (s *Server) themeMarkdown(c *content.PublicContent, locale string, head *headData, label func(string) string) (template.HTML, error) {
 	media := make([]render.Media, 0, len(c.Media))
 	for _, m := range c.Media {
 		media = append(media, render.Media{ID: m.ID, Kind: m.Kind, Width: m.Width, Height: m.Height})
@@ -63,31 +120,30 @@ func (s *Server) renderThemed(ctx context.Context, page content.PageRoute, setti
 		},
 	})
 	if err != nil {
-		s.options.Logger.Error("theme render fallback", "reason", "markdown", "kind", page.Kind)
-		return nil, false
+		return "", err
 	}
-	body := result.HTML
-	if result.HasMath {
-		var ok bool
-		// Only pages that contain math ship rendering JavaScript; without
-		// a built katex island the SPA keeps rendering this page.
-		islandScripts, islandStyles, ok = s.options.Assets.Island("katex")
-		if !ok {
-			s.options.Logger.Error("theme render fallback", "reason", "missing katex island")
-			return nil, false
-		}
+	if result.HasMath && !s.addThemeIsland(head, "katex") {
+		return "", errThemeUnavailable
+	}
+	return result.HTML, nil
+}
+
+func (s *Server) themeArticle(ctx context.Context, page content.PageRoute, settings siteconfig.Public, head *headData, label func(string) string) (*theme.Article, error) {
+	c := page.Content
+	if c == nil || c.Locked {
+		return nil, errThemeUnavailable
+	}
+	locale := page.Locale
+	body, err := s.themeMarkdown(c, locale, head, label)
+	if err != nil {
+		return nil, err
 	}
 	var category *content.Term
 	tags := []theme.Link{}
 	if c.CategoryKey != "" || len(c.Tags) > 0 {
-		resolver, ok := s.options.Domain.(taxonomyResolver)
-		if !ok {
-			return nil, false
-		}
-		terms, err := resolver.PublicTaxonomy(ctx, locale)
+		terms, err := s.themeTerms(ctx, locale)
 		if err != nil {
-			s.options.Logger.Error("theme render fallback", "reason", "taxonomy")
-			return nil, false
+			return nil, err
 		}
 		for i, term := range terms {
 			if term.Kind == "category" && term.Key == c.CategoryKey {
@@ -101,13 +157,6 @@ func (s *Server) renderThemed(ctx context.Context, page content.PageRoute, setti
 				}
 			}
 		}
-	}
-	head.Boot = ""
-	head.Scripts = islandScripts
-	head.Styles = append(append([]string{}, head.Styles...), islandStyles...)
-	var headHTML bytes.Buffer
-	if err := pageHead.Execute(&headHTML, head); err != nil {
-		return nil, false
 	}
 	sticker := label("public." + c.Kind)
 	categoryURL := ""
@@ -156,40 +205,13 @@ func (s *Server) renderThemed(ctx context.Context, page content.PageRoute, setti
 		}
 	}
 	if authorName != "" {
-		arrow := "→"
-		if locale == "ar" {
-			arrow = "←"
-		}
 		article.WrittenBy = interpolate(label("post.writtenBy"), map[string]string{"name": authorName})
 		article.Bio = bioSegments(settings.Effective["bio"].Text)
 		article.MoreLabel = label("post.moreWriting")
 		article.MoreURL = "/" + locale + "/writing"
-		article.Arrow = arrow
+		article.Arrow = themeArrow(locale)
 	}
-	view := theme.ArticlePage{
-		Locale:        locale,
-		Direction:     head.Direction,
-		Head:          template.HTML(headHTML.String()),
-		SkipLabel:     label("foundation.skip"),
-		Brand:         themeBrand(settings.Site, locale),
-		Nav:           themeNav(locale, "writing", false, label),
-		MenuNav:       themeNav(locale, "writing", true, label),
-		NavLabel:      label("nav.main"),
-		SearchLabel:   label("nav.search"),
-		SearchURL:     "/" + locale + "/search",
-		LanguageLabel: label("foundation.language"),
-		LanguageShort: languageShort(locale),
-		Languages:     themeLanguages(page, locale, label),
-		MenuLabel:     label("nav.menu"),
-		Article:       article,
-		Footer:        s.themeFooter(settings, locale, label),
-	}
-	var out bytes.Buffer
-	if err := theme.RenderArticle(&out, view); err != nil {
-		s.options.Logger.Error("theme render fallback", "reason", "template")
-		return nil, false
-	}
-	return out.Bytes(), true
+	return &article, nil
 }
 
 func themeNav(locale, current string, home bool, label func(string) string) []theme.Link {
@@ -328,17 +350,32 @@ func formatPublicDate(iso, locale string) string {
 	return strconv.Itoa(t.Day()) + " " + names[t.Month()-1] + " " + strconv.Itoa(t.Year())
 }
 
+func formatPublicMonth(date time.Time, locale string) string {
+	switch locale {
+	case "fr":
+		return [...]string{"janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"}[date.Month()-1] + " " + strconv.Itoa(date.Year())
+	case "ar":
+		return strings.TrimPrefix(formatPublicDate(date.Format("2006-01-02"), locale), strconv.Itoa(date.Day())+" ")
+	default:
+		return date.Format("January 2006")
+	}
+}
+
 var bioBold = regexp.MustCompile(`\*\*[^*]+\*\*`)
 
 // bioSegments parses the profile bio's **bold** convention (ui renderBio).
 func bioSegments(text string) []theme.BioSegment {
-	out := []theme.BioSegment{}
+	return markedSegments(text, bioBold, 2)
+}
+
+func markedSegments(text string, pattern *regexp.Regexp, marks int) []theme.BioSegment {
+	var out []theme.BioSegment
 	last := 0
-	for _, match := range bioBold.FindAllStringIndex(text, -1) {
+	for _, match := range pattern.FindAllStringIndex(text, -1) {
 		if match[0] > last {
 			out = append(out, theme.BioSegment{Text: text[last:match[0]]})
 		}
-		out = append(out, theme.BioSegment{Text: text[match[0]+2 : match[1]-2], Bold: true})
+		out = append(out, theme.BioSegment{Text: text[match[0]+marks : match[1]-marks], Bold: true})
 		last = match[1]
 	}
 	if last < len(text) {

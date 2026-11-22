@@ -48,7 +48,11 @@ class AssetManifestPlugin {
 }
 module.exports = (_, argv) => ({
   context: __dirname,
-  entry: { app: './src/main.tsx', katex: './src/islands/katex.ts' },
+  entry: {
+    app: './src/main.tsx',
+    katex: './src/islands/katex.ts',
+    'public-controls': './src/islands/publicControls.ts',
+  },
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'assets/[name].[contenthash].js',

@@ -2,13 +2,11 @@
 
 [العربية](public-pages.ar.md) · [API](api/README.md)
 
-The public site connects to applied configuration and
-published revisions. The Go process serves the HTML shell and API; Webpack builds
-React. The shell contains escaped title, description, canonical URL, published
-language alternatives and Open Graph metadata. Article pages are served fully
-rendered from Go templates ([ADR 0002](decisions/0002-server-rendered-themes.md)
-stage 2) and readable without JavaScript; every other public page keeps the SPA
-shell, whose body still needs JavaScript.
+The public site uses applied settings and published revisions. Go renders Home,
+About, Writing, Search and articles from the first built-in theme. Their content
+and navigation work without JavaScript. React serves the owner dashboard,
+collection pages and lesson readers. Both public rendering paths use the same
+Go metadata, canonical URLs and published language alternatives.
 
 ## Routes and visibility
 
@@ -56,29 +54,27 @@ states, grading and completion are server decisions. `ReaderLearning` connects
 quizzes, prerequisite links, mark-as-read and browser-progress reset to the
 [learning API](api/learning.md); an explicit interaction creates the browser identity.
 
-## Server-rendered articles
+## Server-rendered public pages
 
-`/{locale}/articles/{slug}` renders through the first built-in theme: embedded
-Go templates over safe view models — `PageRoute`, public site configuration,
-labels resolved with the same Go-side fallback the shell uses, and the
-sanitized body HTML from `backend/internal/render`. Templates receive no
-database access and no secrets. The per-route switch is a code-level allowlist
-(`backend/internal/http/theme.go`); setting `BLOG_FORCE_SPA=1` forces the SPA
-shell on every public page for operator rollback. Resolution, access
-decisions, status codes (200/403-locked/404/503), `noindex` and `no-store`
-behavior are unchanged, and the document head comes from the same template as
-the SPA shell, so metadata cannot drift between the two paths.
+The [first built-in theme](decisions/0002-server-rendered-themes.md) uses
+embedded Go templates. The HTTP host supplies public view models for profile
+details, writing and learning summaries, archive results, and article or About
+Markdown sanitized by the Go renderer. About uses the published document in
+the current language. Locked discovery results show a safe summary and lock
+indicator without a link to the body.
 
-A server-rendered document contains neither the SPA bundle nor its `#root`
-mount point, so a full load stays server-rendered; navigating to an article
-from inside the SPA still renders it client-side as before. Pages containing
-math include exactly one script, the manifest-listed KaTeX island (the
-`islands` map in the asset manifest, allowed by the strict CSP's same-origin
-script source); math-free pages ship no rendering JavaScript, and a frontend
-build without the island falls back to the SPA shell for math pages. The
-header's language and phone navigation menus are native `<details>` elements
-that work without JavaScript; the theme toggle button is not rendered on
-server pages yet, so appearance follows the stored or system preference.
+The `BLOG_FORCE_SPA=1` operator option serves the React fallback at the same
+routes. Full loads render on the server by default. In-app navigation from a
+React page can still use the React fallback. Access decisions, status codes,
+`noindex` and `no-store` are shared.
+
+The server response has no SPA mount or bundle. Search uses a GET form, and
+archive filters and pagination use ordinary links. The `public-controls`
+island debounces live searches, cancels obsolete requests, and progressively
+enhances appearance, menus and About email copying. Articles retain native
+menus and follow the stored or system appearance preference. Articles with math
+load only the manifest-listed KaTeX island, and About adds it when needed.
+Math pages fall back to React if the build lacks KaTeX.
 
 ## Archive and reading
 
@@ -106,7 +102,7 @@ content, illustrative UI-kit examples or credentials are seeded.
 Run `node scripts/project.mjs check`, `go -C backend test -race ./...`, and
 `node scripts/project.mjs build`. After installing Playwright Chromium, run
 `node scripts/smoke-production.mjs` and `node scripts/smoke-auth.mjs`.
-The latter invokes `smoke-public.mjs` with temporary owner/content fixtures.
+The latter invokes `smoke-public.mjs` with temporary owner/content fixtures. It loads all four themed index and profile pages with JavaScript disabled and submits a Search form.
 
 Go tests cover canonical kind/membership checks, Unicode slugs, published-only
 metadata, locked/noindex behavior, private draft isolation and corrupted files.

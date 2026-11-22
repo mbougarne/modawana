@@ -150,6 +150,8 @@ plan/announcement flow. No production content or credentials are created.
 
 Discovery adds canonical `url`, `category_key`, `tag_keys` and optional `reading_minutes`. Alternatives and collection-entry URLs now address public pages. Public collections add their canonical `url`; the new page resolver and paginated collection index are documented in [Public pages](../public-pages.md). Existing content JSON routes remain available.
 
+Successful responses from `GET /api/v1/public/page` include `metadata` with the title, description, and social card selected by the same Go code as the HTML head. A locked 403 response contains the safe page projection and omits this metadata.
+
 ## Bulk publication
 
 Owner `GET /content?locale=en&kind=article&status=draft&q=…` entries also expose

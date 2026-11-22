@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useI18n } from '@ui';
-import { usePublicConfiguration } from '../../features/configuration/PublicConfiguration';
 import { PublicLayout } from './PublicLayout';
 import { useResource, type PageRoute } from './api';
 import { HomePage } from './home';
@@ -9,7 +8,7 @@ import { WritingPage } from './writing';
 import { CollectionIndex, CollectionView, ReaderPage } from './reading';
 import './public.css';
 import { ResourceState } from './ResourceState';
-import { socialMetadata, updateSocialMetadata } from './social';
+import { updateSocialMetadata } from './social';
 
 function decodedPath(path: string) {
   try {
@@ -25,8 +24,7 @@ export function PublicPage({ invalid = false }: { invalid?: boolean }) {
     const initial = document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.href;
     return initial ? new URL(initial).origin : window.location.origin;
   });
-  const { t, locale } = useI18n();
-  const { data: configuration } = usePublicConfiguration();
+  const { t } = useI18n();
   const resource = useResource<PageRoute>(
     invalid
       ? undefined
@@ -36,21 +34,15 @@ export function PublicPage({ invalid = false }: { invalid?: boolean }) {
   );
   const page = resource.data;
   useEffect(() => {
-    let title =
+    const title =
+      page?.metadata?.title ||
       page?.title ||
       t(
         resource.error === 404 || invalid
           ? 'foundation.notFound'
           : 'page.' + (page?.kind || 'home'),
       );
-    const personal = page?.kind === 'home' || page?.kind === 'about';
-    const name = configuration?.profile.name[locale] || configuration?.profile.name.en;
-    if (personal && name) {
-      title = name + ' · ' + title;
-    }
-    const summary =
-      page?.summary ||
-      (personal ? configuration?.profile.bio[locale] || configuration?.profile.bio.en || '' : '');
+    const summary = page?.metadata?.description ?? page?.summary ?? '';
     document.title = title;
     const description = document.querySelector<HTMLMetaElement>('meta[name="description"]');
     if (description) {
@@ -62,11 +54,7 @@ export function PublicPage({ invalid = false }: { invalid?: boolean }) {
       )
       .forEach((n) => n.remove());
     const shareable = page && !page.content?.locked && !resource.error && !invalid;
-    updateSocialMetadata(
-      shareable ? socialMetadata(page, configuration, canonicalOrigin, title) : undefined,
-      title,
-      summary,
-    );
+    updateSocialMetadata(shareable ? page.metadata?.social : undefined, title, summary);
     if (shareable) {
       const canonical = document.createElement('link');
       canonical.rel = 'canonical';
@@ -99,7 +87,7 @@ export function PublicPage({ invalid = false }: { invalid?: boolean }) {
       }
     }
     return () => updateSocialMetadata(undefined, '', '');
-  }, [page, resource.error, invalid, t, configuration, locale, canonicalOrigin]);
+  }, [page, resource.error, invalid, t, canonicalOrigin]);
   return (
     <PublicLayout page={page}>
       {invalid ? <h1>{t('foundation.notFound')}</h1> : <ResourceState resource={resource} />}

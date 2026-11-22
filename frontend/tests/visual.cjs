@@ -56,7 +56,7 @@ const assert = require('node:assert/strict');
         `overflow: ${locale}/${width}/${theme}`,
       );
       const header = page.locator('.public-header');
-      const language = header.locator('button[aria-controls="language-menu"]');
+      const language = header.locator('[aria-controls="language-menu"]');
       await language.click();
       const languageMenu = page.locator('#language-menu');
       assert.equal(await language.getAttribute('aria-expanded'), 'true');
@@ -68,19 +68,19 @@ const assert = require('node:assert/strict');
       assert.equal(await languageMenu.locator('a[href*="/admin"]').count(), 0);
       await page.keyboard.press('Escape');
       assert.equal(await language.getAttribute('aria-expanded'), 'false');
-      assert.equal(await languageMenu.count(), 0);
+      assert.equal(await languageMenu.isVisible(), false);
       assert.equal(await language.evaluate((n) => n === document.activeElement), true);
       assert.equal(await header.locator('a.vb-brand').getAttribute('href'), '/' + locale);
       assert.equal(await header.locator('a.vb-brand [aria-expanded]').count(), 0);
       if (width < 768) {
-        const navigation = header.locator('button[aria-controls="navigation-menu"]');
+        const navigation = header.locator('[aria-controls="navigation-menu"]');
         await navigation.click();
         const navigationMenu = page.locator('#navigation-menu');
         assert.equal(await navigationMenu.getByRole('link').count(), 5);
         assert.equal(await navigationMenu.locator('a[href*="/admin"]').count(), 0);
         await page.keyboard.press('Escape');
         assert.equal(await navigation.getAttribute('aria-expanded'), 'false');
-        assert.equal(await navigationMenu.count(), 0);
+        assert.equal(await navigationMenu.isVisible(), false);
         assert.equal(await navigation.evaluate((n) => n === document.activeElement), true);
       } else {
         assert.equal(await header.locator('.public-nav a').count(), 4);

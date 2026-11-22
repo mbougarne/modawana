@@ -1,12 +1,19 @@
 package httpserver
 
 import (
+	"context"
+
+	"github.com/mbougarne/modawana/backend/internal/access"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/mbougarne/modawana/backend/internal/content"
 )
+
+func (d *Domain) PublicDiscovery(ctx context.Context, filter content.Filter) (content.Page, error) {
+	return d.Content.Discover(ctx, filter, access.FromContext(ctx))
+}
 
 func (d *Domain) discoveryRoutes(w http.ResponseWriter, r *http.Request) bool {
 	p := r.URL.Path
@@ -21,7 +28,7 @@ func (d *Domain) discoveryRoutes(w http.ResponseWriter, r *http.Request) bool {
 				return true
 			}
 		}
-		out, e := d.Content.Discover(r.Context(), content.Filter{Locale: q.Get("locale"), Kind: q.Get("kind"), Category: q.Get("category"), Tag: q.Get("tag"), Query: q.Get("q"), Cursor: q.Get("cursor"), Limit: limit}, d.readerPrincipal(r))
+		out, e := d.PublicDiscovery(d.ReaderContext(r), content.Filter{Locale: q.Get("locale"), Kind: q.Get("kind"), Category: q.Get("category"), Tag: q.Get("tag"), Query: q.Get("q"), Cursor: q.Get("cursor"), Limit: limit})
 		if e != nil {
 			domainError(w, e)
 		} else {

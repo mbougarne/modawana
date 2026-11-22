@@ -235,6 +235,18 @@ export interface PageRoute {
   title: string;
   summary: string;
   alternatives: Alternative[];
+  metadata?: {
+    title: string;
+    description: string;
+    social: {
+      image: string;
+      alt: string;
+      type: string;
+      site_name: string;
+      width: number;
+      height: number;
+    };
+  };
   content?: PublicContent;
   collection?: PublicCollection;
 }
