@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/mbougarne/modawana/backend/internal/content"
+	"github.com/mbougarne/modawana/backend/internal/extension"
 )
 
 func scheduleFixture() Schedule {
@@ -79,15 +80,31 @@ func TestSchedulePersistsGenerationAndIndependentRetryAcrossMidnight(t *testing.
 	notion := &fakeNotion{fail: true}
 	now, _ := time.Parse(time.RFC3339, "2026-10-30T19:00:00Z")
 	state := filepath.Join(root, "state")
-	if e := RunSchedule(ctx, client, notion, g, configPath, state, now); e == nil {
+	maintenance := true
+	scheduler := &lessonExtension{
+		delivery: &notionExtension{client: client, notion: notion, dir: state}, generator: g, schedulePath: configPath,
+		maintenance: func() bool { return maintenance }, now: func() time.Time { return now },
+	}
+	host := extension.NewHost(nil)
+	if e := host.Install(scheduler); e != nil {
+		t.Fatal(e)
+	}
+	job := host.Jobs()[0]
+	if e := job.Run(ctx); e != nil || generations != 0 || notion.calls != 0 {
+		t.Fatal("schedule ran during maintenance", e)
+	}
+	maintenance = false
+	if e := job.Run(ctx); e == nil {
 		t.Fatal("missing destination reported success")
 	}
 	notion.fail = false
 	// An unfinished delivery is retried next day before the next lesson is due.
-	if e := RunSchedule(ctx, client, notion, g, configPath, state, now.Add(6*time.Hour)); e != nil {
+	now = now.Add(6 * time.Hour)
+	if e := job.Run(ctx); e != nil {
 		t.Fatal(e)
 	}
-	if e := RunSchedule(ctx, client, notion, g, configPath, state, now.Add(7*time.Hour)); e != nil {
+	now = now.Add(time.Hour)
+	if e := job.Run(ctx); e != nil {
 		t.Fatal(e)
 	}
 	if generations != 1 || writes != 1 || notion.calls != 2 {
@@ -97,6 +114,7 @@ func TestSchedulePersistsGenerationAndIndependentRetryAcrossMidnight(t *testing.
 	if e := readPrivateJSON(filepath.Join(state, "usage-2026-10.json"), &budget); e != nil || budget.MicroUSD <= 0 {
 		t.Fatal(budget, e)
 	}
+	now = now.Add(-7 * time.Hour)
 	config.Jobs[0].AutoPublish = true
 	saveRunnerJSON(configPath, config)
 	if e := RunSchedule(ctx, client, notion, g, configPath, state, now); e == nil {

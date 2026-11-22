@@ -43,6 +43,10 @@ func main() {
 		}
 	case "job":
 		put("job", in.Settings["message"])
+	case "mcp":
+		key, value := []byte("mcp"), []byte("write")
+		_ = kvSet(address(key), uint32(len(key)), address(value), uint32(len(value)))
+		_, _ = os.Stdout.WriteString("tool returned")
 	case "route":
 		name, secret := []byte("token"), make([]byte, 64)
 		n := secretGet(address(name), uint32(len(name)), address(secret), uint32(len(secret)))

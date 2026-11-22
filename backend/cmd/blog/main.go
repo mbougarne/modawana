@@ -24,6 +24,7 @@ import (
 	httpserver "github.com/mbougarne/modawana/backend/internal/http"
 	"github.com/mbougarne/modawana/backend/internal/media"
 	"github.com/mbougarne/modawana/backend/internal/plugin"
+	"github.com/mbougarne/modawana/backend/internal/publisher"
 	"github.com/mbougarne/modawana/backend/internal/siteconfig"
 	"github.com/mbougarne/modawana/backend/internal/storage"
 	"github.com/mbougarne/modawana/backend/internal/theme"
@@ -178,8 +179,14 @@ func run() int {
 	runtime.SetKeySource(cfg.ReadAuthKey)
 	plugins := &plugin.Service{DB: database, Dir: filepath.Join(cfg.DataRoot, "plugins"), Host: host, Runtime: runtime, Logger: logger, Maintenance: func() bool { return operations.Maintenance(cfg.DataRoot) }}
 	domain := &httpserver.Domain{Learning: identities, SiteConfig: settings, Content: contents, Auth: authentication, Media: media.New(database, files, policy), Extensions: host, Plugins: plugins}
+	publishing, err := publisher.Extensions(cfg.BaseURL, os.Getenv, plugins.Maintenance)
+	if err != nil {
+		logger.Error("publisher extension configuration rejected", "reason", err.Error())
+		return 1
+	}
 	// Register built-ins before approved plugins.
-	for _, builtin := range append([]extension.Extension{&maintenanceJobs{db: database, files: files}}, domain.Builtins()...) {
+	builtins := append([]extension.Extension{&maintenanceJobs{db: database, files: files}}, domain.Builtins()...)
+	for _, builtin := range append(builtins, publishing...) {
 		if err = host.Install(builtin); err != nil {
 			logger.Error("built-in extension registration failed", "extension", builtin.Slug(), "reason", err.Error())
 			return 1

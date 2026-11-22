@@ -6,8 +6,7 @@ import (
 )
 
 // ToolFunc handles tools/call for one tool. The arguments and the result are
-// the bounded JSON documents of the MCP contract; a Wasm-backed tool will
-// exchange the same bytes through the plugin's routes.
+// bounded JSON documents of the MCP contract.
 type ToolFunc func(ctx context.Context, arguments json.RawMessage) ([]byte, error)
 
 // MCPTool declares one MCP tool. The host advertises Definition and enforces
@@ -21,7 +20,9 @@ type MCPTool struct {
 	Required   []string
 	ReadOnly   bool
 	Idempotent bool
-	Call       ToolFunc
+	// RequiresPluginScope limits discovery and invocation to plugin_tools grants.
+	RequiresPluginScope bool
+	Call                ToolFunc
 
 	slug string
 }

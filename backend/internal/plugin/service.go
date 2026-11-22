@@ -575,6 +575,11 @@ func (x *wasmExtension) Register(r *extension.Registrar) error {
 		}
 	}
 
+	for _, tool := range x.plugin.manifest.MCPTools {
+		if err := r.MCPTool(x.mcpTool(tool)); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

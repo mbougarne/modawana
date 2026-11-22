@@ -152,10 +152,10 @@ idempotency keys, matching the publisher's durable-delivery rules.
 2. Re-wire first-party features as built-in extensions of those registries:
    `mcpTools()` becomes registry-driven; social-card metadata moves behind
    `content.rendered_meta`; the server gets a job runner that replaces the
-   ad-hoc cleanup goroutine; Notion delivery registers `content.published`
-   plus a delivery job. The publisher CLI keeps working; the lesson scheduler
-   stays in the publisher process until the `secrets` capability exists, then
-   migrates.
+   ad-hoc cleanup goroutine. Notion delivery and the lesson scheduler register
+   as opt-in native extensions using the existing scoped publisher API and
+   durable checkpoint format. Delivery uses explicit manifests. The CLI and
+   systemd timer remain available.
 3. Add the wazero host: manifest loading, capability gating, instance
    pooling, limits, and the storage API. Built-in extensions and Wasm plugins
    implement the same Go interface, so the host is a second implementation,
@@ -176,6 +176,12 @@ idempotency keys, matching the publisher's durable-delivery rules.
 
 The [API 2 guide](../plugins.md#stage-2-capabilities) defines the shipped
 manifest fields, invocation rules, owner settings, and backup behavior.
+
+The [API 3 guide](../plugins.md#stage-3-mcp-tools) defines read-only plugin MCP
+tools and the AssemblyScript starter. Social-card metadata runs against the
+same selector in Go and Wasm for first-party parity. The Notion and lesson
+integration stays native to preserve its existing request limits,
+pagination, scoped credentials, and durable retries.
 
 Each stage lands behind its own branch and PR with focused tests; a stage is
 not a public compatibility promise until the host API is declared stable.

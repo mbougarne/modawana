@@ -62,6 +62,37 @@ Follow [deployment](../deployment.md) and [recovery](../operations/recovery.md) 
 pre-upgrade backups with the old binary and matching-version restores. An automated
 server test does not establish live account, network, billing or destination access.
 
+
+### In-process extensions
+
+The blog server can run the same delivery and scheduler code through its native
+extension host. The CLI and systemd timer remain available. Choose only one
+scheduler for each state directory.
+
+- Set `BLOG_LESSON_SCHEDULE_FILE` to the absolute path of a regular private
+  schedule file with `"enabled":true` to register the scheduler at startup.
+  It reads the file on each tick, pauses in maintenance mode, and uses the
+  same minute cadence, budget reservations, and durable retry ledger as the CLI.
+- Set `BLOG_NOTION_DELIVERY_ENABLED=true` separately to enable
+  `POST /api/v1/plugins/notion-delivery/deliver`. This owner-only route
+  requires an owner session, Origin and CSRF headers, and a JSON
+  [delivery manifest](lesson-delivery.md). It returns each destination's state.
+  A partial failure returns HTTP 502. Retry with the identical manifest.
+- Either extension needs `BLOG_LESSON_STATE_DIR` (absolute, private and writable),
+  `BLOG_PUBLISHER_TOKEN` scoped to the permitted content and actions, and
+  `NOTION_API_KEY`. Scheduling also needs `OPENAI_API_KEY`. Supply these in
+  the blog service's private environment and mount the config and state into
+  the service if it runs in a container.
+- The blog client uses `BLOG_BASE_URL` and optionally `BLOG_PUBLISHER_CA`.
+  Before moving from the timer, stop it, retain its state directory, and
+  confirm its `BLOG_URL` matches the in-process client origin so existing
+  checkpoints can be reused. Reconcile any outstanding locks before cutover.
+
+The native extensions preserve the existing external request limits and
+Notion reconciliation. Back up the private state directory alongside blog
+backups, as with the CLI runner. A schedule file that was disabled at startup
+needs a server restart after enabling it.
+
 ## العربية
 
 تتضمن أداة الناشر مجدولاً زمنياً اختيارياً لتوليد الدروس آلياً، يعمل بصورة مستقلة تماماً عن تكامل [MCP/OAuth](mcp-oauth.md) التفاعلي. لا تتطلب عمليات التدوين والنشر المعتادة تشغيل هذه الخدمة. ويُعد [ملف الجدول الزمني النموذجي](../../deploy/lesson-schedule.example.json) المرفق في المستودع معطلاً افتراضياً؛ لذا استبدل كافة قيمه المؤقتة وتحقق من تسلسل واستمرارية الدروس قبل تفعيل أي مهمة مجدولة.
@@ -89,3 +120,32 @@ build/publisher schedule --input /private/schedule.json --state-dir /private/sta
 5. لا تُفعّل المؤقت إلا بعد اكتمال التحقق والتأكد التام. يقوم المؤقت بتشغيل الأمر المقيد كل دقيقة، وتتولى المهام المهيأة تحديد وقت استحقاق التوصيل. أوقف المؤقت أثناء إجراء الترقيات، أو التراجع للإصدار السابق، أو أعمال المطابقة. وتذكر أن النسخ الاحتياطية للمدونة لا تشمل بيانات حالة مشغل الدروس.
 
 اتبع إرشادات [دليل النشر](../deployment.ar.md) و[دليل الاسترداد](../operations/recovery.md) لأخذ النسخ الاحتياطية باستخدام البرنامج القديم قبل الترقية، وإجراء الاستعادة باستخدام الإصدار المطابق. وتذكر دائماً أن نجاح الاختبارات الآلية على الخادم لا يُثبت إمكانية الوصول الفعلي للحسابات أو الشبكة الخارجية أو إعدادات الفوترة أو الوجهات النهائية.
+
+### الإضافات داخل عملية الخادم
+
+يمكن لخادم المدوّنة تشغيل التوصيل والجدولة نفسيهما عبر مضيف الإضافات
+المدمجة. وتبقى أداة الناشر ومؤقت systemd متاحين. استخدم مجدولاً واحداً لكل
+مجلد حالة.
+
+- لتسجيل المجدول عند بدء التشغيل، اضبط `BLOG_LESSON_SCHEDULE_FILE` على
+  المسار المطلق لملف جدول خاص ومنتظم يتضمن `"enabled":true`. يقرأ المجدول
+  الملف في كل دورة، ويتوقف أثناء الصيانة، ويحتفظ بدورية الدقيقة وحجوزات
+  الميزانية وسجل إعادة المحاولة الخاص بأداة الناشر.
+- اضبط `BLOG_NOTION_DELIVERY_ENABLED=true` بصورة مستقلة لتفعيل
+  `POST /api/v1/plugins/notion-delivery/deliver`. يتطلب المسار جلسة المالك
+  وترويستي Origin وCSRF و[بيان توصيل](lesson-delivery.ar.md) بصيغة JSON.
+  يعيد حالة الوجهتين. عند فشل إحدى الوجهتين يعيد HTTP 502. أعد المحاولة
+  باستخدام نفس البيان.
+- تحتاج كل إضافة إلى `BLOG_LESSON_STATE_DIR` لمسار حالة مطلق وخاص وقابل
+  للكتابة وإلى `BLOG_PUBLISHER_TOKEN` محدود بالمحتوى والإجراءات المسموح
+  بها وإلى `NOTION_API_KEY`. تحتاج الجدولة أيضاً إلى `OPENAI_API_KEY`.
+  مرّر البيانات في بيئة خدمة المدوّنة الخاصة، واربط مجلدي الإعدادات
+  والحالة بالحاوية عند استخدامها.
+- يستخدم عميل المدوّنة `BLOG_BASE_URL` ويمكن ضبط `BLOG_PUBLISHER_CA`.
+  أوقف المؤقت قبل الانتقال، واحتفظ بمجلد حالته، وتأكد من تطابق
+  `BLOG_URL` للمؤقت مع عنوان المدونة المستخدم داخل الخادم لإعادة استخدام
+  نقاط التحقق. عالِج أي أقفال معلقة قبل الانتقال.
+
+تحافظ الإضافتان على مهلات الطلبات الخارجية وآلية التحقق من نتائج Notion.
+احفظ نسخة احتياطية من مجلد الحالة الخاص كما في أداة الناشر. يتطلب تفعيل
+ملف جدول كان معطلاً عند بدء التشغيل إعادة تشغيل الخادم.

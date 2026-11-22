@@ -3,6 +3,7 @@ package httpserver
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -84,12 +85,15 @@ func TestRenderedMetaSanitizesHookResults(t *testing.T) {
 	}
 }
 
-type echoTool struct{}
+type echoTool struct{ scoped bool }
 
 func (echoTool) Slug() string { return "echo" }
 
-func (echoTool) Register(r *extension.Registrar) error {
-	return r.MCPTool(extension.MCPTool{Name: "echo_tool", Description: "Echo.", Properties: map[string]any{"value": map[string]string{"type": "string"}}, Required: []string{"value"}, ReadOnly: true, Idempotent: true, Call: func(ctx context.Context, raw json.RawMessage) ([]byte, error) {
+func (e echoTool) Register(r *extension.Registrar) error {
+	return r.MCPTool(extension.MCPTool{Name: "echo_tool", Description: "Echo.", Properties: map[string]any{"value": map[string]string{"type": "string"}}, Required: []string{"value"}, ReadOnly: true, Idempotent: true, RequiresPluginScope: e.scoped, Call: func(ctx context.Context, raw json.RawMessage) ([]byte, error) {
+		if e.scoped && ctx.Value(mcpRequestKey{}) != nil {
+			return nil, fmt.Errorf("unexpected publisher request")
+		}
 		return json.Marshal(map[string]any{"content": []any{map[string]string{"type": "text", "text": string(raw)}}, "isError": false})
 	}})
 }
@@ -98,13 +102,13 @@ func TestMCPToolListAndDispatchAreRegistryDriven(t *testing.T) {
 	host := extension.NewHost(nil)
 	d := &Domain{Extensions: host}
 	names := []string{}
-	for _, definition := range d.mcpTools() {
+	for _, definition := range d.mcpTools(false) {
 		names = append(names, definition.(map[string]any)["name"].(string))
 	}
 	if strings.Join(names, ",") != "get_draft,save_draft,publish_revision,upload_media" {
 		t.Fatal("built-in tool list changed", names)
 	}
-	first := d.mcpTools()[0].(map[string]any)
+	first := d.mcpTools(false)[0].(map[string]any)
 	if schema := first["inputSchema"].(map[string]any); schema["additionalProperties"] != false {
 		t.Fatal(schema)
 	}
@@ -114,20 +118,20 @@ func TestMCPToolListAndDispatchAreRegistryDriven(t *testing.T) {
 	if err := host.Install(echoTool{}); err != nil {
 		t.Fatal(err)
 	}
-	if got := len(d.mcpTools()); got != 5 {
+	if got := len(d.mcpTools(false)); got != 5 {
 		t.Fatal("registered tool not advertised", got)
 	}
 	r := httptest.NewRequest("POST", mcpPath, nil)
-	result, err := d.mcpCall(r, "echo_tool", json.RawMessage(`{"value":"x"}`))
+	result, err := d.mcpCall(r, "echo_tool", json.RawMessage(`{"value":"x"}`), false)
 	if err != nil || result["isError"] != false {
 		t.Fatal(result, err)
 	}
 	for label, arguments := range map[string]string{"unknown field": `{"value":"x","other":1}`, "missing required": `{}`, "null required": `{"value":null}`} {
-		if _, err := d.mcpCall(r, "echo_tool", json.RawMessage(arguments)); err == nil {
+		if _, err := d.mcpCall(r, "echo_tool", json.RawMessage(arguments), false); err == nil {
 			t.Fatal(label, "accepted")
 		}
 	}
-	if _, err := d.mcpCall(r, "missing_tool", json.RawMessage(`{}`)); err == nil {
+	if _, err := d.mcpCall(r, "missing_tool", json.RawMessage(`{}`), false); err == nil {
 		t.Fatal("unknown tool dispatched")
 	}
 }
@@ -157,7 +161,7 @@ func TestEagerBuiltinInstallKeepsLazyPathsIdempotent(t *testing.T) {
 	if s.extensions() != host || d.extensions() != host {
 		t.Fatal("lazy paths replaced the shared host")
 	}
-	if got := len(d.mcpTools()); got != 4 {
+	if got := len(d.mcpTools(false)); got != 4 {
 		t.Fatal("built-in tools duplicated or missing", got)
 	}
 	if got := len(host.DispatchHook(context.Background(), extension.HookRenderedMeta, []byte(`{}`))); got != 1 {

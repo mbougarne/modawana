@@ -55,45 +55,7 @@ func renderedMetaHook(ctx context.Context, hook string, payload []byte) ([]byte,
 	if err := json.Unmarshal(payload, &in); err != nil {
 		return nil, err
 	}
-	return json.Marshal(selectRenderedMeta(in))
-}
-
-// Use only published public configuration and an already authorized public
-// media manifest. A learner's unlocked lesson must never advertise its gated cover.
-func selectRenderedMeta(in extension.RenderedMetaPayload) extension.RenderedMetaResult {
-	out := extension.RenderedMetaResult{Image: in.Origin + "/social-card.png", Alt: in.Title, Type: "website", SiteName: in.Site.Name, Width: 1200, Height: 630}
-	if out.SiteName == "" {
-		out.SiteName = in.Site.Wordmark
-	}
-	if in.Content != nil && in.Kind != "lesson" && !in.Content.Locked {
-		out.Type = "article"
-		for _, m := range in.Content.Media {
-			if m.ID == in.Content.CoverID && m.Kind == "image" && (m.MIME == "image/jpeg" || m.MIME == "image/png" || m.MIME == "image/webp") {
-				out.Image = in.Origin + "/media/" + m.ID
-				out.Width, out.Height = m.Width, m.Height
-				return out
-			}
-		}
-	}
-	id := ""
-	if in.Site.BannerEnabled && in.Site.BannerID != "" {
-		id = in.Site.BannerID
-		out.Alt = in.Site.BannerAlt
-	} else if in.Site.PortraitID != "" {
-		id = in.Site.PortraitID
-		out.Alt = in.Site.PortraitAlt
-	} else if in.Site.LogoMode == "image" {
-		id = in.Site.LogoID
-		out.Alt = out.SiteName
-	}
-	if id != "" {
-		out.Image = in.Origin + "/media/" + id
-		out.Width, out.Height = 0, 0
-	}
-	if out.Alt == "" {
-		out.Alt = in.Title
-	}
-	return out
+	return json.Marshal(extension.SelectRenderedMeta(in))
 }
 
 // renderedMetaPayload bounds what hooks may see: the media manifest of a
@@ -127,7 +89,7 @@ func renderedMetaPayload(page content.PageRoute, settings siteconfig.Public, ori
 // socialFor is the built-in selection the content.rendered_meta hook serves,
 // kept directly callable so tests pin the exact selection behavior.
 func socialFor(page content.PageRoute, settings siteconfig.Public, origin, title string) socialMetadata {
-	out := selectRenderedMeta(renderedMetaPayload(page, settings, origin, title))
+	out := extension.SelectRenderedMeta(renderedMetaPayload(page, settings, origin, title))
 	return socialMetadata{Image: out.Image, Alt: out.Alt, Type: out.Type, SiteName: out.SiteName, Width: out.Width, Height: out.Height}
 }
 

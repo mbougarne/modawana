@@ -37,6 +37,7 @@ if (mode === 'lint') {
     'design-system/components.css',
     'backend/internal/theme/styles/*.css',
     '.github/workflows/*.yml',
+    'examples/plugins/typescript/*.json',
   ]);
   if (fix) {
     run('gofmt', ['-w', 'backend']);

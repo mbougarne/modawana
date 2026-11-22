@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "host_api_version": 1,
+  "slug": "social-cards-wasm",
+  "name": "Social Cards",
+  "version": "0.1.0",
+  "description": "Select social preview metadata from public site and content settings.",
+  "module": "plugin.wasm",
+  "capabilities": ["hooks"],
+  "hooks": [{ "name": "content.rendered_meta", "version": 1 }]
+}

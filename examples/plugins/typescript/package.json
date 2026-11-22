@@ -1,0 +1,10 @@
+{
+  "name": "modawana-typescript-plugin-example",
+  "private": true,
+  "scripts": {
+    "build": "asc assembly/index.ts --runtime stub --optimize --use abort=assembly/wasi/abort --outFile ../../../build/plugins/typescript-example/plugin.wasm && node -e \"require('node:fs').copyFileSync('manifest.json', '../../../build/plugins/typescript-example/manifest.json')\""
+  },
+  "devDependencies": {
+    "assemblyscript": "0.28.9"
+  }
+}

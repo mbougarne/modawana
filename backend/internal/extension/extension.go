@@ -218,7 +218,7 @@ func (r *Registrar) SettingsSection(s SettingsSection) error {
 
 // MCPTool registers one MCP tool definition and its handler.
 func (r *Registrar) MCPTool(t MCPTool) error {
-	if !namePattern.MatchString(t.Name) || t.Description == "" || len(t.Properties) == 0 || t.Call == nil {
+	if !namePattern.MatchString(t.Name) || t.Description == "" || t.Properties == nil || t.Call == nil {
 		return fmt.Errorf("%w: MCP tool %q", ErrInvalid, t.Name)
 	}
 	for _, tool := range r.tools {

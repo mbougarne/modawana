@@ -379,6 +379,7 @@ export const DEFAULT_LABELS = {
     'Destinations HTTPS autorisées',
     'وجهات HTTPS المسموح بها',
   ),
+  'plugins.mcpTools': l('MCP tools', 'Outils MCP', 'أدوات MCP'),
   'plugins.jobs': l('Scheduled jobs', 'Tâches planifiées', 'المهام المجدولة'),
   'plugins.state.available': l('Ready to install', 'Prête à installer', 'جاهزة للتثبيت'),
   'plugins.state.installed': l('Installed', 'Installée', 'مثبّتة'),
@@ -2217,6 +2218,11 @@ export const DEFAULT_LABELS = {
     'Upload content media',
     'Téléverser les médias du contenu',
     'رفع وسائط المحتوى',
+  ),
+  'publisher.plugin_tools': l(
+    'Use enabled plugins’ read-only MCP tools',
+    'Utiliser les outils MCP en lecture seule des extensions actives',
+    'استخدام أدوات MCP للقراءة فقط في الإضافات المفعّلة',
   ),
   'publisher.quiz': l(
     'Read and write quiz drafts',

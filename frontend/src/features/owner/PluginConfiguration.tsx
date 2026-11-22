@@ -12,6 +12,7 @@ export type PluginManifest = {
   secrets?: { name: string; label: Labels }[];
   jobs?: { name: string; every_seconds: number }[];
   https_hosts?: string[];
+  mcp_tools?: { name: string }[];
 };
 
 type Configuration = {

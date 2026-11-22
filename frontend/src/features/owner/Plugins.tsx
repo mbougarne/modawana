@@ -84,6 +84,16 @@ export function Plugins() {
             </h2>
             <p className="vb-meta">
               {item.slug} · {t('plugins.state.' + item.state)}
+              {manifest?.mcp_tools?.length ? (
+                <p>
+                  {t('plugins.mcpTools')}{' '}
+                  {manifest.mcp_tools.map((tool) => (
+                    <Tag key={tool.name}>
+                      {item.slug}__{tool.name}
+                    </Tag>
+                  ))}
+                </p>
+              ) : null}
               {item.state === 'installed' && (
                 <> · {t(item.enabled ? 'plugins.enabled' : 'plugins.disabled')}</>
               )}
