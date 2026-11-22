@@ -19,6 +19,7 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/content"
 	"github.com/mbougarne/modawana/backend/internal/extension"
 	"github.com/mbougarne/modawana/backend/internal/siteconfig"
+	"github.com/mbougarne/modawana/backend/internal/theme"
 )
 
 type Options struct {
@@ -239,27 +240,42 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 	if private && len(parts) == 3 && (parts[2] == "oauth" || parts[2] == "settings" || parts[2] == "profile" || parts[2] == "labels" || parts[2] == "posts" || parts[2] == "new" || parts[2] == "collections" || parts[2] == "taxonomy" || parts[2] == "media" || parts[2] == "transfer" || parts[2] == "plugins") && pageLocale(parts[0]) {
 		locale, status = parts[0], 200
 	}
+	login := status == 200 && len(parts) == 2 && parts[1] == "login"
+	preview := private && len(parts) == 4 && pageLocale(parts[0]) && parts[2] == "settings" && parts[3] == "theme-preview"
+	public := !private && !login
 	var page content.PageRoute
 	ctx := r.Context()
-	if len(parts) > 0 && (parts[0] == "en" || parts[0] == "ar" || parts[0] == "fr") {
+	if len(parts) > 0 && pageLocale(parts[0]) {
 		locale = parts[0]
 	}
-	if !private && !strings.HasSuffix(r.URL.Path, "/login") {
-		if resolver, ok := s.options.Domain.(pageResolver); ok {
-			var e error
-			ctx = s.readerContext(r)
-			page, e = resolver.ResolvePage(ctx, r.URL.Path)
-			switch {
-			case e == nil:
-				status = 200
-			case errors.Is(e, content.ErrLocked):
-				status = 403
-			case errors.Is(e, sql.ErrNoRows):
-				status = 404
-			default:
-				writeError(w, Unavailable)
+	var previewTheme theme.Builtin
+	if public || preview {
+		path := r.URL.Path
+		if preview {
+			choice, ok := theme.Lookup(r.URL.Query().Get("theme"))
+			if !ok {
+				writeError(w, InvalidFields)
 				return
 			}
+			previewTheme = choice
+			path = "/" + locale
+		}
+		if resolver, ok := s.options.Domain.(pageResolver); ok {
+			var err error
+			ctx = s.readerContext(r)
+			page, err = resolver.ResolvePage(ctx, path)
+			switch {
+			case err == nil:
+				status = 200
+			case errors.Is(err, content.ErrLocked):
+				status = 403
+			case errors.Is(err, sql.ErrNoRows):
+				status = 404
+			default:
+				status = 503
+			}
+		} else if public && status == 200 {
+			page = content.PageRoute{Kind: "home", Locale: locale, URL: "/" + locale}
 		}
 	}
 	if locale == "ar" {
@@ -269,7 +285,7 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 		writeError(w, Unavailable)
 		return
 	}
-	if status >= 400 || private || strings.HasSuffix(r.URL.Path, "/login") {
+	if status >= 400 || private || login {
 		w.Header().Set("X-Robots-Tag", "noindex")
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -286,12 +302,14 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 		}
 		settings = out
 		brandCSS = template.CSS(out.Palette.CSS())
-		encoded, e := json.Marshal(out)
-		if e != nil {
-			writeError(w, InternalError)
-			return
+		if !public && !preview {
+			encoded, e := json.Marshal(out)
+			if e != nil {
+				writeError(w, InternalError)
+				return
+			}
+			boot = template.JS(encoded)
 		}
-		boot = template.JS(encoded)
 		if out.Site.FaviconID != "" {
 			favicon = "/media/" + out.Site.FaviconID
 		}
@@ -299,7 +317,7 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 	metadata := pageMetadata(page, settings, locale, status)
 	canonicalURL := ""
 	alternatives := []content.Alternative{}
-	if status == 200 && page.URL != "" {
+	if status == 200 && public && page.URL != "" {
 		canonicalURL = s.options.Config.BaseURL + page.URL
 		for _, a := range page.Alternatives {
 			a.URL = s.options.Config.BaseURL + a.URL
@@ -307,21 +325,46 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 		}
 	}
 	social := socialMetadata{}
-	if status == 200 && !private && !strings.HasSuffix(r.URL.Path, "/login") {
+	if status == 200 && public {
 		social = s.renderedMeta(r.Context(), page, settings, s.options.Config.BaseURL, metadata.Title)
 	}
 	head := headData{Locale: locale, Direction: dir, Nonce: nonce, Scripts: s.options.Assets.Manifest.Scripts, Styles: s.options.Assets.Manifest.Styles, BrandCSS: brandCSS, Boot: boot, Favicon: favicon, Title: metadata.Title, Description: metadata.Description, Canonical: canonicalURL, Alternatives: alternatives, Social: social}
-	lockedLesson := status == 403 && page.Kind == "lesson" && page.Content != nil && page.Content.Locked
-	if (status == 200 || lockedLesson) && !private && themedKinds[page.Kind] && !s.options.Config.ForceSPA {
-		head.NoIndex = lockedLesson
-		if body, ok := s.renderThemed(ctx, r, page, settings, head); ok {
-			w.WriteHeader(status)
-			if r.Method != "HEAD" {
-				_, _ = w.Write(body)
-			}
-			return
+	if public || preview || status >= 400 {
+		if preview {
+			settings.Site.PublicTheme = previewTheme.ID
 		}
+		lockedLesson := status == 403 && page.Kind == "lesson" && page.Content != nil && page.Content.Locked
+		head.NoIndex = status >= 400 || preview
+		var body []byte
+		var ok bool
+		if status == 200 || lockedLesson {
+			body, ok = s.renderThemed(ctx, r, page, settings, head)
+			if !ok {
+				status = http.StatusServiceUnavailable
+			}
+		}
+		if !ok {
+			key := "public.error"
+			if status == http.StatusNotFound {
+				key = "foundation.notFound"
+			}
+			head.Title = pageLabel(settings, key, locale)
+			head.Description, head.Canonical, head.Alternatives, head.Social = "", "", nil, socialMetadata{}
+			head.NoIndex = true
+			w.Header().Set("X-Robots-Tag", "noindex")
+			body, ok = s.renderThemed(ctx, r, content.PageRoute{Kind: "error", Locale: locale}, settings, head)
+			if !ok {
+				writeError(w, Unavailable)
+				return
+			}
+		}
+		w.WriteHeader(status)
+		if r.Method != "HEAD" {
+			_, _ = w.Write(body)
+		}
+		return
 	}
+
 	var body bytes.Buffer
 	if err := shell.Execute(&body, head); err != nil {
 		writeError(w, InternalError)
@@ -333,12 +376,11 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 	}
 }
 
-// headData feeds the shared document head markup: the SPA shell and every
-// server-rendered theme page emit identical metadata for the same route.
+// headData feeds the owner shell and server-rendered public document heads.
 type headData struct {
 	Locale, Direction, Nonce      string
 	Scripts, Styles               []string
-	BrandCSS, ExtraCSS            template.CSS
+	BrandCSS, ExtraCSS, ThemeCSS  template.CSS
 	Boot, ReaderLabels            template.JS
 	NoIndex                       bool
 	Favicon                       string
@@ -366,7 +408,7 @@ func (s *Server) serveAsset(w http.ResponseWriter, r *http.Request) {
 // headSource is the single source of the document head: the shell and the
 // theme renderer both execute it, so metadata cannot drift between the SPA
 // and server-rendered pages.
-const headSource = `<meta charset="utf-8"><meta name="csp-nonce" content="{{.Nonce}}"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{.Title}}</title>{{if .NoIndex}}<meta name="robots" content="noindex">{{end}}<meta name="description" content="{{.Description}}"><meta property="og:title" content="{{.Title}}"><meta property="og:description" content="{{.Description}}">{{if .Social.Image}}<meta property="og:type" content="{{.Social.Type}}"><meta property="og:site_name" content="{{.Social.SiteName}}"><meta property="og:image" content="{{.Social.Image}}"><meta property="og:image:alt" content="{{.Social.Alt}}">{{if .Social.Width}}<meta property="og:image:width" content="{{.Social.Width}}"><meta property="og:image:height" content="{{.Social.Height}}">{{end}}<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{{.Title}}"><meta name="twitter:description" content="{{.Description}}"><meta name="twitter:image" content="{{.Social.Image}}"><meta name="twitter:image:alt" content="{{.Social.Alt}}">{{end}}{{if .Canonical}}<link rel="canonical" href="{{.Canonical}}"><meta property="og:url" content="{{.Canonical}}">{{end}}{{range .Alternatives}}<link rel="alternate" hreflang="{{.Locale}}" href="{{.URL}}">{{end}}<script nonce="{{.Nonce}}">try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>{{range .Styles}}<link rel="stylesheet" href="{{.}}">{{end}}{{if .BrandCSS}}<style id="initial-brand" nonce="{{.Nonce}}">{{.BrandCSS}}</style>{{end}}{{if .ExtraCSS}}<style nonce="{{.Nonce}}">{{.ExtraCSS}}</style>{{end}}{{if .Favicon}}<link rel="icon" href="{{.Favicon}}">{{end}}{{if .Boot}}<script id="public-configuration" type="application/json" nonce="{{.Nonce}}">{{.Boot}}</script>{{end}}{{if .ReaderLabels}}<script id="reader-labels" type="application/json" nonce="{{.Nonce}}">{{.ReaderLabels}}</script>{{end}}{{range .Scripts}}<script defer src="{{.}}" nonce="{{$.Nonce}}"></script>{{end}}`
+const headSource = `<meta charset="utf-8"><meta name="csp-nonce" content="{{.Nonce}}"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{.Title}}</title>{{if .NoIndex}}<meta name="robots" content="noindex">{{end}}<meta name="description" content="{{.Description}}"><meta property="og:title" content="{{.Title}}"><meta property="og:description" content="{{.Description}}">{{if .Social.Image}}<meta property="og:type" content="{{.Social.Type}}"><meta property="og:site_name" content="{{.Social.SiteName}}"><meta property="og:image" content="{{.Social.Image}}"><meta property="og:image:alt" content="{{.Social.Alt}}">{{if .Social.Width}}<meta property="og:image:width" content="{{.Social.Width}}"><meta property="og:image:height" content="{{.Social.Height}}">{{end}}<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{{.Title}}"><meta name="twitter:description" content="{{.Description}}"><meta name="twitter:image" content="{{.Social.Image}}"><meta name="twitter:image:alt" content="{{.Social.Alt}}">{{end}}{{if .Canonical}}<link rel="canonical" href="{{.Canonical}}"><meta property="og:url" content="{{.Canonical}}">{{end}}{{range .Alternatives}}<link rel="alternate" hreflang="{{.Locale}}" href="{{.URL}}">{{end}}<script nonce="{{.Nonce}}">try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>{{range .Styles}}<link rel="stylesheet" href="{{.}}">{{end}}{{if .BrandCSS}}<style id="initial-brand" nonce="{{.Nonce}}">{{.BrandCSS}}</style>{{end}}{{if .ExtraCSS}}<style nonce="{{.Nonce}}">{{.ExtraCSS}}</style>{{end}}{{if .ThemeCSS}}<style id="builtin-theme" nonce="{{.Nonce}}">{{.ThemeCSS}}</style>{{end}}{{if .Favicon}}<link rel="icon" href="{{.Favicon}}">{{end}}{{if .Boot}}<script id="public-configuration" type="application/json" nonce="{{.Nonce}}">{{.Boot}}</script>{{end}}{{if .ReaderLabels}}<script id="reader-labels" type="application/json" nonce="{{.Nonce}}">{{.ReaderLabels}}</script>{{end}}{{range .Scripts}}<script defer src="{{.}}" nonce="{{$.Nonce}}"></script>{{end}}`
 
 var shell = template.Must(template.New("shell").Parse(`<!doctype html><html lang="{{.Locale}}" dir="{{.Direction}}"><head>` + headSource + `</head><body><div id="root"></div><noscript lang="en" dir="ltr">JavaScript is required. <span lang="ar" dir="rtl">يتطلب JavaScript.</span> <span lang="fr">JavaScript est nécessaire.</span></noscript></body></html>`))
 

@@ -1,9 +1,10 @@
 import { lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom';
-import { I18nProvider, ThemeProvider, type Locale } from '@ui';
+import { I18nProvider, ThemeProvider, Label, type Locale } from '@ui';
 import '@ui/styles/index.css';
 import './features/owner/owner.css';
+import './pages/public/public.css';
 import {
   PublicConfigurationProvider,
   usePublicConfiguration,
@@ -11,7 +12,6 @@ import {
 import type { ConfigKind } from './api/configuration';
 import { OAuthPage } from './features/auth/OAuthPage';
 import { AuthPage } from './features/auth/AuthPage';
-import { PublicPage } from './pages/public/PublicPage';
 
 const OwnerArea = lazy(() =>
   import('./features/owner/OwnerArea').then((m) => ({ default: m.OwnerArea })),
@@ -31,14 +31,12 @@ function LoginAlias() {
 }
 
 function LocaleRoot({
-  notFound = false,
   auth = false,
   oauth = false,
   preview = false,
   config,
   owner,
 }: {
-  notFound?: boolean;
   auth?: boolean;
   oauth?: boolean;
   preview?: boolean;
@@ -63,7 +61,9 @@ function LocaleRoot({
         ) : auth && valid ? (
           <AuthPage />
         ) : (
-          <PublicPage invalid={notFound || !valid} />
+          <h1>
+            <Label name="foundation.notFound" />
+          </h1>
         )}
       </Suspense>
     </I18nProvider>
@@ -74,9 +74,7 @@ createRoot(document.getElementById('root')!).render(
     <PublicConfigurationProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Navigate to="/en" replace />} />
           <Route path="/admin/login" element={<LoginAlias />} />
-          <Route path="/:locale" element={<LocaleRoot />} />
           <Route path="/:locale/login" element={<LocaleRoot auth />} />
           <Route path="/:locale/admin/login" element={<LoginAlias />} />
           <Route path="/:locale/admin" element={<LocaleRoot auth />} />
@@ -100,7 +98,7 @@ createRoot(document.getElementById('root')!).render(
           {(['settings', 'profile', 'labels'] as const).map((k) => (
             <Route key={k} path={`/:locale/admin/${k}`} element={<LocaleRoot config={k} />} />
           ))}
-          <Route path="/:locale/*" element={<LocaleRoot />} />
+          <Route path="/:locale/admin/*" element={<LocaleRoot />} />
         </Routes>
       </BrowserRouter>
     </PublicConfigurationProvider>

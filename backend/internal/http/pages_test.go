@@ -20,9 +20,11 @@ func (pageFixture) ResolvePage(_ context.Context, path string) (content.PageRout
 	p := content.PageRoute{Kind: "article", Locale: "ar", URL: "/ar/articles/%D9%85%D9%82%D8%AF%D9%85%D8%A9", Title: `A <script>alert(1)</script> & "quote"`, Summary: `"><script>bad</script>`, Alternatives: []content.Alternative{{Locale: "ar", URL: "/ar/articles/%D9%85%D9%82%D8%AF%D9%85%D8%A9"}}}
 	switch path {
 	case "/ar/articles/مقدمة":
+		p.Content = &content.PublicContent{Kind: "article", Locale: "ar", Title: p.Title, Summary: p.Summary, Markdown: "النص المنشور"}
 		return p, nil
 	case "/ar/learn/path/locked":
 		p.Kind = "lesson"
+		p.Content = &content.PublicContent{Kind: "lesson", Locale: "ar", Locked: true, Summary: "ملخص منشور"}
 		return p, content.ErrLocked
 	case "/ar/articles/corrupt":
 		return p, errors.New("PRIVATE FILE PATH")

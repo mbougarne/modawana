@@ -20,14 +20,6 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/theme"
 )
 
-// themedKinds is the ADR 0002 per-route switch: only resolved page kinds
-// listed here render through the built-in theme; everything else keeps the
-// SPA shell. BLOG_FORCE_SPA=1 is the operator rollback override.
-var themedKinds = map[string]bool{
-	"article": true, "home": true, "about": true, "writing": true, "search": true,
-	"learn": true, "docs": true, "collection": true, "lesson": true, "doc": true,
-}
-
 var errThemeUnavailable = errors.New("theme view unavailable")
 
 type taxonomyResolver interface {
@@ -35,7 +27,7 @@ type taxonomyResolver interface {
 }
 
 // renderThemed renders the public projection resolved for this request.
-// Returning false leaves the route available through the React fallback.
+// The route serves a localized error if rendering fails.
 func (s *Server) renderThemed(ctx context.Context, r *http.Request, page content.PageRoute, settings siteconfig.Public, head headData) ([]byte, bool) {
 	locale := page.Locale
 	label := func(key string) string { return pageLabel(settings, key, locale) }
@@ -53,8 +45,10 @@ func (s *Server) renderThemed(ctx context.Context, r *http.Request, page content
 			current = "learn"
 		}
 	}
+	builtin, _ := theme.Lookup(settings.Site.PublicTheme)
+	head.ThemeCSS = template.CSS(builtin.CSS)
 	view := theme.Page{
-		Locale: locale, Direction: head.Direction, SkipLabel: label("foundation.skip"),
+		ThemeID: builtin.ID, Locale: locale, Direction: head.Direction, SkipLabel: label("foundation.skip"),
 		Brand: themeBrand(settings.Site, locale), Nav: themeNav(locale, current, false, label),
 		MenuNav: themeNav(locale, current, true, label), NavLabel: label("nav.main"),
 		SearchLabel: label("nav.search"), SearchURL: "/" + locale + "/search",
@@ -73,10 +67,7 @@ func (s *Server) renderThemed(ctx context.Context, r *http.Request, page content
 		}
 	}
 	if needsReaderIsland(page) {
-		if !s.addThemeIsland(&head, "reader-learning") {
-			return nil, false
-		}
-		if len(settings.Labels) > 0 {
+		if s.addThemeIsland(&head, "reader-learning") && len(settings.Labels) > 0 {
 			raw, err := json.Marshal(settings.Labels)
 			if err != nil {
 				return nil, false
@@ -96,6 +87,10 @@ func (s *Server) renderThemed(ctx context.Context, r *http.Request, page content
 		view.Discovery, err = s.themeDiscovery(ctx, r.URL.Query(), page, label)
 	case "learn", "docs", "collection", "doc", "lesson":
 		view.Reading, err = s.themeReading(ctx, r.URL.Query(), page, settings, &head, label)
+	case "error":
+		view.Error, view.HomeLabel = head.Title, label("slot.home")
+	default:
+		err = errThemeUnavailable
 	}
 	if err != nil {
 		s.options.Logger.Error("theme view unavailable", "kind", page.Kind)
@@ -147,8 +142,8 @@ func (s *Server) themeMarkdown(c *content.PublicContent, locale string, head *he
 	if err != nil {
 		return "", err
 	}
-	if result.HasMath && !s.addThemeIsland(head, "katex") {
-		return "", errThemeUnavailable
+	if result.HasMath {
+		s.addThemeIsland(head, "katex")
 	}
 	return result.HTML, nil
 }

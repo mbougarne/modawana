@@ -40,7 +40,7 @@ try {
     const { chromium } = require('playwright');
     browser = await chromium.launch({ args: ['--host-resolver-rules=MAP localhost 127.0.0.1'] });
     const page = await browser.newPage({ ignoreHTTPSErrors: true });
-    // Go can be ready before Webpack has finished compiling.
+    // The Go listener can become ready before the development proxy.
     let loaded = false;
     for (let attempt = 0; attempt < 90; attempt++) {
       try {
@@ -50,7 +50,7 @@ try {
           break;
         }
       } catch {
-        /* Retry until Webpack accepts connections. */
+        /* Retry until the proxy accepts connections. */
       }
       await new Promise((resolve) => setTimeout(resolve, 500));
     }
@@ -121,7 +121,16 @@ try {
   } else {
     const page = await fetch('http://127.0.0.1:3000/en');
     assert.equal(page.status, 200);
-    assert.match(await page.text(), /id="root"/);
+    const html = await page.text();
+    assert.match(html, /data-rendered="server"/);
+    assert.doesNotMatch(html, /id="root"/);
+    const login = await fetch('http://127.0.0.1:3000/en/login');
+    assert.equal(login.status, 200);
+    const loginHTML = await login.text();
+    assert.match(loginHTML, /id="root"/);
+    const asset = loginHTML.match(/<script defer src="(\/assets\/[^"]+)"/)?.[1];
+    assert.ok(asset);
+    assert.equal((await fetch('http://127.0.0.1:3000' + asset)).status, 200);
   }
   console.log('Development frontend and proxied Go health endpoint passed.');
 } finally {

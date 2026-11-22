@@ -4,10 +4,10 @@
 
 The public site uses applied settings and published revisions. Go renders Home,
 About, Writing, Search, collection indexes, outlines, and readers from the
-first built-in theme. Published text and navigation are available without
+selected built-in theme. Published text and navigation are available without
 JavaScript. React powers the owner dashboard and interactive reader controls.
-Both public rendering paths use the same Go metadata, canonical URLs and
-published language alternatives.
+The same Go resolver supplies metadata, canonical URLs and published language
+alternatives for every theme.
 
 ## Routes and visibility
 
@@ -57,17 +57,22 @@ quizzes, prerequisite links, mark-as-read and browser-progress reset to the
 
 ## Server-rendered public pages
 
-The [first built-in theme](decisions/0002-server-rendered-themes.md) uses
-embedded Go templates. The HTTP host supplies public view models for profile
+The [built-in themes](decisions/0002-server-rendered-themes.md) use embedded Go
+templates. The HTTP host supplies public view models for profile
 details, writing and learning summaries, archive results, and article or About
 Markdown sanitized by the Go renderer. About uses the published document in
 the current language. Locked discovery results show a safe summary and lock
 indicator without a link to the body.
 
-The `BLOG_FORCE_SPA=1` operator option serves the React fallback at the same
-routes. Full loads render on the server by default. In-app navigation from a
-React page can still use the React fallback. Access decisions, status codes,
-`noindex` and `no-store` are shared.
+Open **Settings → Public appearance** to choose **Classic** (the original layout),
+**Folio** (serif headings and editorial lists), or **Studio** (a centered hero
+and cards). **Preview theme** opens the homepage in a private tab using
+published content and applied branding. Apply the settings revision to make
+the theme active in all public languages. Restoring a revision and applying it
+also restores its theme. Revisions that predate the picker use Classic.
+
+Go serves all public routes, including localized 404 and 503 pages, using the
+applied theme. The React application serves the owner and sign-in routes.
 
 The server renders the complete reading and navigation layout. Search uses a GET
 form, and archive filters and pagination use ordinary links. The `public-controls`
@@ -75,7 +80,7 @@ island debounces live searches, cancels obsolete requests, and progressively
 enhances appearance, menus and About email copying. Articles retain native
 menus and follow the stored or system appearance preference. Articles with math
 load the manifest-listed KaTeX island; About, lessons, and documents add it when
-needed. Math pages fall back to React if the build lacks KaTeX.
+needed. If the KaTeX bundle is unavailable, the underlying TeX stays readable.
 
 Learning paths and guides render their current server-resolved outline. Open
 members link to their readers. Locked and announced members appear as text.
@@ -87,7 +92,7 @@ The `reader-learning` island mounts the shared quiz and browser-progress
 controls. It reads quiz state through the existing learning API. Grading and
 mark-as-read use their existing server endpoints. Progress changes refresh
 the outline and neighboring links while retaining the current quiz result.
-If the reader bundle is missing, routes that need it use the React fallback.
+Without the reader bundle, published text, outlines, and access notices remain readable.
 The documentation index also links to published guides and allows a published
 document to be selected with `?doc=…`.
 

@@ -1,7 +1,5 @@
 const path = require('node:path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const { readFileSync } = require('node:fs');
 
 class AssetManifestPlugin {
   apply(compiler) {
@@ -93,29 +91,6 @@ module.exports = (_, argv) => ({
   },
   plugins: [
     new MiniCssExtractPlugin({ filename: 'assets/[name].[contenthash].css' }),
-    new HtmlWebpackPlugin({ template: './src/index.html', chunks: ['app'] }),
     new AssetManifestPlugin(),
   ],
-  devServer: {
-    server:
-      process.env.BLOG_DEV_HTTPS === '1'
-        ? {
-            type: 'https',
-            options: {
-              cert: readFileSync(process.env.BLOG_DEV_TLS_CERT),
-              key: readFileSync(process.env.BLOG_DEV_TLS_KEY),
-            },
-          }
-        : 'http',
-    host: '127.0.0.1',
-    port: 3000,
-    allowedHosts: ['localhost', '127.0.0.1'],
-    historyApiFallback: true,
-    proxy: [
-      {
-        context: ['/api', '/healthz', '/readyz', '/media'],
-        target: 'http://' + (process.env.BLOG_LISTEN_ADDR || '127.0.0.1:8082'),
-      },
-    ],
-  },
 });

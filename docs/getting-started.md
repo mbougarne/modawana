@@ -12,11 +12,14 @@ export BLOG_DATA_ROOT="$HOME/.local/share/modawana-dev"
 node scripts/project.mjs dev
 ```
 
-Webpack listens on `127.0.0.1:3000` and proxies API/media requests to Go on
+The development proxy listens on `127.0.0.1:3000` and forwards requests to Go on
 `127.0.0.1:8082`. Open `http://localhost:3000/en`, `/ar`, or `/fr`. Ctrl+C stops
-both development processes. Keep the data root absolute, private, and outside the
+the development server. Keep the data root absolute, private, and outside the
 checkout. Without `BLOG_DATA_ROOT`, the launcher uses a checkout-specific temporary
 directory which the operating system can clear. Use the same data root in every terminal.
+
+The development command builds Webpack assets before starting Go. Restart the command after editing Go, templates, or frontend
+assets to load the changes.
 
 ## First owner
 

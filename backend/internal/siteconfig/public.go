@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+
+	"github.com/mbougarne/modawana/backend/internal/theme"
 )
 
 type Effective struct {
@@ -46,6 +48,8 @@ func (s *Service) Public(ctx context.Context, locale string) (Public, error) {
 		return out, e
 	}
 	_ = json.Unmarshal(a.Snapshot, &out.Site)
+	builtin, _ := theme.Lookup(out.Site.PublicTheme)
+	out.Site.PublicTheme = builtin.ID
 	_ = json.Unmarshal(p.Snapshot, &out.Profile)
 	_ = json.Unmarshal(l.Snapshot, &out.Labels)
 	out.Palette, e = Derive(out.Site.Primary, out.Site.Secondary)

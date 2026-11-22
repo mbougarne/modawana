@@ -3,7 +3,8 @@ import { mkdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createHash } from 'node:crypto';
-import { createSecureContext } from 'node:tls';
+import { createServer as createHTTPServer, request } from 'node:http';
+import { createServer as createHTTPSServer } from 'node:https';
 
 const root = resolve(import.meta.dirname, '..');
 const command = process.argv[2];
@@ -34,6 +35,75 @@ function run(bin, args, cwd = root, env = process.env) {
     );
   });
 }
+async function startDevelopment(secure) {
+  const env = developmentEnv(secure);
+  const options = {};
+  if (secure) {
+    if (!env.BLOG_DEV_TLS_CERT || !env.BLOG_DEV_TLS_KEY) {
+      throw new Error(
+        'Set BLOG_DEV_TLS_CERT and BLOG_DEV_TLS_KEY to trusted localhost certificate files. See README.md.',
+      );
+    }
+    options.cert = readFileSync(env.BLOG_DEV_TLS_CERT);
+    options.key = readFileSync(env.BLOG_DEV_TLS_KEY);
+  }
+  const upstream = new URL('http://' + env.BLOG_LISTEN_ADDR);
+  const proxy = (secure ? createHTTPSServer : createHTTPServer)(options, (incoming, outgoing) => {
+    if (!['localhost:3000', '127.0.0.1:3000'].includes(incoming.headers.host?.toLowerCase())) {
+      outgoing.writeHead(403).end();
+      return;
+    }
+    const backend = request(
+      upstream,
+      { method: incoming.method, path: incoming.url, headers: incoming.headers },
+      (response) => {
+        outgoing.writeHead(response.statusCode, response.headers);
+        response.on('error', () => outgoing.destroy());
+        response.pipe(outgoing);
+      },
+    );
+    backend.on('error', () => {
+      if (outgoing.headersSent) {
+        outgoing.destroy();
+      } else {
+        outgoing.writeHead(502).end('Development server unavailable');
+      }
+    });
+    outgoing.on('close', () => backend.destroy());
+    incoming.pipe(backend);
+  });
+  await run('npm', ['run', 'build'], resolve(root, 'frontend'));
+  mkdirSync(resolve(root, 'build'), { recursive: true });
+  await run('go', ['build', '-o', '../build/blog-dev', './cmd/blog'], resolve(root, 'backend'));
+
+  await new Promise((resolve, reject) => {
+    proxy.once('error', reject);
+    proxy.listen(3000, '127.0.0.1', resolve);
+  });
+  console.log(`Development URL: ${env.BLOG_BASE_URL}/en`);
+  const backend = spawn(resolve(root, 'build/blog-dev'), [], {
+    cwd: resolve(root, 'backend'),
+    env,
+    stdio: 'inherit',
+  });
+  const stop = () => backend.kill('SIGTERM');
+  process.once('SIGINT', stop);
+  process.once('SIGTERM', stop);
+  try {
+    await new Promise((resolve, reject) => {
+      backend.once('error', reject);
+      backend.once('exit', (code) =>
+        code ? reject(new Error(`blog-dev exited ${code}`)) : resolve(),
+      );
+    });
+  } finally {
+    proxy.close();
+    proxy.closeAllConnections();
+    process.off('SIGINT', stop);
+    process.off('SIGTERM', stop);
+  }
+}
+
 try {
   switch (command) {
     case 'install':
@@ -102,47 +172,9 @@ try {
       );
       break;
     case 'dev':
-    case 'dev:https': {
-      const secure = command === 'dev:https';
-      const env = developmentEnv(secure);
-      if (secure) {
-        if (!env.BLOG_DEV_TLS_CERT || !env.BLOG_DEV_TLS_KEY) {
-          throw new Error(
-            'Set BLOG_DEV_TLS_CERT and BLOG_DEV_TLS_KEY to trusted localhost certificate files. See README.md.',
-          );
-        }
-        createSecureContext({
-          cert: readFileSync(env.BLOG_DEV_TLS_CERT),
-          key: readFileSync(env.BLOG_DEV_TLS_KEY),
-        });
-      }
-      console.log(`Development URL: ${env.BLOG_BASE_URL}/en`);
-      const children = [
-        spawn('go', ['run', './cmd/blog'], {
-          cwd: resolve(root, 'backend'),
-          stdio: 'inherit',
-          env,
-        }),
-        spawn('npm', ['run', 'dev'], {
-          cwd: resolve(root, 'frontend'),
-          stdio: 'inherit',
-          env: { ...env, BLOG_DEV_HTTPS: secure ? '1' : '0' },
-        }),
-      ];
-      const stop = () => children.forEach((child) => child.kill('SIGTERM'));
-      process.on('SIGINT', stop);
-      process.on('SIGTERM', stop);
-      children.forEach((child) => {
-        child.on('error', stop);
-        child.on('exit', (code) => {
-          if (code) {
-            process.exitCode = code;
-          }
-          stop();
-        });
-      });
+    case 'dev:https':
+      await startDevelopment(command === 'dev:https');
       break;
-    }
     default:
       throw new Error(
         'Usage: node scripts/project.mjs install|build|check|dev|dev:https|bootstrap|bootstrap:https|recover|recover:https|lint|format',

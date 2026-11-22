@@ -591,6 +591,11 @@ export const DEFAULT_LABELS = {
     'Ces couleurs ne respectent pas le contraste requis. Choisissez d’autres couleurs puis prévisualisez.',
     'لا تحقق هذه الألوان التباين المطلوب. اختر ألواناً أخرى وأعد المعاينة.',
   ),
+  'validation.public_theme': l(
+    'Choose a built-in public theme.',
+    'Choisissez un thème public intégré.',
+    'اختر سمة مدمجة للموقع العام.',
+  ),
   'validation.logo_mode': l(
     'Choose Wordmark, Monogram or Image from Logo style.',
     'Choisissez Texte, Monogramme ou Image dans le style du logo.',
@@ -966,6 +971,16 @@ export const DEFAULT_LABELS = {
   ),
   'config.secondary': l('Secondary colour', 'Couleur secondaire', 'اللون الثانوي'),
   'config.primary': l('Primary colour', 'Couleur principale', 'اللون الأساسي'),
+  'config.publicAppearance': l(
+    'Public appearance',
+    'Apparence du site public',
+    'مظهر الموقع العام',
+  ),
+  'config.publicTheme': l('Public theme', 'Thème du site public', 'سمة الموقع العام'),
+  'config.previewPublicTheme': l('Preview theme', 'Prévisualiser le thème', 'معاينة السمة'),
+  'publicTheme.classic': l('Classic', 'Classique', 'الكلاسيكية'),
+  'publicTheme.folio': l('Folio', 'Folio', 'فوليو'),
+  'publicTheme.studio': l('Studio', 'Studio', 'استوديو'),
   'config.colours': l('Brand colours', 'Couleurs de la marque', 'ألوان الهوية'),
   'config.favicon': l('Website icon', 'Icône du site', 'أيقونة الموقع'),
   'config.logo': l('Logo image', 'Image du logo', 'صورة الشعار'),

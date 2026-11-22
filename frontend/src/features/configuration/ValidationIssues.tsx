@@ -16,6 +16,7 @@ export function useFieldIssue(path?: string) {
 const fields: Record<string, string> = {
   reviews: 'review',
   logo_mode: 'logoMode',
+  public_theme: 'publicTheme',
   logo_media_id: 'logo',
   favicon_media_id: 'favicon',
   menu_icons: 'menuIcons',
@@ -113,6 +114,7 @@ export function ValidationIssues({
     'colour',
     'contrast',
     'logo_mode',
+    'public_theme',
     'logo_image',
     'wordmark',
     'translation_review',

@@ -35,6 +35,7 @@ if (mode === 'lint') {
     'scripts/**/*.{js,cjs,mjs}',
     'design-system/scripts/*.mjs',
     'design-system/components.css',
+    'backend/internal/theme/styles/*.css',
     '.github/workflows/*.yml',
   ]);
   if (fix) {

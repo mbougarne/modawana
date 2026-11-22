@@ -24,13 +24,7 @@
     "src/pages/admin/editor/publishDraft.ts",
     "src/features/content/slug.ts",
     "src/features/owner/Organization.tsx",
-    "src/pages/public/presentation.tsx",
-    "src/pages/public/writing.tsx",
-    "src/pages/public/reading.tsx",
-    "src/pages/public/PublicLayout.tsx",
     "src/features/owner/TaxonomyCreate.tsx",
-    "src/pages/public/home.tsx",
-    "src/pages/public/social.ts",
     "src/islands/publicControls.ts",
     "src/islands/readingNavigation.ts"
   ]

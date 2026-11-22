@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="{{.Locale}}" dir="{{.Direction}}"><head>{{.Head}}</head><body data-rendered="server">
+<html lang="{{.Locale}}" dir="{{.Direction}}"><head>{{.Head}}</head><body data-rendered="server" data-public-theme="{{.ThemeID}}">
 <div class="vb public-site">
 <a class="vb-skip" href="#content">{{.SkipLabel}}</a>
 <div class="vb-shell">
@@ -26,7 +26,7 @@
 </div>
 </header>
 <main id="content" tabindex="-1" class="public-main{{if not .Article}} public-themed-index{{end}}">
-{{if .Article}}{{template "public-article" .Article}}{{else if .Home}}{{template "public-home" .Home}}{{else if .About}}{{template "public-about" .About}}{{else if .Discovery}}{{template "public-discovery" .Discovery}}{{else if .Reading}}{{template "public-reading" .Reading}}{{end}}
+{{if .Error}}<section class="public-section"><h1 class="vb-title">{{.Error}}</h1><a class="vb-link" href="{{.Brand.HomeURL}}">{{.HomeLabel}}</a></section>{{else if .Article}}{{template "public-article" .Article}}{{else if .Home}}{{template "public-home" .Home}}{{else if .About}}{{template "public-about" .About}}{{else if .Discovery}}{{template "public-discovery" .Discovery}}{{else if .Reading}}{{template "public-reading" .Reading}}{{end}}
 </main>
 <footer class="vb-footer">
 {{- with .Footer}}

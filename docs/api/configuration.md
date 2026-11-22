@@ -23,6 +23,8 @@ Changed nonempty Arabic/French values require explicit confirmation of each `{pa
 
 ## Field rules
 
+The optional `public_theme` field accepts `classic`, `folio` or `studio`. Historical snapshots without the field use Classic. Applying a site revision sets the theme for every public locale.
+
 Branding supports wordmark, one-to-three-letter/number monogram, image logo, favicon and allowlisted menu icons. Logo/favicon images are at most 1 MiB. Both colours use canonical `#RRGGBB`. Palette algorithm version 1 is shared between Go and TypeScript and verified by exact output vectors, including default and extreme colours. It checks text, links, buttons and focus against the relevant light/dark surfaces; adjusted primary shades are explained in the preview. Invalid contrast combinations are rejected. Neutrals remain code-owned. Go emits a nonce-protected initial stylesheet; the client applies the same palette and preserves reader theme choice.
 
 Profile includes EN/AR/FR name (100 characters), headline (200), bio (320), sticker (40), image alt text (200), location (120), copyright (100), footer (200). Formatting uses the limited shared headline/bio grammar, never HTML. Portraits are square, at least 600 pixels, at most 2 MiB; banners at most 10 MiB with focal coordinates 0–100. Images require English alt text. Portrait and logo are independent.
