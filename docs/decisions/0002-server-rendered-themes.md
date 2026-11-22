@@ -144,8 +144,8 @@ working throughout, so every step is independently shippable and reversible.
 6. **Remove** the public SPA routes, `PublicPage.tsx` and the duplicated
    social/palette client code; the dashboard bundle remains.
 
-Feeds and a gated-aware sitemap become straightforward after stage 4 and are
-their own follow-up, not part of this record.
+The [RSS and sitemap follow-up](../public-pages.md#rss-and-sitemap) uses the
+public renderer’s canonical URLs and anonymous access decisions.
 
 ## Staged delivery plan
 

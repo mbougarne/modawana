@@ -337,12 +337,19 @@ func (s *Server) themeFooter(settings siteconfig.Public, locale string, label fu
 		candidates = append([]siteconfig.Link{*settings.Profile.MainAction}, candidates...)
 	}
 	for _, icon := range []string{"github", "linkedin", "rss"} {
+		var destination string
 		for _, link := range candidates {
 			safe, ok := render.SafeLink(link.URL)
 			if link.Icon == icon && link.Visible && ok {
-				footer.Links = append(footer.Links, theme.Link{Label: label("icon." + icon), URL: safe})
+				destination = safe
 				break
 			}
+		}
+		if destination == "" && icon == "rss" && s.syndicationSource() != nil {
+			destination = feedPath(locale)
+		}
+		if destination != "" {
+			footer.Links = append(footer.Links, theme.Link{Label: label("icon." + icon), URL: destination})
 		}
 	}
 	return footer

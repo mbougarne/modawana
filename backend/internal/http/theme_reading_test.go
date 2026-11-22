@@ -200,6 +200,33 @@ func TestThemedReadersPreserveAccessAndLearning(t *testing.T) {
 		t.Fatal(recorded.Code, recorded.Body.String())
 	}
 	assertHTML("/en/learn/course", token, 200, []string{"2 of 2 complete"}, nil)
+	// Feeds and the sitemap use anonymous visibility, even with a reader
+	// identity whose passing result would unlock the next lesson in HTML.
+	for _, path := range []string{"/en/feed.xml", "/sitemap.xml"} {
+		anonymous := request(http.MethodGet, path, "", nil)
+		learner := request(http.MethodGet, path, token, nil)
+		if anonymous.Code != 200 || learner.Code != 200 || anonymous.Body.String() != learner.Body.String() {
+			t.Fatal("syndication differed by reader", path, anonymous.Code, learner.Code)
+		}
+		body := learner.Body.String()
+		for _, listed := range []string{"/en/learn/course/intro", "/en/docs/guide/guide-doc", "/en/doc/standalone", "/en/articles/interactive"} {
+			if !strings.Contains(body, cfg.BaseURL+listed) {
+				t.Fatal(path, "missing canonical URL", listed)
+			}
+		}
+		if path == "/sitemap.xml" {
+			for _, outline := range []string{"/en/learn/course", "/en/docs/guide"} {
+				if !strings.Contains(body, "<loc>"+cfg.BaseURL+outline+"</loc>") {
+					t.Fatal("missing sitemap outline", outline)
+				}
+			}
+		}
+		for _, excluded := range []string{"/en/docs/inactive-guide", "/en/learn/course/next", "/en/learn/course/planned", "Next month", "PRIVATE", "PROTECTED BODY", "Second lesson"} {
+			if strings.Contains(body, excluded) {
+				t.Fatal(path, "syndicated protected or unpublished content", excluded)
+			}
+		}
+	}
 	reset := request(http.MethodDelete, "/api/v1/learning/progress", token, struct{}{})
 	if reset.Code != 200 {
 		t.Fatal(reset.Code, reset.Body.String())

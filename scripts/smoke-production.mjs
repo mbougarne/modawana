@@ -73,6 +73,25 @@ try {
   assert.match(body, /lang="ar" dir="rtl"/);
   assert.match(body, /data-rendered="server" data-public-theme="classic"/);
   assert.doesNotMatch(body, /id="root"/);
+  assert.match(
+    body,
+    /rel="alternate" type="application\/rss\+xml"[^>]+https:\/\/blog\.test\/ar\/feed\.xml/,
+  );
+  assert.match(body, /href="\/ar\/feed\.xml">RSS<\/a>/);
+  for (const [path, type, expected] of [
+    ['/ar/feed.xml', 'application/rss+xml', '<language>ar</language>'],
+    ['/sitemap.xml', 'application/xml', '<loc>https://blog.test/ar</loc>'],
+    ['/robots.txt', 'text/plain', 'Sitemap: https://blog.test/sitemap.xml'],
+  ]) {
+    const document = await fetch(origin + path);
+    assert.equal(document.status, 200);
+    assert.equal(document.headers.get('cache-control'), 'no-store');
+    assert.equal(document.headers.get('content-type')?.split(';')[0], type);
+    assert.ok((await document.text()).includes(expected), path);
+    const head = await fetch(origin + path, { method: 'HEAD' });
+    assert.equal(head.status, 200);
+    assert.equal(await head.text(), '');
+  }
   const missing = await fetch(origin + '/ar/articles/missing');
   assert.equal(missing.status, 404);
   assert.equal(missing.headers.get('x-robots-tag'), 'noindex');
