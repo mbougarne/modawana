@@ -1,12 +1,14 @@
 import { BrandColourField } from '../../../../../ui/src/components/BrandColourField';
 import { useId, useState } from 'react';
-import { Logo, Icon, deriveBrand, brandChecks, useI18n, Label, type IconName } from '@ui';
+import { Logo, deriveBrand, brandChecks, useI18n, Label } from '@ui';
 import { ProfilePreview } from '../profile/ProfileForm';
 import { usePublicConfiguration } from '../../../features/configuration/PublicConfiguration';
-import { siteBrand, iconNames } from './siteBrand';
+import { siteBrand } from './siteBrand';
 import type { PublicThemeID, SiteSettings } from '../../../api/configuration';
 import { MediaInput, Section, TextField } from '../../../features/configuration/controls';
 import { PublicThemeSettings } from './PublicThemeSettings';
+import { MenuSettings } from './MenuSettings';
+import { useOwnerAppearanceContext } from '../../../features/owner/OwnerAppearance';
 
 export function SettingsForm({
   value: s,
@@ -22,6 +24,7 @@ export function SettingsForm({
   csrf: string;
 }) {
   const { t, locale } = useI18n();
+  const { theme } = useOwnerAppearanceContext();
   const { data } = usePublicConfiguration();
   const [previewTheme, setPreviewTheme] = useState<'light' | 'dark'>('light');
   const change = <K extends keyof SiteSettings>(k: K, v: SiteSettings[K]) =>
@@ -82,12 +85,14 @@ export function SettingsForm({
             onChange={(v) => change('favicon_media_id', v)}
           />
         </Section>
-        <PublicThemeSettings
-          value={s.public_theme}
-          saved={savedTheme}
-          onCSRF={onCSRF}
-          onChange={(theme) => change('public_theme', theme)}
-        />
+        {theme === 'classic' && (
+          <PublicThemeSettings
+            value={s.public_theme}
+            saved={savedTheme}
+            onCSRF={onCSRF}
+            onChange={(theme) => change('public_theme', theme)}
+          />
+        )}
         <Section name="config.colours">
           {(['primary', 'secondary'] as const).map((k) => (
             <BrandColourField key={k} role={k} value={s[k]} onChange={(v) => change(k, v)} />
@@ -104,26 +109,9 @@ export function SettingsForm({
             ))}
           </ul>
         </Section>
-        <Section name="config.menuIcons">
-          {Object.entries(s.menu_icons).map(([slot, icon]) => (
-            <label className="config-field" key={slot}>
-              <span>
-                {t('slot.' + slot)} <Icon name={icon as IconName} />
-              </span>
-              <select
-                data-config-path={'menu_icons.' + slot}
-                value={icon}
-                onChange={(e) => change('menu_icons', { ...s.menu_icons, [slot]: e.target.value })}
-              >
-                {iconNames.map((i) => (
-                  <option key={i} value={i}>
-                    {t('icon.' + i)}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ))}
-        </Section>
+        {theme === 'classic' && (
+          <MenuSettings value={s.menu_icons} onChange={(icons) => change('menu_icons', icons)} />
+        )}
       </div>
       <aside
         className="config-panel config-live-preview"

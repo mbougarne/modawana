@@ -1,4 +1,5 @@
 import { Logo } from '@ui';
+import { useNavigate } from 'react-router-dom';
 import { ownerReturnTarget } from './navigation';
 import { usePublicConfiguration } from '../configuration/PublicConfiguration';
 import { siteBrand } from '../../pages/admin/settings/siteBrand';
@@ -32,6 +33,7 @@ type Mode = 'passkey' | 'password' | 'otp' | 'recovery' | 'grant' | 'enroll';
 
 export function AuthPage() {
   const { t, locale, dir, date } = useI18n();
+  const navigate = useNavigate();
   const { data: configuration } = usePublicConfiguration();
   const [ceremonyPending, setCeremonyPending] = useState(false);
   const [state, setState] = useState<State>({ state: 'loading' });
@@ -149,7 +151,7 @@ export function AuthPage() {
     if (target) {
       window.location.assign(target);
     } else {
-      history.replaceState(null, '', `/${locale}/admin/security`);
+      void navigate(`/${locale}/admin/security`, { replace: true });
     }
   }
   async function start() {
@@ -267,7 +269,7 @@ export function AuthPage() {
     setPassword('');
     setState({ state: 'anonymous' });
     setMode('passkey');
-    history.replaceState(null, '', `/${locale}/login`);
+    void navigate(`/${locale}/login`, { replace: true });
   }
   async function mutate(path: string, method: string, body?: unknown) {
     await call(path, method, body, state.csrf);

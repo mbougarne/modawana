@@ -26,7 +26,7 @@ window.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventL
 const React = require('react');
 const { act } = React;
 const { createRoot } = require('react-dom/client');
-const { MemoryRouter, Routes, Route, useNavigate } = require('react-router-dom');
+const { createMemoryRouter, RouterProvider, Outlet, useNavigate } = require('react-router-dom');
 const { I18nProvider } = require('../.test-output/ui/src/i18n/I18nProvider');
 const { formatDate } = require('../.test-output/ui/src/i18n/locales');
 const { TagInput } = require('../.test-output/ui/src/components/owner');
@@ -153,30 +153,25 @@ test('late editor and translation-source responses cannot replace a newer route'
     };
     function Harness() {
       navigate = useNavigate();
-      return React.createElement(
-        Routes,
-        {},
-        React.createElement(Route, {
-          path: '/:locale/admin/editor/:key/:lang',
-          element: React.createElement(EditorPage, { csrf: 'test' }),
-        }),
-        React.createElement(Route, {
-          path: '/:locale/admin/new',
-          element: React.createElement(EditorPage, { csrf: 'test' }),
-        }),
-      );
+      return React.createElement(Outlet);
     }
-    const m = await mount(
-      React.createElement(
-        MemoryRouter,
+    const router = createMemoryRouter(
+      [
         {
-          initialEntries: [
-            translation ? '/en/admin/editor/old/fr?source=en' : '/en/admin/editor/old/en',
-          ],
+          element: React.createElement(Harness),
+          children: ['/:locale/admin/editor/:key/:lang', '/:locale/admin/new'].map((path) => ({
+            path,
+            element: React.createElement(EditorPage, { csrf: 'test' }),
+          })),
         },
-        React.createElement(Harness),
-      ),
+      ],
+      {
+        initialEntries: [
+          translation ? '/en/admin/editor/old/fr?source=en' : '/en/admin/editor/old/en',
+        ],
+      },
     );
+    const m = await mount(React.createElement(RouterProvider, { router }));
     try {
       await act(async () => navigate(translation ? '/en/admin/new' : '/en/admin/editor/new/en'));
       await act(async () => resolveOld(response(draft('Old title'))));
@@ -218,26 +213,21 @@ test('first save retains its success notice through the new-to-existing editor r
   };
   function Harness() {
     navigate = useNavigate();
-    return React.createElement(
-      Routes,
-      {},
-      React.createElement(Route, {
-        path: '/en/admin/new',
-        element: React.createElement(EditorPage, { csrf: 'test' }),
-      }),
-      React.createElement(Route, {
-        path: '/en/admin/editor/:key/:lang',
-        element: React.createElement(EditorPage, { csrf: 'test' }),
-      }),
-    );
+    return React.createElement(Outlet);
   }
-  const m = await mount(
-    React.createElement(
-      MemoryRouter,
-      { initialEntries: ['/en/admin/new'] },
-      React.createElement(Harness),
-    ),
+  const router = createMemoryRouter(
+    [
+      {
+        element: React.createElement(Harness),
+        children: ['/en/admin/new', '/en/admin/editor/:key/:lang'].map((path) => ({
+          path,
+          element: React.createElement(EditorPage, { csrf: 'test' }),
+        })),
+      },
+    ],
+    { initialEntries: ['/en/admin/new'] },
   );
+  const m = await mount(React.createElement(RouterProvider, { router }));
   try {
     async function fill(node, value) {
       await act(async () => {
@@ -255,6 +245,7 @@ test('first save retains its success notice through the new-to-existing editor r
     );
     await act(async () => save.click());
     assert.equal(body.title, 'Created title');
+    assert.equal(router.state.location.pathname, '/en/admin/editor/created/en');
     assert.ok(
       [...m.el.querySelectorAll('[role="status"]')].some((node) =>
         node.textContent.includes(DEFAULT_LABELS['owner.saved'].en),

@@ -3856,6 +3856,106 @@
       "ar": "اللون الأساسي"
     }
   },
+  "owner.themes": {
+    "section": "owner",
+    "description": "Interface text: owner.themes",
+    "placeholders": [],
+    "values": {
+      "en": "Themes",
+      "fr": "Thèmes",
+      "ar": "السمات"
+    }
+  },
+  "owner.menus": {
+    "section": "owner",
+    "description": "Interface text: owner.menus",
+    "placeholders": [],
+    "values": {
+      "en": "Menus",
+      "fr": "Menus",
+      "ar": "القوائم"
+    }
+  },
+  "workspace.themesHelp": {
+    "section": "workspace",
+    "description": "Interface text: workspace.themesHelp",
+    "placeholders": [],
+    "values": {
+      "en": "Choose a dashboard theme and a theme for the public site.",
+      "fr": "Choisissez un thème pour le tableau de bord et pour le site public.",
+      "ar": "اختر سمة للوحة التحكم وسمة للموقع العام."
+    }
+  },
+  "workspace.menusHelp": {
+    "section": "workspace",
+    "description": "Interface text: workspace.menusHelp",
+    "placeholders": [],
+    "values": {
+      "en": "Choose icons for the public navigation items.",
+      "fr": "Choisissez les icônes des liens de navigation du site public.",
+      "ar": "اختر أيقونات عناصر التنقل في الموقع العام."
+    }
+  },
+  "ownerAppearance.title": {
+    "section": "ownerAppearance",
+    "description": "Interface text: ownerAppearance.title",
+    "placeholders": [],
+    "values": {
+      "en": "Admin appearance",
+      "fr": "Apparence de l’administration",
+      "ar": "مظهر الإدارة"
+    }
+  },
+  "ownerAppearance.theme": {
+    "section": "ownerAppearance",
+    "description": "Interface text: ownerAppearance.theme",
+    "placeholders": [],
+    "values": {
+      "en": "Dashboard theme",
+      "fr": "Thème du tableau de bord",
+      "ar": "سمة لوحة التحكم"
+    }
+  },
+  "ownerAppearance.classic": {
+    "section": "ownerAppearance",
+    "description": "Interface text: ownerAppearance.classic",
+    "placeholders": [],
+    "values": {
+      "en": "Classic",
+      "fr": "Classique",
+      "ar": "كلاسيكي"
+    }
+  },
+  "ownerAppearance.slate": {
+    "section": "ownerAppearance",
+    "description": "Interface text: ownerAppearance.slate",
+    "placeholders": [],
+    "values": {
+      "en": "Slate",
+      "fr": "Ardoise",
+      "ar": "أردواز"
+    }
+  },
+  "ownerAppearance.quickActions": {
+    "section": "ownerAppearance",
+    "description": "Interface text: ownerAppearance.quickActions",
+    "placeholders": [],
+    "values": {
+      "en": "Quick actions",
+      "fr": "Actions rapides",
+      "ar": "إجراءات سريعة"
+    }
+  },
+  "ownerAppearance.help": {
+    "section": "ownerAppearance",
+    "description": "Interface text: ownerAppearance.help",
+    "placeholders": [],
+    "values": {
+      "en": "Your dashboard theme is saved in this browser.",
+      "fr": "Le thème du tableau de bord est enregistré dans ce navigateur.",
+      "ar": "تُحفظ سمة لوحة التحكم في هذا المتصفح."
+    }
+  },
   "config.publicAppearance": {
     "section": "config",
     "description": "Interface text: config.publicAppearance",
@@ -6650,6 +6750,16 @@
       "en": "Restore this revision as a new draft? Unsaved edits will be discarded.",
       "fr": "Restaurer cette révision ? Les modifications non enregistrées seront perdues.",
       "ar": "استعادة هذه المراجعة كمسودة جديدة؟ ستفقد التغييرات غير المحفوظة."
+    }
+  },
+  "owner.confirmLeave": {
+    "section": "owner",
+    "description": "Interface text: owner.confirmLeave",
+    "placeholders": [],
+    "values": {
+      "en": "Leave this page and discard unsaved changes?",
+      "fr": "Quitter cette page et abandonner les modifications non enregistrées ?",
+      "ar": "هل تريد مغادرة هذه الصفحة وتجاهل التعديلات غير المحفوظة؟"
     }
   },
   "owner.confirmDiscard": {

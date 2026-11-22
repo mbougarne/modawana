@@ -64,7 +64,7 @@ Markdown sanitized by the Go renderer. About uses the published document in
 the current language. Locked discovery results show a safe summary and lock
 indicator without a link to the body.
 
-Open **Settings → Public appearance** to choose **Classic** (the original layout),
+Open **Themes → Public appearance** in Slate (or **Settings → Public appearance** in Classic) to choose **Classic** (the original layout),
 **Folio** (serif headings and editorial lists), or **Studio** (a centered hero
 and cards). **Preview theme** opens the homepage in a private tab using
 published content and applied branding. Apply the settings revision to make
@@ -204,7 +204,7 @@ are limited to design tokens, arithmetic, colours, and grid sizing. The pack
 format accepts layout slots, scoped CSS, and the optional local PNG. The host
 handles scripts, routes, and access decisions.
 
-In **Settings → Public appearance**, review the candidate name and checksum,
+In **Themes → Public appearance** in Slate (or **Settings → Public appearance** in Classic), review the candidate name and checksum,
 then choose **Approve pack**. Use a fresh owner session to approve or remove a
 pack. Approved packs appear in the public theme picker and support the same
 private preview and settings revision workflow as built-in themes. The picker

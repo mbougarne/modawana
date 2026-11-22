@@ -1,37 +1,49 @@
 import { useState, type ReactNode, type Ref } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useI18n } from '../../../../ui/src/i18n/I18nProvider';
 import { useTheme } from '../../../../ui/src/theme/ThemeProvider';
 import { Button } from '../../../../ui/src/components/primitives';
-import { Icon } from '../../../../ui/src/components/Icon';
+import { Icon, type IconName } from '../../../../ui/src/components/Icon';
 import { OwnerLanguageMenu } from './OwnerLanguageMenu';
+import { OwnerAppearanceContext, useOwnerAppearance } from './OwnerAppearance';
 import { call } from '../auth/api';
 
 const pages = [
-  'posts',
-  'collections',
-  'taxonomy',
-  'media',
-  'settings',
-  'profile',
-  'labels',
-  'security',
-  'transfer',
-  'plugins',
-] as const;
+  ['posts', 'ul'],
+  ['collections', 'folder'],
+  ['taxonomy', 'tag'],
+  ['media', 'image'],
+  ['themes', 'split'],
+  ['menus', 'menu'],
+  ['settings', 'settings'],
+  ['profile', 'user'],
+  ['labels', 'quote'],
+  ['security', 'lock'],
+  ['transfer', 'upload'],
+  ['plugins', 'plug'],
+] as const satisfies readonly (readonly [string, IconName])[];
 
-export function OwnerNavigation({ current }: { current?: string } = {}) {
+export function OwnerNavigation({
+  current,
+  showIcons = false,
+}: { current?: string; showIcons?: boolean } = {}) {
   const { locale, t } = useI18n();
   return (
     <nav className="owner-navigation vb-nav" aria-label={t('config.owner')}>
-      {pages.map((page) => (
-        <a
-          key={page}
-          href={`/${locale}/admin/${page}`}
-          aria-current={page === current ? 'page' : undefined}
-        >
-          {t('owner.' + page)}
-        </a>
-      ))}
+      {pages
+        .filter(
+          ([page]) => showIcons || page === current || (page !== 'themes' && page !== 'menus'),
+        )
+        .map(([page, icon]) => (
+          <Link
+            key={page}
+            to={`/${locale}/admin/${page}`}
+            aria-current={page === current ? 'page' : undefined}
+          >
+            {showIcons && <Icon name={icon} size={16} />}
+            <span>{t('owner.' + page)}</span>
+          </Link>
+        ))}
     </nav>
   );
 }
@@ -80,13 +92,17 @@ export function OwnerWorkspace({
   onSignOut?: () => Promise<void>;
 }) {
   const { locale, dir, t } = useI18n();
-  const { toggle } = useTheme();
+  const { resolved, toggle } = useTheme();
+  const location = useLocation();
+  const appearance = useOwnerAppearance();
+  const slate = appearance.theme === 'slate';
+  const postsHref = `/${locale}/admin/posts`;
   const [signingOut, setSigningOut] = useState(false);
   const [failed, setFailed] = useState(false);
   const path =
     (languagePath ??
-      (window.location.pathname.replace(/^\/(en|ar|fr)(?=\/|$)/, '') || '/admin/' + current)) +
-    window.location.search;
+      (location.pathname.replace(/^\/(en|ar|fr)(?=\/|$)/, '') || '/admin/' + current)) +
+    location.search;
   async function signOut() {
     setSigningOut(true);
     setFailed(false);
@@ -104,43 +120,76 @@ export function OwnerWorkspace({
     }
   }
   return (
-    <div className={`vb owner-workspace ds-ui ${className}`} lang={locale} dir={dir}>
-      <a className="vb-skip" href={'#' + mainId}>
-        {t('nav.skip')}
-      </a>
-      <div className="workspace-shell">
-        <header className="workspace-header">
-          <a className="vb-brand" href={'/' + locale + '/admin/posts'}>
-            {t('config.owner')}
-          </a>
-          <div className="config-actions workspace-actions">
-            <OwnerLanguageMenu path={path} />
-            <Button href={'/' + locale} size="sm">
-              {t('auth.viewSite')}
-            </Button>
-            <button type="button" className="vb-icon" aria-label={t('nav.theme')} onClick={toggle}>
-              <Icon name="moon" />
-            </button>
-            <Button
-              variant="quiet"
-              size="sm"
-              disabled={busy || signingOut || !csrf}
-              onClick={() => void signOut()}
-            >
-              {t('auth.signout')}
-            </Button>
+    <OwnerAppearanceContext.Provider value={appearance}>
+      <div
+        className={`vb owner-workspace ds-ui ${className}`}
+        data-admin-theme={appearance.theme}
+        data-admin-color-mode={resolved}
+        lang={locale}
+        dir={dir}
+      >
+        <a className="vb-skip" href={'#' + mainId}>
+          {t('nav.skip')}
+        </a>
+        <div className="workspace-shell">
+          <header className="workspace-header">
+            <Link className="vb-brand" to={postsHref}>
+              {t('config.owner')}
+            </Link>
+            {slate && (
+              <nav className="workspace-quick-links" aria-label={t('ownerAppearance.quickActions')}>
+                <Link to={`/${locale}/admin/new`}>
+                  <Icon name="plus" size={16} />
+                  {t('owner.new')}
+                </Link>
+                <a href={`/${locale}`}>{t('auth.viewSite')}</a>
+              </nav>
+            )}
+            <div className="config-actions workspace-actions">
+              <OwnerLanguageMenu path={path} />
+              {!slate && (
+                <Button href={'/' + locale} size="sm">
+                  {t('auth.viewSite')}
+                </Button>
+              )}
+              <button
+                type="button"
+                className="vb-icon"
+                aria-label={t('nav.theme')}
+                onClick={toggle}
+              >
+                <Icon name="moon" />
+              </button>
+              <Button
+                variant="quiet"
+                size="sm"
+                disabled={busy || signingOut || !csrf}
+                onClick={() => void signOut()}
+              >
+                {t('auth.signout')}
+              </Button>
+            </div>
+          </header>
+          <div className="workspace-navigation">
+            {slate && (
+              <Link className="vb-brand workspace-rail-brand" to={postsHref}>
+                {t('config.owner')}
+              </Link>
+            )}
+            <OwnerNavigation current={current} showIcons={slate} />
           </div>
-          <OwnerNavigation current={current} />
-        </header>
-        {failed && (
-          <p role="alert" className="owner-notice">
-            {t('auth.network')}
-          </p>
-        )}
-        <main id={mainId} className="workspace-main config-main" aria-busy={busy}>
-          {children}
-        </main>
+          <div className="workspace-content">
+            {failed && (
+              <p role="alert" className="owner-notice">
+                {t('auth.network')}
+              </p>
+            )}
+            <main id={mainId} className="workspace-main config-main" aria-busy={busy}>
+              {children}
+            </main>
+          </div>
+        </div>
       </div>
-    </div>
+    </OwnerAppearanceContext.Provider>
   );
 }

@@ -21,3 +21,9 @@ node frontend/tests/visual.cjs
 ```
 
 The visual check requires Playwright Chromium (`cd frontend && npx playwright install --with-deps chromium` on a supported CI host). It renders built assets for EN/AR/FR at 320/1280px in light/dark mode, checks language/direction/overflow and captures screenshots for inspection. DOM tests exercise the quiz failure/retry/version behavior and label rules. Neither simulated quiz fixtures nor browser screenshots prove server grading, WebAuthn or hardware compatibility.
+
+## Admin appearance
+
+Use **Themes → Admin appearance** in Slate or **Settings → Admin appearance** in Classic to select a dashboard theme. Slate groups public-theme selection and pack management under **Themes** and public navigation icons under **Menus**. **Settings** still provides revision history for the full site settings. Slate applies its own light and dark palettes to the dashboard, including lists, forms and the editor. On desktop, Slate pins a full-height sidebar to the start edge and keeps quick actions in a top bar. On smaller screens, the navigation becomes a scrollable row above the content. Its compact form styling preserves the existing image picker. Modawana saves the choice in the current browser and applies it immediately. Both themes follow the light or dark appearance preference.
+
+Admin navigation switches screens without a document reload. The editor and configuration pages confirm before leaving when they contain unsaved changes.

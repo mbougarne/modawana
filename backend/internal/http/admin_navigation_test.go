@@ -49,8 +49,10 @@ func TestExpiredOwnerSessionRedirectsHTMLButNeverAPIs(t *testing.T) {
 		h.ServeHTTP(w, r)
 		return w
 	}
-	if w := request("/en/admin/transfer"); w.Code != 200 || !strings.Contains(w.Body.String(), `id="root"`) {
-		t.Fatalf("valid owner page: %d %s", w.Code, w.Body.String())
+	for _, path := range []string{"/en/admin/transfer", "/en/admin/themes", "/ar/admin/menus"} {
+		if w := request(path); w.Code != 200 || !strings.Contains(w.Body.String(), `id="root"`) {
+			t.Fatalf("valid owner page %s: %d %s", path, w.Code, w.Body.String())
+		}
 	}
 	now = now.Add(2 * time.Minute)
 	for _, locale := range []string{"en", "ar", "fr"} {
@@ -69,7 +71,7 @@ func TestExpiredOwnerSessionRedirectsHTMLButNeverAPIs(t *testing.T) {
 func TestAdminBrowserNavigationRequiresLoginWithoutServingPrivateShell(t *testing.T) {
 	h, _ := testServer(t, nil)
 	for _, locale := range []string{"en", "ar", "fr"} {
-		for _, path := range []string{"", "/security", "/posts?q=one%26two", "/editor/private-key/ar", "/preview/private-key/fr", "/transfer", "/plugins"} {
+		for _, path := range []string{"", "/security", "/posts?q=one%26two", "/editor/private-key/ar", "/preview/private-key/fr", "/transfer", "/plugins", "/themes", "/menus"} {
 			for _, method := range []string{"GET", "HEAD"} {
 				target := "/" + locale + "/admin" + path
 				r := httptest.NewRequest(method, target, nil)

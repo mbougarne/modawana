@@ -84,6 +84,27 @@ const PATHS = {
       <path d="m16 10 5-3v10l-5-3z" />
     </>
   ),
+  plus: <path d="M12 5v14M5 12h14" />,
+  folder: <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9H3z" />,
+  tag: (
+    <>
+      <path d="M3 4h8l10 10-7 7L3 10z" />
+      <circle cx="7.5" cy="8.5" r="1" />
+    </>
+  ),
+  settings: (
+    <>
+      <path d="M5 6h14M5 12h14M5 18h14" />
+      <path d="M9 4v4M15 10v4M9 16v4" />
+    </>
+  ),
+  user: (
+    <>
+      <circle cx="12" cy="8" r="3.5" />
+      <path d="M5 20v-2a7 7 0 0 1 14 0v2z" />
+    </>
+  ),
+  plug: <path d="M9 3v5m6-5v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4" />,
   hr: <path d="M4 12h16" />,
   split: (
     <>

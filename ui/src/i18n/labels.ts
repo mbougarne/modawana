@@ -985,6 +985,28 @@ export const DEFAULT_LABELS = {
   ),
   'config.secondary': l('Secondary colour', 'Couleur secondaire', 'اللون الثانوي'),
   'config.primary': l('Primary colour', 'Couleur principale', 'اللون الأساسي'),
+  'owner.themes': l('Themes', 'Thèmes', 'السمات'),
+  'owner.menus': l('Menus', 'Menus', 'القوائم'),
+  'workspace.themesHelp': l(
+    'Choose a dashboard theme and a theme for the public site.',
+    'Choisissez un thème pour le tableau de bord et pour le site public.',
+    'اختر سمة للوحة التحكم وسمة للموقع العام.',
+  ),
+  'workspace.menusHelp': l(
+    'Choose icons for the public navigation items.',
+    'Choisissez les icônes des liens de navigation du site public.',
+    'اختر أيقونات عناصر التنقل في الموقع العام.',
+  ),
+  'ownerAppearance.title': l('Admin appearance', 'Apparence de l’administration', 'مظهر الإدارة'),
+  'ownerAppearance.theme': l('Dashboard theme', 'Thème du tableau de bord', 'سمة لوحة التحكم'),
+  'ownerAppearance.classic': l('Classic', 'Classique', 'كلاسيكي'),
+  'ownerAppearance.slate': l('Slate', 'Ardoise', 'أردواز'),
+  'ownerAppearance.quickActions': l('Quick actions', 'Actions rapides', 'إجراءات سريعة'),
+  'ownerAppearance.help': l(
+    'Your dashboard theme is saved in this browser.',
+    'Le thème du tableau de bord est enregistré dans ce navigateur.',
+    'تُحفظ سمة لوحة التحكم في هذا المتصفح.',
+  ),
   'config.publicAppearance': l(
     'Public appearance',
     'Apparence du site public',
@@ -1661,6 +1683,11 @@ export const DEFAULT_LABELS = {
     'Restore this revision as a new draft? Unsaved edits will be discarded.',
     'Restaurer cette révision ? Les modifications non enregistrées seront perdues.',
     'استعادة هذه المراجعة كمسودة جديدة؟ ستفقد التغييرات غير المحفوظة.',
+  ),
+  'owner.confirmLeave': l(
+    'Leave this page and discard unsaved changes?',
+    'Quitter cette page et abandonner les modifications non enregistrées ?',
+    'هل تريد مغادرة هذه الصفحة وتجاهل التعديلات غير المحفوظة؟',
   ),
   'owner.confirmDiscard': l(
     'Discard unsaved changes and reload?',

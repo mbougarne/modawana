@@ -1,3 +1,4 @@
+import { useOwnerLeaveGuard } from '../owner/useOwnerLeaveGuard';
 import { FieldIssues, ValidationIssues } from './ValidationIssues';
 import { redirectOwnerToLogin } from '../auth/navigation';
 import { type FieldIssue, call, AuthError, requestErrorKey, type State } from '../auth/api';
@@ -12,14 +13,18 @@ import type {
   SiteSettings,
   ProfileSettings,
 } from '../../api/configuration';
+import { OwnerAppearanceSettings } from '../owner/OwnerAppearance';
 import { SettingsForm } from '../../pages/admin/settings/SettingsForm';
+import { PublicThemeSettings } from '../../pages/admin/settings/PublicThemeSettings';
+import { MenuSettings } from '../../pages/admin/settings/MenuSettings';
 import { ProfileForm } from '../../pages/admin/profile/ProfileForm';
 import { LabelsForm } from '../../pages/admin/labels/LabelsForm';
 import { usePublicConfiguration } from './PublicConfiguration';
 import './configuration.css';
 import { UploadActivity } from './controls';
 
-export function ConfigPage({ kind }: { kind: ConfigKind }) {
+export function ConfigPage({ page }: { page: ConfigKind | 'themes' | 'menus' }) {
+  const kind = page === 'themes' || page === 'menus' ? 'settings' : page;
   const { t, locale, date } = useI18n();
   const { refresh } = usePublicConfiguration();
   const [base, setBase] = useState<ConfigDocument>();
@@ -72,16 +77,7 @@ export function ConfigPage({ kind }: { kind: ConfigKind }) {
     void load();
   }, [kind]);
   const dirty = !!base && JSON.stringify(working) !== JSON.stringify(base.snapshot);
-  useEffect(() => {
-    const leave = (e: BeforeUnloadEvent) => {
-      if (dirty) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    };
-    window.addEventListener('beforeunload', leave);
-    return () => window.removeEventListener('beforeunload', leave);
-  }, [dirty]);
+  useOwnerLeaveGuard(dirty);
   function edit(v: Snapshot) {
     setIssues([]);
     setWorking(v);
@@ -162,16 +158,16 @@ export function ConfigPage({ kind }: { kind: ConfigKind }) {
   }
   return (
     <OwnerWorkspace
-      current={kind}
+      current={page}
       csrf={csrf}
       busy={busy}
       mainId="configuration"
       className={`config-page${kind === 'labels' ? ' labels-page' : ''}`}
-      languagePath={'/admin/' + kind}
+      languagePath={'/admin/' + page}
     >
       <OwnerPageHeading
-        title={t('config.' + kind)}
-        description={t(kind === 'labels' ? 'labels.description' : 'workspace.' + kind + 'Help')}
+        title={t(page === 'themes' || page === 'menus' ? 'owner.' + page : 'config.' + kind)}
+        description={t(kind === 'labels' ? 'labels.description' : 'workspace.' + page + 'Help')}
       />
       {notice && !issues.length && (
         <p
@@ -202,12 +198,29 @@ export function ConfigPage({ kind }: { kind: ConfigKind }) {
         </p>
       )}
       <ValidationIssues issues={issues} />
+      {kind === 'settings' && page !== 'menus' && (
+        <OwnerAppearanceSettings classicOnly={page === 'settings'} />
+      )}
       {base && working && (
         <>
           <FieldIssues.Provider value={issues}>
             <UploadActivity.Provider value={(delta) => setUploads((n) => Math.max(0, n + delta))}>
               <fieldset key={generation} className="config-fields" disabled={busy}>
-                {kind === 'settings' ? (
+                {page === 'themes' ? (
+                  <PublicThemeSettings
+                    value={(working as SiteSettings).public_theme}
+                    saved={(base.snapshot as SiteSettings).public_theme}
+                    onCSRF={setCSRF}
+                    onChange={(public_theme) =>
+                      edit({ ...(working as SiteSettings), public_theme })
+                    }
+                  />
+                ) : page === 'menus' ? (
+                  <MenuSettings
+                    value={(working as SiteSettings).menu_icons}
+                    onChange={(menu_icons) => edit({ ...(working as SiteSettings), menu_icons })}
+                  />
+                ) : kind === 'settings' ? (
                   <SettingsForm
                     value={working as SiteSettings}
                     savedTheme={(base.snapshot as SiteSettings).public_theme}
@@ -236,59 +249,61 @@ export function ConfigPage({ kind }: { kind: ConfigKind }) {
               </fieldset>
             </UploadActivity.Provider>
           </FieldIssues.Provider>
-          <section className="config-panel config-history-panel">
-            <h2>
-              <Label name="config.history" />
-            </h2>
-            <Button
-              disabled={busy || uploads > 0}
-              onClick={() =>
-                run(async () => {
-                  const d = await call<ConfigDocument>('/' + kind + '/defaults');
-                  edit(d.snapshot);
-                })
-              }
-            >
-              <Label name="config.resetAll" />
-            </Button>
-            <Button onClick={() => run(() => showHistory())}>
-              <Label name="config.loadHistory" />
-            </Button>
-            {history.map((h) => (
-              <div className="config-history" key={h.revision_id}>
-                <time dateTime={h.created_at}>
-                  {date(h.created_at, {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                    hour: 'numeric',
-                    minute: 'numeric',
-                    second: 'numeric',
-                  })}
-                </time>
-                <Button
-                  onClick={() =>
-                    run(async () => {
-                      const d = await call<ConfigDocument>(
-                        '/' + kind + '/restore',
-                        'POST',
-                        { expected_version: base.version, revision_id: h.revision_id },
-                        csrf,
-                      );
-                      edit(d.snapshot);
-                    })
-                  }
-                >
-                  <Label name="config.restore" />
-                </Button>
-              </div>
-            ))}
-            {nextHistory && (
-              <Button onClick={() => run(() => showHistory(nextHistory))}>
-                <Label name="config.more" />
+          {page !== 'themes' && page !== 'menus' && (
+            <section className="config-panel config-history-panel">
+              <h2>
+                <Label name="config.history" />
+              </h2>
+              <Button
+                disabled={busy || uploads > 0}
+                onClick={() =>
+                  run(async () => {
+                    const d = await call<ConfigDocument>('/' + kind + '/defaults');
+                    edit(d.snapshot);
+                  })
+                }
+              >
+                <Label name="config.resetAll" />
               </Button>
-            )}
-          </section>
+              <Button onClick={() => run(() => showHistory())}>
+                <Label name="config.loadHistory" />
+              </Button>
+              {history.map((h) => (
+                <div className="config-history" key={h.revision_id}>
+                  <time dateTime={h.created_at}>
+                    {date(h.created_at, {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: 'numeric',
+                      minute: 'numeric',
+                      second: 'numeric',
+                    })}
+                  </time>
+                  <Button
+                    onClick={() =>
+                      run(async () => {
+                        const d = await call<ConfigDocument>(
+                          '/' + kind + '/restore',
+                          'POST',
+                          { expected_version: base.version, revision_id: h.revision_id },
+                          csrf,
+                        );
+                        edit(d.snapshot);
+                      })
+                    }
+                  >
+                    <Label name="config.restore" />
+                  </Button>
+                </div>
+              ))}
+              {nextHistory && (
+                <Button onClick={() => run(() => showHistory(nextHistory))}>
+                  <Label name="config.more" />
+                </Button>
+              )}
+            </section>
+          )}
           {preview && (
             <section className="config-panel" aria-label={t('config.review')}>
               <h2>

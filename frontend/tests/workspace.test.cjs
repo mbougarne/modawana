@@ -7,11 +7,19 @@ const dom = new JSDOM('<!doctype html><html><body></body></html>', {
 global.window = dom.window;
 global.document = dom.window.document;
 global.HTMLElement = dom.window.HTMLElement;
+global.localStorage = dom.window.localStorage;
 global.IS_REACT_ACT_ENVIRONMENT = true;
 const React = require('react');
 const { act } = React;
 const { createRoot } = require('react-dom/client');
+const { createMemoryRouter, RouterProvider } = require('react-router-dom');
 const { OwnerWorkspace } = require('../.test-output/frontend/src/features/owner/OwnerWorkspace');
+const {
+  OwnerAppearanceSettings,
+} = require('../.test-output/frontend/src/features/owner/OwnerAppearance');
+const {
+  useOwnerLeaveGuard,
+} = require('../.test-output/frontend/src/features/owner/useOwnerLeaveGuard');
 const { I18nProvider } = require('../.test-output/ui/src/i18n/I18nProvider');
 const { ThemeProvider } = require('../.test-output/ui/src/theme/ThemeProvider');
 const { DEFAULT_LABELS } = require('../.test-output/ui/src/i18n/labels');
@@ -27,10 +35,23 @@ const pages = [
   'transfer',
   'plugins',
 ];
-async function mount(current = 'posts', locale = 'en', extra = {}) {
+async function mount(current = 'posts', locale = 'en', extra = {}, children) {
   const el = document.createElement('div');
   document.body.append(el);
   const root = createRoot(el);
+  const router = createMemoryRouter(
+    [
+      {
+        path: '*',
+        element: React.createElement(
+          OwnerWorkspace,
+          { current, csrf: 'test-csrf', languagePath: '/admin/' + current, ...extra },
+          children ?? React.createElement('h1', {}, current),
+        ),
+      },
+    ],
+    { initialEntries: [window.location.pathname + window.location.search] },
+  );
   await act(async () =>
     root.render(
       React.createElement(
@@ -39,17 +60,14 @@ async function mount(current = 'posts', locale = 'en', extra = {}) {
         React.createElement(
           I18nProvider,
           { locale },
-          React.createElement(
-            OwnerWorkspace,
-            { current, csrf: 'test-csrf', languagePath: '/admin/' + current, ...extra },
-            React.createElement('h1', {}, current),
-          ),
+          React.createElement(RouterProvider, { router }),
         ),
       ),
     ),
   );
   return {
     el,
+    router,
     cleanup: async () => {
       await act(async () => root.unmount());
       el.remove();
@@ -148,5 +166,97 @@ test('Workspace invokes the supplied security sign-out and reports failures with
     assert.equal(disabled.el.querySelector('.workspace-actions').lastElementChild.disabled, true);
   } finally {
     await disabled.cleanup();
+  }
+});
+
+test('The admin theme switches in place, persists between pages and stays independent of color mode', async () => {
+  const key = 'modawana.adminTheme';
+  localStorage.setItem(key, 'unknown');
+  const settings = await mount('settings', 'en', {}, React.createElement(OwnerAppearanceSettings));
+  const workspace = settings.el.querySelector('.owner-workspace');
+  const select = settings.el.querySelector('.owner-appearance select');
+  const choose = async (choice) => {
+    await act(async () => {
+      select.value = choice;
+      select.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+    });
+  };
+  try {
+    assert.equal(workspace.dataset.adminTheme, 'classic');
+    await choose('slate');
+    assert.equal(workspace.dataset.adminTheme, 'slate');
+    assert.equal(localStorage.getItem(key), 'slate');
+    assert.equal(document.documentElement.dataset.theme, 'light');
+    assert.equal(
+      workspace.querySelector('.owner-navigation').querySelectorAll('svg').length,
+      pages.length + 2,
+    );
+    assert.deepEqual(
+      [...workspace.querySelectorAll('.workspace-quick-links a')].map((link) => link.pathname),
+      ['/en/admin/new', '/en'],
+    );
+    assert.equal(workspace.querySelector('.workspace-rail-brand').pathname, '/en/admin/posts');
+    localStorage.setItem(key, 'sidebar');
+    const posts = await mount('posts', 'ar');
+    try {
+      const sidebar = posts.el.querySelector('.owner-workspace');
+      assert.equal(sidebar.dataset.adminTheme, 'slate');
+      assert.equal(sidebar.dir, 'rtl');
+      assert.deepEqual(
+        [...sidebar.querySelectorAll('.owner-navigation a')].map((a) => a.pathname),
+        [...pages.slice(0, 4), 'themes', 'menus', ...pages.slice(4)].map(
+          (page) => '/ar/admin/' + page,
+        ),
+      );
+      assert.equal(
+        sidebar.querySelector('.owner-navigation [aria-current="page"]').pathname,
+        '/ar/admin/posts',
+      );
+    } finally {
+      await posts.cleanup();
+    }
+    await choose('classic');
+    assert.equal(workspace.dataset.adminTheme, 'classic');
+    assert.equal(localStorage.getItem(key), 'classic');
+  } finally {
+    await settings.cleanup();
+    localStorage.removeItem(key);
+  }
+});
+
+test('Admin links use the client router and give unsaved changes a chance to stay', async () => {
+  function UnsavedSettings() {
+    useOwnerLeaveGuard(true);
+    return React.createElement('input', { defaultValue: 'Unsaved setting' });
+  }
+  window.history.replaceState({}, '', '/en/admin/settings');
+  localStorage.setItem('modawana.adminTheme', 'slate');
+  const m = await mount('settings', 'en', {}, React.createElement(UnsavedSettings));
+  const previousConfirm = window.confirm;
+  let confirmed = false;
+  let prompts = 0;
+  window.confirm = (message) => {
+    assert.equal(message, DEFAULT_LABELS['owner.confirmLeave'].en);
+    prompts++;
+    return confirmed;
+  };
+  const newContent = m.el.querySelector('.workspace-quick-links a[href="/en/admin/new"]');
+  const posts = m.el.querySelector('.owner-navigation a[href="/en/admin/posts"]');
+  try {
+    await act(async () => newContent.click());
+    assert.equal(prompts, 1);
+    assert.equal(m.router.state.location.pathname, '/en/admin/settings');
+    assert.equal(m.el.querySelector('input').value, 'Unsaved setting');
+
+    confirmed = true;
+    await act(async () => posts.click());
+    assert.equal(prompts, 2);
+    assert.equal(m.router.state.location.pathname, '/en/admin/posts');
+    assert.equal(window.location.pathname, '/en/admin/settings');
+  } finally {
+    window.confirm = previousConfirm;
+    await m.cleanup();
+    localStorage.removeItem('modawana.adminTheme');
+    window.history.replaceState({}, '', '/en/admin/posts');
   }
 });

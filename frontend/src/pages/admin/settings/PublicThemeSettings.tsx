@@ -91,41 +91,43 @@ export function PublicThemeSettings({
 
   return (
     <Section name="config.publicAppearance">
-      <label className="config-field">
-        <Label name="config.publicTheme" />
-        <select
-          {...themeIssue}
-          value={selected}
-          onChange={(event) => onChange(event.target.value as PublicThemeID)}
-        >
-          {builtinThemes.map((theme) => (
-            <option key={theme} value={theme}>
-              {t('publicTheme.' + theme)}
-            </option>
-          ))}
-          {available.map((pack) => (
-            <option key={pack.id} value={pack.id}>
-              {pack.name}
-            </option>
-          ))}
-          {unavailable && (
-            <option value={selected} disabled>
-              {selected}
-            </option>
-          )}
-        </select>
-      </label>
+      <div className="config-theme-picker">
+        <label className="config-field">
+          <Label name="config.publicTheme" />
+          <select
+            {...themeIssue}
+            value={selected}
+            onChange={(event) => onChange(event.target.value as PublicThemeID)}
+          >
+            {builtinThemes.map((theme) => (
+              <option key={theme} value={theme}>
+                {t('publicTheme.' + theme)}
+              </option>
+            ))}
+            {available.map((pack) => (
+              <option key={pack.id} value={pack.id}>
+                {pack.name}
+              </option>
+            ))}
+            {unavailable && (
+              <option value={selected} disabled>
+                {selected}
+              </option>
+            )}
+          </select>
+        </label>
+        {!unavailable && (
+          <a
+            className="vb-btn vb-btn-secondary vb-btn-sm"
+            href={`/${locale}/admin/settings/theme-preview?theme=${encodeURIComponent(selected)}`}
+            target="_blank"
+            rel="noopener"
+          >
+            {t('config.previewPublicTheme')}
+          </a>
+        )}
+      </div>
       {usingFallback && <p role="status">{t('themePacks.fallback')}</p>}
-      {!unavailable && (
-        <a
-          className="vb-btn vb-btn-secondary vb-btn-sm"
-          href={`/${locale}/admin/settings/theme-preview?theme=${encodeURIComponent(selected)}`}
-          target="_blank"
-          rel="noopener"
-        >
-          {t('config.previewPublicTheme')}
-        </a>
-      )}
       <h3>
         <Label name="themePacks.title" />
       </h3>

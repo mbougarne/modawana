@@ -92,10 +92,10 @@ export async function smokeOwner({ context, origin, root, locale, t }) {
       await page.goto(origin + `/${locale}/admin/${destination}`);
       await page.getByRole('navigation', { name: t('config.owner'), exact: true }).waitFor();
       await page.getByRole('heading', { level: 1 }).first().waitFor();
-      assert.equal(await page.locator('.workspace-header .owner-navigation a').count(), 10);
+      assert.equal(await page.locator('.workspace-navigation .owner-navigation a').count(), 10);
       assert.equal(
         await page
-          .locator('.workspace-header .owner-navigation [aria-current="page"]')
+          .locator('.workspace-navigation .owner-navigation [aria-current="page"]')
           .getAttribute('href'),
         `/${locale}/admin/${destination}`,
       );
@@ -696,6 +696,101 @@ export async function smokeOwner({ context, origin, root, locale, t }) {
         titleBounds.scroll <= titleBounds.width + 1,
       'long content titles must stay within the list',
     );
+    const settingsPath = `/${locale}/admin/settings`;
+    const postsPath = `/${locale}/admin/posts`;
+    await page.goto(origin + settingsPath);
+    const fileStyle = () =>
+      page
+        .locator('.config-media .vb-file-drop button')
+        .first()
+        .evaluate((button) => {
+          const { backgroundColor, borderRadius, color } = getComputedStyle(button);
+          return { backgroundColor, borderRadius, color };
+        });
+    const classicFileStyle = await fileStyle();
+    const themePicker = page.getByRole('combobox', {
+      name: t('ownerAppearance.theme'),
+      exact: true,
+    });
+    await themePicker.selectOption('slate');
+    assert.deepEqual(await fileStyle(), classicFileStyle);
+    assert.equal(await themePicker.count(), 0);
+    assert.equal(await page.locator('[data-config-path="public_theme"]').count(), 0);
+    assert.equal(await page.locator('[data-config-path^="menu_icons."]').count(), 0);
+
+    const section = (name) => page.locator(`.owner-navigation a[href="/${locale}/admin/${name}"]`);
+    await section('themes').click();
+    await themePicker.waitFor();
+    await page.locator('select[data-config-path="public_theme"]').waitFor();
+    await page.setViewportSize({ width: 1280, height: 900 });
+    const themeControls = await page.locator('.config-theme-picker').evaluate((picker) => {
+      const select = picker.querySelector('select').getBoundingClientRect();
+      const preview = picker.querySelector('a').getBoundingClientRect();
+      const rtl = getComputedStyle(picker).direction === 'rtl';
+      return {
+        gap: rtl ? select.left - preview.right : preview.left - select.right,
+        bottomDifference: Math.abs(preview.bottom - select.bottom),
+      };
+    });
+    assert.ok(themeControls.gap >= 0 && themeControls.bottomDifference <= 1);
+    assert.equal(await page.locator('[data-config-path^="menu_icons."]').count(), 0);
+    await section('menus').click();
+    await page.locator('[data-config-path^="menu_icons."]').first().waitFor();
+    assert.equal(await themePicker.count(), 0);
+    assert.equal(await page.locator('select[data-config-path="public_theme"]').count(), 0);
+    await section('settings').click();
+    await page.locator('.config-media .vb-file-drop button').first().waitFor();
+    const metrics = () =>
+      page.locator('.owner-workspace[data-admin-theme="slate"]').evaluate((shell) => {
+        const rail = shell.querySelector('.workspace-navigation').getBoundingClientRect();
+        const header = shell.querySelector('.workspace-header').getBoundingClientRect();
+        const content = shell.querySelector('.workspace-content').getBoundingClientRect();
+        const save = shell.querySelector('.config-save')?.getBoundingClientRect();
+        return {
+          document: performance.timeOrigin,
+          viewportHeight: innerHeight,
+          viewportWidth: document.documentElement.clientWidth,
+          overflow: document.documentElement.scrollWidth - innerWidth,
+          rail: { x: rail.x, top: rail.top, width: rail.width, bottom: rail.bottom },
+          headerWidth: header.width,
+          content: { x: content.x, width: content.width },
+          save: save && { left: save.left, right: save.right },
+          direction: shell.dir,
+        };
+      });
+    for (const width of [390, 1280]) {
+      await page.setViewportSize({ width, height: 900 });
+      const settings = await metrics();
+      assert.ok(settings.overflow <= 1, `Slate settings overflow at ${width}`);
+      assert.ok(settings.save.left >= 0 && settings.save.right <= settings.viewportWidth + 1);
+      if (width === 1280) {
+        assert.equal(settings.rail.top, 0);
+        assert.equal(settings.rail.width, 320);
+        assert.equal(settings.rail.bottom, settings.viewportHeight);
+        const edge =
+          settings.direction === 'rtl'
+            ? settings.viewportWidth - settings.rail.x - settings.rail.width
+            : settings.rail.x;
+        assert.ok(Math.abs(edge) <= 1, 'Slate rail follows inline start');
+        assert.ok(
+          settings.direction === 'rtl'
+            ? settings.save.right <= settings.rail.x
+            : settings.save.left >= settings.rail.x + settings.rail.width,
+          'Slate save bar must stay clear of the sidebar',
+        );
+      }
+      await page.locator(`.owner-navigation a[href="${postsPath}"]`).click();
+      await page.locator(`.owner-navigation a[href="${postsPath}"][aria-current="page"]`).waitFor();
+      const posts = await metrics();
+      assert.equal(posts.document, settings.document, 'admin navigation reloaded the document');
+      assert.deepEqual(posts.content, settings.content, 'admin navigation shifted the workspace');
+      assert.equal(posts.headerWidth, settings.headerWidth);
+      assert.ok(posts.overflow <= 1, `Slate posts overflow at ${width}`);
+      await page.locator(`.owner-navigation a[href="${settingsPath}"]`).click();
+      await page.locator('.config-media .vb-file-drop button').first().waitFor();
+    }
+    await section('themes').click();
+    await themePicker.selectOption('classic');
     assert.deepEqual(errors, []);
     console.log('Owner editor/navigation passed: ' + locale);
   } catch (error) {

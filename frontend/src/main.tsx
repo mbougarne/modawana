@@ -1,9 +1,17 @@
 import { lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom';
+import {
+  createBrowserRouter,
+  createRoutesFromElements,
+  RouterProvider,
+  Navigate,
+  Route,
+  useParams,
+} from 'react-router-dom';
 import { I18nProvider, ThemeProvider, Label, type Locale } from '@ui';
 import '@ui/styles/index.css';
 import './features/owner/owner.css';
+import './features/owner/slate-theme.css';
 import './pages/public/public.css';
 import {
   PublicConfigurationProvider,
@@ -40,7 +48,7 @@ function LocaleRoot({
   auth?: boolean;
   oauth?: boolean;
   preview?: boolean;
-  config?: ConfigKind;
+  config?: ConfigKind | 'themes' | 'menus';
   owner?: 'posts' | 'editor' | 'media' | 'collections' | 'taxonomy' | 'transfer' | 'plugins';
 }) {
   const { locale } = useParams();
@@ -53,9 +61,9 @@ function LocaleRoot({
         {oauth && valid ? (
           <OAuthPage />
         ) : owner && valid ? (
-          <OwnerArea page={owner} />
+          <OwnerArea key={owner} page={owner} />
         ) : config && valid ? (
-          <ConfigPage key={config} kind={config} />
+          <ConfigPage key={config} page={config} />
         ) : preview && valid ? (
           <PreviewPage />
         ) : auth && valid ? (
@@ -69,38 +77,39 @@ function LocaleRoot({
     </I18nProvider>
   );
 }
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <>
+      <Route path="/admin/login" element={<LoginAlias />} />
+      <Route path="/:locale/login" element={<LocaleRoot auth />} />
+      <Route path="/:locale/admin/login" element={<LoginAlias />} />
+      <Route path="/:locale/admin" element={<LocaleRoot auth />} />
+      <Route path="/:locale/admin/collections" element={<LocaleRoot owner="collections" />} />
+      <Route path="/:locale/admin/taxonomy" element={<LocaleRoot owner="taxonomy" />} />
+      <Route path="/:locale/admin/posts" element={<LocaleRoot owner="posts" />} />
+      <Route path="/:locale/admin/new" element={<LocaleRoot owner="editor" />} />
+      <Route
+        path="/:locale/admin/editor/:key/:contentLocale"
+        element={<LocaleRoot owner="editor" />}
+      />
+      <Route path="/:locale/admin/transfer" element={<LocaleRoot owner="transfer" />} />
+      <Route path="/:locale/admin/plugins" element={<LocaleRoot owner="plugins" />} />
+      <Route path="/:locale/admin/media" element={<LocaleRoot owner="media" />} />
+      <Route path="/:locale/admin/oauth" element={<LocaleRoot oauth />} />
+      <Route path="/:locale/admin/security" element={<LocaleRoot auth />} />
+      <Route path="/:locale/admin/preview/:key/:contentLocale" element={<LocaleRoot preview />} />
+      {(['settings', 'themes', 'menus', 'profile', 'labels'] as const).map((k) => (
+        <Route key={k} path={`/:locale/admin/${k}`} element={<LocaleRoot config={k} />} />
+      ))}
+      <Route path="/:locale/admin/*" element={<LocaleRoot />} />
+    </>,
+  ),
+);
+
 createRoot(document.getElementById('root')!).render(
   <ThemeProvider>
     <PublicConfigurationProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/admin/login" element={<LoginAlias />} />
-          <Route path="/:locale/login" element={<LocaleRoot auth />} />
-          <Route path="/:locale/admin/login" element={<LoginAlias />} />
-          <Route path="/:locale/admin" element={<LocaleRoot auth />} />
-          <Route path="/:locale/admin/collections" element={<LocaleRoot owner="collections" />} />
-          <Route path="/:locale/admin/taxonomy" element={<LocaleRoot owner="taxonomy" />} />
-          <Route path="/:locale/admin/posts" element={<LocaleRoot owner="posts" />} />
-          <Route path="/:locale/admin/new" element={<LocaleRoot owner="editor" />} />
-          <Route
-            path="/:locale/admin/editor/:key/:contentLocale"
-            element={<LocaleRoot owner="editor" />}
-          />
-          <Route path="/:locale/admin/transfer" element={<LocaleRoot owner="transfer" />} />
-          <Route path="/:locale/admin/plugins" element={<LocaleRoot owner="plugins" />} />
-          <Route path="/:locale/admin/media" element={<LocaleRoot owner="media" />} />
-          <Route path="/:locale/admin/oauth" element={<LocaleRoot oauth />} />
-          <Route path="/:locale/admin/security" element={<LocaleRoot auth />} />
-          <Route
-            path="/:locale/admin/preview/:key/:contentLocale"
-            element={<LocaleRoot preview />}
-          />
-          {(['settings', 'profile', 'labels'] as const).map((k) => (
-            <Route key={k} path={`/:locale/admin/${k}`} element={<LocaleRoot config={k} />} />
-          ))}
-          <Route path="/:locale/admin/*" element={<LocaleRoot />} />
-        </Routes>
-      </BrowserRouter>
+      <RouterProvider router={router} />
     </PublicConfigurationProvider>
   </ThemeProvider>,
 );
