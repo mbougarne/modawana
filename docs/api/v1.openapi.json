@@ -3539,6 +3539,275 @@
         "description": "Save and apply a complete snapshot atomically; 409 preserves local edits. / حفظ لقطة كاملة وتطبيقها ذرياً؛ يحفظ 409 التعديلات المحلية."
       }
     },
+    "/api/v1/settings/theme-packs": {
+      "get": {
+        "operationId": "listThemePacks",
+        "description": "List staged and approved theme packs. / سرد حزم السمات المتاحة والمعتمدة.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response / استجابة",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ThemePackStatus"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Response / استجابة",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/theme-packs/{id}/approve": {
+      "post": {
+        "operationId": "approveThemePack",
+        "description": "Approve an exact theme pack checksum with fresh owner authentication. / اعتماد بصمة محددة لحزمة سمات بمصادقة حديثة للمالك.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response / استجابة",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThemePackApproval"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Response / استجابة",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^pack-[a-z][a-z0-9-]{0,30}$"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expected_revision": {
+                    "type": "string",
+                    "pattern": "^([0-9a-f]{32})?$"
+                  },
+                  "expected_checksum": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                },
+                "required": [
+                  "expected_revision",
+                  "expected_checksum"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/settings/theme-packs/{id}/remove": {
+      "post": {
+        "operationId": "removeThemePackApproval",
+        "description": "Remove theme pack approval with fresh owner authentication. / إلغاء اعتماد حزمة سمات بمصادقة حديثة للمالك.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Response / استجابة",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "removed": {
+                      "const": true
+                    }
+                  },
+                  "required": [
+                    "removed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Response / استجابة",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^pack-[a-z][a-z0-9-]{0,30}$"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "expected_revision": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{32}$"
+                  }
+                },
+                "required": [
+                  "expected_revision"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/theme-assets/{id}/{checksum}/banner.png": {
+      "get": {
+        "operationId": "getThemeBanner",
+        "description": "Serve an approved decorative PNG matching the pack checksum. / تقديم صورة PNG زخرفية معتمدة تطابق بصمة الحزمة.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^pack-[a-z][a-z0-9-]{0,30}$"
+            }
+          },
+          {
+            "name": "checksum",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Decorative PNG / صورة PNG زخرفية",
+            "content": {
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Response / استجابة",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/settings/preview": {
       "post": {
         "operationId": "previewSiteConfig",
@@ -7650,14 +7919,86 @@
         },
         "required": []
       },
+      "ThemePackApproval": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^pack-[a-z][a-z0-9-]{0,30}$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "checksum": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "revision": {
+            "type": "string",
+            "pattern": "^([0-9a-f]{32})?$"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "checksum",
+          "revision"
+        ]
+      },
+      "ThemePackStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^pack-[a-z][a-z0-9-]{0,30}$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "checksum": {
+            "type": "string",
+            "pattern": "^([0-9a-f]{64})?$"
+          },
+          "revision": {
+            "type": "string",
+            "pattern": "^([0-9a-f]{32})?$"
+          },
+          "state": {
+            "enum": [
+              "available",
+              "installed",
+              "changed",
+              "missing",
+              "invalid"
+            ]
+          },
+          "candidate_name": {
+            "type": "string"
+          },
+          "candidate_checksum": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "checksum",
+          "revision",
+          "state"
+        ]
+      },
       "SiteSettings": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
           "public_theme": {
-            "enum": ["classic", "folio", "studio"],
+            "type": "string",
+            "pattern": "^(classic|folio|studio|pack-[a-z][a-z0-9-]{0,30})$",
             "default": "classic",
-            "description": "Built-in public presentation. / سمة العرض المدمجة للموقع العام."
+            "description": "Built-in public theme or approved theme pack. / سمة عامة مدمجة أو حزمة معتمدة."
           },
           "logo_mode": {
             "enum": [

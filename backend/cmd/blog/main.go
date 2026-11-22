@@ -26,6 +26,7 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/plugin"
 	"github.com/mbougarne/modawana/backend/internal/siteconfig"
 	"github.com/mbougarne/modawana/backend/internal/storage"
+	"github.com/mbougarne/modawana/backend/internal/theme"
 )
 
 // maintenanceJobs registers the hourly cleanup batch, formerly an ad-hoc
@@ -163,7 +164,7 @@ func run() int {
 	contents.Membership = contents.AttachMember
 	contents.PublicationHook = contents.CheckPublicationPlan
 	policy.Gates = contents.LessonAccess
-	settings := &siteconfig.Service{DB: database, Files: files}
+	settings := &siteconfig.Service{DB: database, Files: files, Themes: &theme.Service{DB: database, DataRoot: cfg.DataRoot}}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	identities := learning.NewIdentity(database, cfg.LearningIdleDays, cfg.LearningMaxIdentities)

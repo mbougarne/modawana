@@ -7,6 +7,7 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/bundle"
 	"github.com/mbougarne/modawana/backend/internal/db"
 	"github.com/mbougarne/modawana/backend/internal/storage"
+	"github.com/mbougarne/modawana/backend/internal/theme"
 	"io"
 	"net/url"
 	"os"
@@ -60,7 +61,7 @@ func syncDir(p string) error {
 	defer f.Close()
 	return f.Sync()
 }
-func Backup(ctx context.Context, d *sql.DB, files *storage.Store, out io.Writer) error {
+func Backup(ctx context.Context, d *sql.DB, files *storage.Store, dataRoot string, out io.Writer) error {
 	return files.Exclusive(ctx, func() error {
 		root, e := os.MkdirTemp("", "blog-backup-")
 		if e != nil {
@@ -78,6 +79,11 @@ func Backup(ctx context.Context, d *sql.DB, files *storage.Store, out io.Writer)
 		if e == nil {
 			e = db.VerifySchema(ctx, snapshot)
 		}
+		if e != nil {
+			snapshot.Close()
+			return e
+		}
+		approved, e := theme.Approvals(ctx, snapshot)
 		snapshot.Close()
 		if e != nil {
 			return e
@@ -115,6 +121,21 @@ func Backup(ctx context.Context, d *sql.DB, files *storage.Store, out io.Writer)
 			}
 			paths = append(paths, f.Key)
 		}
+		for _, a := range approved {
+			pack, err := theme.ReadVerifiedPack(dataRoot, a.ID, a.Checksum)
+			if err != nil {
+				continue // Keep the approval and restore to the built-in fallback.
+			}
+			key := theme.PackPath(a.ID)
+			p := filepath.Join(root, key)
+			if e = os.MkdirAll(filepath.Dir(p), 0700); e != nil {
+				return e
+			}
+			if e = os.WriteFile(p, pack.Raw, 0600); e != nil {
+				return e
+			}
+			paths = append(paths, key)
+		}
 		return bundle.Write(out, "backup", root, paths)
 	})
 }
@@ -148,21 +169,38 @@ func Restore(ctx context.Context, archive, target string) error {
 		return e
 	}
 	refs, e := References(ctx, snapshot)
+	if e != nil {
+		snapshot.Close()
+		return e
+	}
+	approved, e := theme.Approvals(ctx, snapshot)
 	snapshot.Close()
 	if e != nil {
 		return e
+	}
+	themeFiles := map[string]theme.Approval{}
+	for _, a := range approved {
+		themeFiles[theme.PackPath(a.ID)] = a
 	}
 	expected := map[string]bool{"blog.sqlite": true}
 	for _, f := range refs {
 		expected[f.Key] = true
 	}
-	if len(expected) != len(manifest.Files) {
-		return bundle.ErrInvalid
-	}
 	for _, f := range manifest.Files {
-		if !expected[f.Path] {
+		if expected[f.Path] {
+			delete(expected, f.Path)
+			continue
+		}
+		a, ok := themeFiles[f.Path]
+		if !ok || a.Checksum != f.SHA256 {
 			return bundle.ErrInvalid
 		}
+		if _, e = theme.ReadVerifiedPack(root, a.ID, a.Checksum); e != nil {
+			return bundle.ErrInvalid
+		}
+	}
+	if len(expected) != 0 {
+		return bundle.ErrInvalid
 	}
 	fs, e := storage.Open(root)
 	if e != nil {

@@ -1,6 +1,8 @@
 package siteconfig
 
 import (
+	"context"
+	"encoding/json"
 	"strings"
 	"unicode"
 
@@ -10,7 +12,7 @@ import (
 func siteIssues(s Site) []FieldIssue {
 	issues := []FieldIssue{}
 	add := func(path, code string) { issues = append(issues, FieldIssue{path, code}) }
-	if _, ok := theme.Lookup(s.PublicTheme); !ok {
+	if _, ok := theme.Lookup(s.PublicTheme); !ok && !theme.IsPack(s.PublicTheme) {
 		add("public_theme", "public_theme")
 	}
 	if s.LogoMode != "wordmark" && s.LogoMode != "monogram" && s.LogoMode != "image" {
@@ -51,4 +53,22 @@ func siteIssues(s Site) []FieldIssue {
 		add("logo_media_id", "logo_image")
 	}
 	return issues
+}
+
+func (s *Service) validateTheme(ctx context.Context, q theme.Query, kind string, snapshot json.RawMessage) error {
+	if kind != "site" {
+		return nil
+	}
+	var site Site
+	if err := json.Unmarshal(snapshot, &site); err != nil {
+		return err
+	}
+	_, ok, err := s.Themes.Appearance(ctx, q, site.PublicTheme)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return invalidField("public_theme", "public_theme")
+	}
+	return nil
 }

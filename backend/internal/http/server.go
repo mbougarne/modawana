@@ -248,11 +248,21 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 	if len(parts) > 0 && pageLocale(parts[0]) {
 		locale = parts[0]
 	}
-	var previewTheme theme.Builtin
+	var previewTheme theme.Appearance
 	if public || preview {
 		path := r.URL.Path
 		if preview {
-			choice, ok := theme.Lookup(r.URL.Query().Get("theme"))
+			w.Header().Set("X-Robots-Tag", "noindex")
+			id := r.URL.Query().Get("theme")
+			choice, ok := theme.Lookup(id)
+			if settings := s.options.SiteConfig; settings != nil && !ok {
+				var err error
+				choice, ok, err = settings.Themes.Appearance(r.Context(), settings.DB, id)
+				if err != nil {
+					writeError(w, Unavailable)
+					return
+				}
+			}
 			if !ok {
 				writeError(w, InvalidFields)
 				return
@@ -332,6 +342,7 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 	if public || preview || status >= 400 {
 		if preview {
 			settings.Site.PublicTheme = previewTheme.ID
+			settings.Theme = previewTheme
 		}
 		lockedLesson := status == 403 && page.Kind == "lesson" && page.Content != nil && page.Content.Locked
 		head.NoIndex = status >= 400 || preview

@@ -2,13 +2,18 @@ import { call, type State } from './api';
 import { redirectOwnerToLogin } from './navigation';
 import { credentialJSON, requestOptions, type RequestJSON } from './webauthn';
 
-export async function authenticatedTransfer(url: string, options: RequestInit): Promise<Response> {
+export async function authenticatedTransfer(
+  url: string,
+  options: RequestInit,
+  onSession?: (state: State) => void,
+): Promise<Response> {
   const send = (csrf?: string) =>
     fetch(url, {
       ...options,
       headers: { ...options.headers, ...(csrf ? { 'X-CSRF-Token': csrf } : {}) },
     });
   const session = await call<State>('/session');
+  onSession?.(session);
   let response = await send(session.csrf);
   if (response.status !== 401 && response.status !== 403) {
     return response;
@@ -22,6 +27,7 @@ export async function authenticatedTransfer(url: string, options: RequestInit): 
     }
     throw error;
   }
+  onSession?.(current);
   response = await send(current.csrf);
   if (response.status === 401) {
     redirectOwnerToLogin();

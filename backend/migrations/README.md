@@ -85,3 +85,11 @@ publisher tokens and are removed when those tokens are deleted. Restoration
 clears all OAuth records. Back up and verify isolated restore with the old binary
 before opening this schema with the candidate; use the matching old snapshot for
 rollback. See [OAuth operations](../../docs/integrations/mcp-oauth.md).
+
+## 0016 — Public theme packs
+
+Adds checksum and revision records for owner-approved public theme packs.
+The existing site revisions store the selected theme ID. Coordinated backups
+include matching approved pack files, and restore verifies their checksums.
+If the selected pack is unavailable, the public site uses Classic.
+See [the pack format](../../docs/public-pages.md#installable-theme-packs).

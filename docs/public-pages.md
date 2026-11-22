@@ -152,3 +152,46 @@ Writing shows category/tag filters without an additional search form; use the he
 ## Footer destinations
 
 Footer navigation links to localized Writing, Learning and Docs, then the first safe visible configured profile link for each GitHub, LinkedIn and RSS icon. Missing destinations are omitted; choosing RSS does not create a feed endpoint. Owner navigation remains restricted by session state. Primary Home/About styling follows Profile Main action; symbols do not select button color. [Owner setup](owner-tools.md#quizzes-and-lesson-gates).
+
+## Installable theme packs
+
+Stage a pack as `themes/pack-editorial/theme.json` under the external data root.
+The pack ID is its directory name. It starts with `pack-`, followed by a
+lowercase letter and up to 30 lowercase letters, digits, or hyphens. A pack has
+one JSON file. The service user needs read access to that file and its directory.
+
+```json
+{
+  "api_version": 1,
+  "name": "Editorial",
+  "layout": "{{template \"header\" .}} {{template \"content\" .}} {{template \"footer\" .}}",
+  "css": ".vb-shell { max-inline-size: 72rem; } .vb-title { letter-spacing: 0.02em; }"
+}
+```
+
+The layout arranges the host's `header`, `content`, and `footer` partials, each
+exactly once. An optional base64 `banner_png` field adds a decorative image and
+requires one `{{template "banner" .}}` slot. The PNG is limited to 96 KiB and
+1600 × 800 pixels. The complete JSON is limited to 192 KiB. The host supplies
+the document head, locale, reader content, and interactive controls.
+
+The optional CSS accepts comma-separated tag or class selectors with descendant
+combinators, a [list of presentation properties](../backend/internal/theme/pack_css.go),
+and up to 24 KiB of source. Every selector is scoped to the pack. CSS functions
+are limited to design tokens, arithmetic, colours, and grid sizing. The pack
+format accepts layout slots, scoped CSS, and the optional local PNG. The host
+handles scripts, routes, and access decisions.
+
+In **Settings → Public appearance**, review the candidate name and checksum,
+then choose **Approve pack**. Use a fresh owner session to approve or remove a
+pack. Approved packs appear in the public theme picker and support the same
+private preview and settings revision workflow as built-in themes. The picker
+remembers the pack ID across revisions.
+
+Editing a pack requires a new approval. The site uses Classic while the active
+pack is missing, changed, or invalid, and Settings shows the fallback. Approving
+an update to the selected pack makes the update live. **Remove approval** keeps
+the staged file and uses Classic if the pack was selected. Coordinated backups
+retain approved matching pack files and restore verifies their checksums again.
+Content transfer carries the settings reference. Stage and approve the pack at
+the destination before applying that revision.

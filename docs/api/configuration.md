@@ -17,13 +17,27 @@ For each of `/api/v1/settings`, `/api/v1/profile`, `/api/v1/labels`:
 | POST base/restore | `{expected_version, revision_id}` returns a historical working copy; does not apply it |
 | GET base/defaults | Return a default working copy at the current version; does not apply it |
 
-Snapshots are bounded to 256 KiB; request bodies to 1 MiB. Unknown fields are rejected; site/profile snapshots require all top-level fields. Invalid values return 422; missing/negative apply versions return 422 and stale/concurrent saves return 409 (Preview requires a matching version). HTTP 409 preserves the local form until the owner chooses Reload. Preview/Cancel never changes live configuration. Reset and Restore also require explicit Save and apply. History references continue protecting files from deletion. New media stays private until an applied visible field references it; disabled banners and inactive image logos do not grant access.
+Snapshots are bounded to 256 KiB; request bodies to 1 MiB. Unknown fields are rejected; site/profile snapshots require all top-level fields except the optional site theme. Invalid values return 422; missing/negative apply versions return 422 and stale/concurrent saves return 409 (Preview requires a matching version). HTTP 409 preserves the local form until the owner chooses Reload. Preview/Cancel never changes live configuration. Reset and Restore also require explicit Save and apply. History references continue protecting files from deletion. New media stays private until an applied visible field references it; disabled banners and inactive image logos do not grant access.
 
 Changed nonempty Arabic/French values require explicit confirmation of each `{path, locale, source_hash, value_hash}` from Preview. Hashes bind the exact value to effective English; stable row IDs survive reordering. An existing reviewed translation remains live when only English changes and is marked stale; it can be reviewed again. A restore is validated against current review rules. Profile/label fallback is permitted and marked with actual language/direction; published content never falls back.
 
 ## Field rules
 
-The optional `public_theme` field accepts `classic`, `folio` or `studio`. Historical snapshots without the field use Classic. Applying a site revision sets the theme for every public locale.
+The optional `public_theme` field accepts `classic`, `folio`, `studio`, or an
+approved pack ID. Historical snapshots without the field use Classic. Applying
+a site revision sets the theme for every public locale. The public settings
+projection reports the effective theme, including Classic during fallback.
+The owner settings snapshot retains the selected pack ID.
+
+| Theme pack request | Result |
+| --- | --- |
+| GET `/api/v1/settings/theme-packs` | Owner list `{items}`, with approval revision and candidate checksum when available |
+| POST `/api/v1/settings/theme-packs/{id}/approve` | Approve `{expected_revision, expected_checksum}`. Use an empty revision for a new approval |
+| POST `/api/v1/settings/theme-packs/{id}/remove` | Revoke `{expected_revision}` and return `{removed:true}` |
+
+Both writes require fresh owner authentication, Origin and CSRF. A stale
+approval revision or candidate checksum returns 409. See the
+[pack format](../public-pages.md#installable-theme-packs).
 
 Branding supports wordmark, one-to-three-letter/number monogram, image logo, favicon and allowlisted menu icons. Logo/favicon images are at most 1 MiB. Both colours use canonical `#RRGGBB`. Palette algorithm version 1 is shared between Go and TypeScript and verified by exact output vectors, including default and extreme colours. It checks text, links, buttons and focus against the relevant light/dark surfaces; adjusted primary shades are explained in the preview. Invalid contrast combinations are rejected. Neutrals remain code-owned. Go emits a nonce-protected initial stylesheet; the client applies the same palette and preserves reader theme choice.
 

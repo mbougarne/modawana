@@ -3,6 +3,7 @@ package operations
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"github.com/mbougarne/modawana/backend/internal/auth"
 	"github.com/mbougarne/modawana/backend/internal/bundle"
 	"github.com/mbougarne/modawana/backend/internal/config"
@@ -10,6 +11,7 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/db"
 	"github.com/mbougarne/modawana/backend/internal/learning"
 	"github.com/mbougarne/modawana/backend/internal/storage"
+	"github.com/mbougarne/modawana/backend/internal/theme"
 	"os"
 	"path/filepath"
 	"strings"
@@ -66,7 +68,7 @@ func TestBackupRestoreDisablesSnapshotCredentialsAndKeepsFiles(t *testing.T) {
 	}
 	archive := filepath.Join(t.TempDir(), "backup.zip")
 	f, _ := os.Create(archive)
-	if e = Backup(ctx, d, files, f); e != nil {
+	if e = Backup(ctx, d, files, root, f); e != nil {
 		t.Fatal(e)
 	}
 	f.Close()
@@ -176,7 +178,7 @@ func TestBackupSnapshotUnderConcurrentWrites(t *testing.T) {
 		done <- nil
 	}()
 	var out bytes.Buffer
-	if e = Backup(ctx, d, files, &out); e != nil {
+	if e = Backup(ctx, d, files, root, &out); e != nil {
 		t.Fatal(e)
 	}
 	if e = <-done; e != nil {
@@ -215,5 +217,112 @@ func TestMaintenanceKeepsReferencesAndDeletesOnlyOldOrphans(t *testing.T) {
 	}
 	if _, e = cs.Draft(ctx, "kept", "en"); e != nil {
 		t.Fatal(e)
+	}
+}
+
+func TestBackupRestoresApprovedThemePacks(t *testing.T) {
+	ctx := t.Context()
+	root := t.TempDir()
+	if err := os.Chmod(root, 0700); err != nil {
+		t.Fatal(err)
+	}
+	d, err := db.Open(ctx, root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer d.Close()
+	store, err := storage.Open(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	const id = "pack-archive"
+	const payload = `{"api_version":1,"name":"Archived theme","layout":"{{template \"header\" .}}{{template \"content\" .}}{{template \"footer\" .}}"}`
+	writePack := func(id, raw string) {
+		t.Helper()
+		p := filepath.Join(root, theme.PackPath(id))
+		if err := os.MkdirAll(filepath.Dir(p), 0700); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(p, []byte(raw), 0600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	writePack(id, payload)
+	writePack("pack-candidate", payload)
+	packs := &theme.Service{DB: d, DataRoot: root}
+	pack, err := theme.ReadPack(root, id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := packs.Approve(ctx, id, pack.Checksum, "", func(*sql.Tx) error { return nil }); err != nil {
+		t.Fatal(err)
+	}
+	backup := func() string {
+		t.Helper()
+		p := filepath.Join(t.TempDir(), "snapshot.zip")
+		f, err := os.Create(p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := Backup(ctx, d, store, root, f); err != nil {
+			f.Close()
+			t.Fatal(err)
+		}
+		if err := f.Close(); err != nil {
+			t.Fatal(err)
+		}
+		return p
+	}
+	restore := func(archive string, available bool) {
+		t.Helper()
+		destination := filepath.Join(t.TempDir(), "restored")
+		if err := Restore(ctx, archive, destination); err != nil {
+			t.Fatal(err)
+		}
+		snapshot, err := db.Open(ctx, destination)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer snapshot.Close()
+		restored := &theme.Service{DB: snapshot, DataRoot: destination}
+		out, ok, err := restored.Appearance(ctx, snapshot, id)
+		if err != nil || ok != available || available && out.ID != id || !available && out.ID != theme.Classic {
+			t.Fatalf("unexpected restored theme %q, %v, %v", out.ID, ok, err)
+		}
+		if _, err := os.Stat(filepath.Join(destination, theme.PackPath("pack-candidate"))); !os.IsNotExist(err) {
+			t.Fatal("unapproved file restored")
+		}
+	}
+	archive := backup()
+	restore(archive, true)
+	writePack(id, strings.Replace(payload, "Archived theme", "Edited theme", 1))
+	restore(backup(), false)
+	extracted, m, err := bundle.Read(archive, "backup")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(extracted)
+	if err := os.WriteFile(filepath.Join(extracted, theme.PackPath(id)), []byte(payload+" "), 0600); err != nil {
+		t.Fatal(err)
+	}
+	corrupt := filepath.Join(t.TempDir(), "corrupt.zip")
+	f, err := os.Create(corrupt)
+	if err != nil {
+		t.Fatal(err)
+	}
+	paths := make([]string, 0, len(m.Files))
+	for _, item := range m.Files {
+		paths = append(paths, item.Path)
+	}
+	if err := bundle.Write(f, "backup", extracted, paths); err != nil {
+		f.Close()
+		t.Fatal(err)
+	}
+	if err := f.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if err := Restore(ctx, corrupt, filepath.Join(t.TempDir(), "corrupt")); err != bundle.ErrInvalid {
+		t.Fatal("restore accepted a file with the wrong approval checksum", err)
 	}
 }

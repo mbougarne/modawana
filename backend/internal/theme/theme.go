@@ -98,6 +98,8 @@ type Footer struct {
 // Page carries the shared shell and the view for the requested public route.
 type Page struct {
 	ThemeID       string
+	Layout        []string
+	BannerURL     string
 	Error         string
 	HomeLabel     string
 	Locale        string
@@ -125,5 +127,8 @@ type Page struct {
 
 // Render writes the complete public document.
 func Render(w io.Writer, page Page) error {
+	if len(page.Layout) == 0 {
+		page.Layout = []string{"header", "content", "footer"}
+	}
 	return templates.ExecuteTemplate(w, "page.tmpl", page)
 }

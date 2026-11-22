@@ -31,7 +31,7 @@ func setup(t *testing.T) (*Service, string) {
 	if _, e = d.Exec("INSERT INTO owner(id) VALUES(?)", owner); e != nil {
 		t.Fatal(e)
 	}
-	return &Service{d, f}, owner
+	return &Service{DB: d, Files: f}, owner
 }
 func num(n int64) *int64 { return &n }
 func TestConfigurationReviewConflictAndRestore(t *testing.T) {

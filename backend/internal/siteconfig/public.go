@@ -16,6 +16,7 @@ type Effective struct {
 	Stale    bool   `json:"stale"`
 }
 type Public struct {
+	Theme     theme.Appearance     `json:"-"`
 	Palette   Palette              `json:"palette"`
 	Site      Site                 `json:"site"`
 	Profile   Profile              `json:"profile"`
@@ -48,8 +49,11 @@ func (s *Service) Public(ctx context.Context, locale string) (Public, error) {
 		return out, e
 	}
 	_ = json.Unmarshal(a.Snapshot, &out.Site)
-	builtin, _ := theme.Lookup(out.Site.PublicTheme)
-	out.Site.PublicTheme = builtin.ID
+	out.Theme, _, e = s.Themes.Appearance(ctx, tx, out.Site.PublicTheme)
+	if e != nil {
+		return out, e
+	}
+	out.Site.PublicTheme = out.Theme.ID
 	_ = json.Unmarshal(p.Snapshot, &out.Profile)
 	_ = json.Unmarshal(l.Snapshot, &out.Labels)
 	out.Palette, e = Derive(out.Site.Primary, out.Site.Secondary)

@@ -6,23 +6,23 @@ import { usePublicConfiguration } from '../../../features/configuration/PublicCo
 import { siteBrand, iconNames } from './siteBrand';
 import type { PublicThemeID, SiteSettings } from '../../../api/configuration';
 import { MediaInput, Section, TextField } from '../../../features/configuration/controls';
-import { useFieldIssue } from '../../../features/configuration/ValidationIssues';
-
-const builtinThemes = ['classic', 'folio', 'studio'] as const;
+import { PublicThemeSettings } from './PublicThemeSettings';
 
 export function SettingsForm({
   value: s,
+  savedTheme,
+  onCSRF,
   onChange,
   csrf,
 }: {
   value: SiteSettings;
+  savedTheme?: PublicThemeID;
+  onCSRF: (csrf: string) => void;
   onChange: (s: SiteSettings) => void;
   csrf: string;
 }) {
   const { t, locale } = useI18n();
   const { data } = usePublicConfiguration();
-  const publicTheme = s.public_theme ?? 'classic';
-  const themeIssue = useFieldIssue('public_theme');
   const [previewTheme, setPreviewTheme] = useState<'light' | 'dark'>('light');
   const change = <K extends keyof SiteSettings>(k: K, v: SiteSettings[K]) =>
     onChange({ ...s, [k]: v });
@@ -82,30 +82,12 @@ export function SettingsForm({
             onChange={(v) => change('favicon_media_id', v)}
           />
         </Section>
-        <Section name="config.publicAppearance">
-          <label className="config-field">
-            <Label name="config.publicTheme" />
-            <select
-              {...themeIssue}
-              value={publicTheme}
-              onChange={(event) => change('public_theme', event.target.value as PublicThemeID)}
-            >
-              {builtinThemes.map((theme) => (
-                <option key={theme} value={theme}>
-                  {t('publicTheme.' + theme)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <a
-            className="vb-btn vb-btn-secondary vb-btn-sm"
-            href={`/${locale}/admin/settings/theme-preview?theme=${publicTheme}`}
-            target="_blank"
-            rel="noopener"
-          >
-            {t('config.previewPublicTheme')}
-          </a>
-        </Section>
+        <PublicThemeSettings
+          value={s.public_theme}
+          saved={savedTheme}
+          onCSRF={onCSRF}
+          onChange={(theme) => change('public_theme', theme)}
+        />
         <Section name="config.colours">
           {(['primary', 'secondary'] as const).map((k) => (
             <BrandColourField key={k} role={k} value={s[k]} onChange={(v) => change(k, v)} />
