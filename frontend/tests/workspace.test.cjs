@@ -189,7 +189,7 @@ test('The admin theme switches in place, persists between pages and stays indepe
     assert.equal(document.documentElement.dataset.theme, 'light');
     assert.equal(
       workspace.querySelector('.owner-navigation').querySelectorAll('svg').length,
-      pages.length,
+      pages.length + 2,
     );
     assert.deepEqual(
       [...workspace.querySelectorAll('.workspace-quick-links a')].map((link) => link.pathname),
@@ -204,7 +204,9 @@ test('The admin theme switches in place, persists between pages and stays indepe
       assert.equal(sidebar.dir, 'rtl');
       assert.deepEqual(
         [...sidebar.querySelectorAll('.owner-navigation a')].map((a) => a.pathname),
-        pages.map((page) => '/ar/admin/' + page),
+        [...pages.slice(0, 4), 'themes', 'menus', ...pages.slice(4)].map(
+          (page) => '/ar/admin/' + page,
+        ),
       );
       assert.equal(
         sidebar.querySelector('.owner-navigation [aria-current="page"]').pathname,

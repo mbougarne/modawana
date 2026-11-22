@@ -3856,6 +3856,46 @@
       "ar": "اللون الأساسي"
     }
   },
+  "owner.themes": {
+    "section": "owner",
+    "description": "Interface text: owner.themes",
+    "placeholders": [],
+    "values": {
+      "en": "Themes",
+      "fr": "Thèmes",
+      "ar": "السمات"
+    }
+  },
+  "owner.menus": {
+    "section": "owner",
+    "description": "Interface text: owner.menus",
+    "placeholders": [],
+    "values": {
+      "en": "Menus",
+      "fr": "Menus",
+      "ar": "القوائم"
+    }
+  },
+  "workspace.themesHelp": {
+    "section": "workspace",
+    "description": "Interface text: workspace.themesHelp",
+    "placeholders": [],
+    "values": {
+      "en": "Choose a dashboard theme and a theme for the public site.",
+      "fr": "Choisissez un thème pour le tableau de bord et pour le site public.",
+      "ar": "اختر سمة للوحة التحكم وسمة للموقع العام."
+    }
+  },
+  "workspace.menusHelp": {
+    "section": "workspace",
+    "description": "Interface text: workspace.menusHelp",
+    "placeholders": [],
+    "values": {
+      "en": "Choose icons for the public navigation items.",
+      "fr": "Choisissez les icônes des liens de navigation du site public.",
+      "ar": "اختر أيقونات عناصر التنقل في الموقع العام."
+    }
+  },
   "ownerAppearance.title": {
     "section": "ownerAppearance",
     "description": "Interface text: ownerAppearance.title",

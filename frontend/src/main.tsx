@@ -48,7 +48,7 @@ function LocaleRoot({
   auth?: boolean;
   oauth?: boolean;
   preview?: boolean;
-  config?: ConfigKind;
+  config?: ConfigKind | 'themes' | 'menus';
   owner?: 'posts' | 'editor' | 'media' | 'collections' | 'taxonomy' | 'transfer' | 'plugins';
 }) {
   const { locale } = useParams();
@@ -63,7 +63,7 @@ function LocaleRoot({
         ) : owner && valid ? (
           <OwnerArea key={owner} page={owner} />
         ) : config && valid ? (
-          <ConfigPage key={config} kind={config} />
+          <ConfigPage key={config} page={config} />
         ) : preview && valid ? (
           <PreviewPage />
         ) : auth && valid ? (
@@ -98,7 +98,7 @@ const router = createBrowserRouter(
       <Route path="/:locale/admin/oauth" element={<LocaleRoot oauth />} />
       <Route path="/:locale/admin/security" element={<LocaleRoot auth />} />
       <Route path="/:locale/admin/preview/:key/:contentLocale" element={<LocaleRoot preview />} />
-      {(['settings', 'profile', 'labels'] as const).map((k) => (
+      {(['settings', 'themes', 'menus', 'profile', 'labels'] as const).map((k) => (
         <Route key={k} path={`/:locale/admin/${k}`} element={<LocaleRoot config={k} />} />
       ))}
       <Route path="/:locale/admin/*" element={<LocaleRoot />} />

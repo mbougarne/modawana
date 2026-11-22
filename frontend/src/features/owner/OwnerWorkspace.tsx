@@ -13,6 +13,8 @@ const pages = [
   ['collections', 'folder'],
   ['taxonomy', 'tag'],
   ['media', 'image'],
+  ['themes', 'split'],
+  ['menus', 'menu'],
   ['settings', 'settings'],
   ['profile', 'user'],
   ['labels', 'quote'],
@@ -28,16 +30,20 @@ export function OwnerNavigation({
   const { locale, t } = useI18n();
   return (
     <nav className="owner-navigation vb-nav" aria-label={t('config.owner')}>
-      {pages.map(([page, icon]) => (
-        <Link
-          key={page}
-          to={`/${locale}/admin/${page}`}
-          aria-current={page === current ? 'page' : undefined}
-        >
-          {showIcons && <Icon name={icon} size={16} />}
-          <span>{t('owner.' + page)}</span>
-        </Link>
-      ))}
+      {pages
+        .filter(
+          ([page]) => showIcons || page === current || (page !== 'themes' && page !== 'menus'),
+        )
+        .map(([page, icon]) => (
+          <Link
+            key={page}
+            to={`/${locale}/admin/${page}`}
+            aria-current={page === current ? 'page' : undefined}
+          >
+            {showIcons && <Icon name={icon} size={16} />}
+            <span>{t('owner.' + page)}</span>
+          </Link>
+        ))}
     </nav>
   );
 }

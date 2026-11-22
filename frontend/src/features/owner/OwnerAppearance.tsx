@@ -33,11 +33,19 @@ export function useOwnerAppearance() {
   return { theme, selectTheme };
 }
 
-export function OwnerAppearanceSettings() {
-  const { t } = useI18n();
+export function useOwnerAppearanceContext() {
   const appearance = useContext(OwnerAppearanceContext);
   if (!appearance) {
     throw new Error('Owner appearance settings require the owner workspace');
+  }
+  return appearance;
+}
+
+export function OwnerAppearanceSettings({ classicOnly = false }: { classicOnly?: boolean }) {
+  const { t } = useI18n();
+  const appearance = useOwnerAppearanceContext();
+  if (classicOnly && appearance.theme !== 'classic') {
+    return null;
   }
   return (
     <section className="owner-panel owner-appearance">

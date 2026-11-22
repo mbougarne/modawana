@@ -292,7 +292,7 @@ html:has(> body > #root) {
 
 @media (min-width: 1000px) {
   .owner-workspace[data-admin-theme='slate'] {
-    --slate-rail-size: 13rem;
+    --slate-rail-size: clamp(16rem, 25vw, 20rem);
     --slate-topbar-size: 3.5rem;
   }
 
@@ -359,5 +359,17 @@ html:has(> body > #root) {
 
   .owner-workspace[data-admin-theme='slate'] .workspace-content {
     grid-area: content;
+  }
+}
+
+@media (min-width: 1000px) and (max-width: 1120px) {
+  .owner-workspace[data-admin-theme='slate'] .config-editor-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .owner-workspace[data-admin-theme='slate'] .config-live-preview {
+    position: static;
+    max-block-size: none;
+    overflow: visible;
   }
 }

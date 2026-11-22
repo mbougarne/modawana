@@ -985,6 +985,18 @@ export const DEFAULT_LABELS = {
   ),
   'config.secondary': l('Secondary colour', 'Couleur secondaire', 'اللون الثانوي'),
   'config.primary': l('Primary colour', 'Couleur principale', 'اللون الأساسي'),
+  'owner.themes': l('Themes', 'Thèmes', 'السمات'),
+  'owner.menus': l('Menus', 'Menus', 'القوائم'),
+  'workspace.themesHelp': l(
+    'Choose a dashboard theme and a theme for the public site.',
+    'Choisissez un thème pour le tableau de bord et pour le site public.',
+    'اختر سمة للوحة التحكم وسمة للموقع العام.',
+  ),
+  'workspace.menusHelp': l(
+    'Choose icons for the public navigation items.',
+    'Choisissez les icônes des liens de navigation du site public.',
+    'اختر أيقونات عناصر التنقل في الموقع العام.',
+  ),
   'ownerAppearance.title': l('Admin appearance', 'Apparence de l’administration', 'مظهر الإدارة'),
   'ownerAppearance.theme': l('Dashboard theme', 'Thème du tableau de bord', 'سمة لوحة التحكم'),
   'ownerAppearance.classic': l('Classic', 'Classique', 'كلاسيكي'),

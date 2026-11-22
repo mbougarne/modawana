@@ -714,6 +714,21 @@ export async function smokeOwner({ context, origin, root, locale, t }) {
     });
     await themePicker.selectOption('slate');
     assert.deepEqual(await fileStyle(), classicFileStyle);
+    assert.equal(await themePicker.count(), 0);
+    assert.equal(await page.locator('[data-config-path="public_theme"]').count(), 0);
+    assert.equal(await page.locator('[data-config-path^="menu_icons."]').count(), 0);
+
+    const section = (name) => page.locator(`.owner-navigation a[href="/${locale}/admin/${name}"]`);
+    await section('themes').click();
+    await themePicker.waitFor();
+    await page.locator('select[data-config-path="public_theme"]').waitFor();
+    assert.equal(await page.locator('[data-config-path^="menu_icons."]').count(), 0);
+    await section('menus').click();
+    await page.locator('[data-config-path^="menu_icons."]').first().waitFor();
+    assert.equal(await themePicker.count(), 0);
+    assert.equal(await page.locator('select[data-config-path="public_theme"]').count(), 0);
+    await section('settings').click();
+    await page.locator('.config-media .vb-file-drop button').first().waitFor();
     const metrics = () =>
       page.locator('.owner-workspace[data-admin-theme="slate"]').evaluate((shell) => {
         const rail = shell.querySelector('.workspace-navigation').getBoundingClientRect();
@@ -736,6 +751,7 @@ export async function smokeOwner({ context, origin, root, locale, t }) {
       assert.ok(settings.overflow <= 1, `Slate settings overflow at ${width}`);
       if (width === 1280) {
         assert.equal(settings.rail.top, 0);
+        assert.equal(settings.rail.width, 320);
         assert.equal(settings.rail.bottom, settings.viewportHeight);
         const edge =
           settings.direction === 'rtl'
@@ -751,8 +767,9 @@ export async function smokeOwner({ context, origin, root, locale, t }) {
       assert.equal(posts.headerWidth, settings.headerWidth);
       assert.ok(posts.overflow <= 1, `Slate posts overflow at ${width}`);
       await page.locator(`.owner-navigation a[href="${settingsPath}"]`).click();
-      await themePicker.waitFor();
+      await page.locator('.config-media .vb-file-drop button').first().waitFor();
     }
+    await section('themes').click();
     await themePicker.selectOption('classic');
     assert.deepEqual(errors, []);
     console.log('Owner editor/navigation passed: ' + locale);
