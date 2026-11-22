@@ -3886,14 +3886,14 @@
       "ar": "كلاسيكي"
     }
   },
-  "ownerAppearance.sidebar": {
+  "ownerAppearance.slate": {
     "section": "ownerAppearance",
-    "description": "Interface text: ownerAppearance.sidebar",
+    "description": "Interface text: ownerAppearance.slate",
     "placeholders": [],
     "values": {
-      "en": "Sidebar",
-      "fr": "Barre latérale",
-      "ar": "شريط جانبي"
+      "en": "Slate",
+      "fr": "Ardoise",
+      "ar": "أردواز"
     }
   },
   "ownerAppearance.help": {
@@ -6700,6 +6700,16 @@
       "en": "Restore this revision as a new draft? Unsaved edits will be discarded.",
       "fr": "Restaurer cette révision ? Les modifications non enregistrées seront perdues.",
       "ar": "استعادة هذه المراجعة كمسودة جديدة؟ ستفقد التغييرات غير المحفوظة."
+    }
+  },
+  "owner.confirmLeave": {
+    "section": "owner",
+    "description": "Interface text: owner.confirmLeave",
+    "placeholders": [],
+    "values": {
+      "en": "Leave this page and discard unsaved changes?",
+      "fr": "Quitter cette page et abandonner les modifications non enregistrées ?",
+      "ar": "هل تريد مغادرة هذه الصفحة وتجاهل التعديلات غير المحفوظة؟"
     }
   },
   "owner.confirmDiscard": {

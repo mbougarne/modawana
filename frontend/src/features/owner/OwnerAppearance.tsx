@@ -1,7 +1,7 @@
 import { createContext, useContext, useState } from 'react';
 import { useI18n } from '../../../../ui/src/i18n/I18nProvider';
 
-const themes = ['classic', 'sidebar'] as const;
+const themes = ['classic', 'slate'] as const;
 type AdminTheme = (typeof themes)[number];
 
 const storageKey = 'modawana.adminTheme';
@@ -14,7 +14,8 @@ export const OwnerAppearanceContext = createContext<{
 export function useOwnerAppearance() {
   const [theme, setTheme] = useState<AdminTheme>(() => {
     try {
-      return localStorage.getItem(storageKey) === 'sidebar' ? 'sidebar' : 'classic';
+      const stored = localStorage.getItem(storageKey);
+      return stored === 'slate' || stored === 'sidebar' ? 'slate' : 'classic';
     } catch {
       return 'classic';
     }
@@ -46,7 +47,7 @@ export function OwnerAppearanceSettings() {
         <select
           value={appearance.theme}
           onChange={(event) =>
-            appearance.selectTheme(event.target.value === 'sidebar' ? 'sidebar' : 'classic')
+            appearance.selectTheme(event.target.value === 'slate' ? 'slate' : 'classic')
           }
         >
           {themes.map((theme) => (

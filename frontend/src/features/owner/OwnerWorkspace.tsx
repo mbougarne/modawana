@@ -1,4 +1,5 @@
 import { useState, type ReactNode, type Ref } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useI18n } from '../../../../ui/src/i18n/I18nProvider';
 import { useTheme } from '../../../../ui/src/theme/ThemeProvider';
 import { Button } from '../../../../ui/src/components/primitives';
@@ -25,13 +26,13 @@ export function OwnerNavigation({ current }: { current?: string } = {}) {
   return (
     <nav className="owner-navigation vb-nav" aria-label={t('config.owner')}>
       {pages.map((page) => (
-        <a
+        <Link
           key={page}
-          href={`/${locale}/admin/${page}`}
+          to={`/${locale}/admin/${page}`}
           aria-current={page === current ? 'page' : undefined}
         >
           {t('owner.' + page)}
-        </a>
+        </Link>
       ))}
     </nav>
   );
@@ -81,14 +82,15 @@ export function OwnerWorkspace({
   onSignOut?: () => Promise<void>;
 }) {
   const { locale, dir, t } = useI18n();
-  const { toggle } = useTheme();
+  const { resolved, toggle } = useTheme();
+  const location = useLocation();
   const appearance = useOwnerAppearance();
   const [signingOut, setSigningOut] = useState(false);
   const [failed, setFailed] = useState(false);
   const path =
     (languagePath ??
-      (window.location.pathname.replace(/^\/(en|ar|fr)(?=\/|$)/, '') || '/admin/' + current)) +
-    window.location.search;
+      (location.pathname.replace(/^\/(en|ar|fr)(?=\/|$)/, '') || '/admin/' + current)) +
+    location.search;
   async function signOut() {
     setSigningOut(true);
     setFailed(false);
@@ -110,6 +112,7 @@ export function OwnerWorkspace({
       <div
         className={`vb owner-workspace ds-ui ${className}`}
         data-admin-theme={appearance.theme}
+        data-admin-color-mode={resolved}
         lang={locale}
         dir={dir}
       >
@@ -118,9 +121,9 @@ export function OwnerWorkspace({
         </a>
         <div className="workspace-shell">
           <header className="workspace-header">
-            <a className="vb-brand" href={'/' + locale + '/admin/posts'}>
+            <Link className="vb-brand" to={'/' + locale + '/admin/posts'}>
               {t('config.owner')}
-            </a>
+            </Link>
             <div className="config-actions workspace-actions">
               <OwnerLanguageMenu path={path} />
               <Button href={'/' + locale} size="sm">

@@ -12,10 +12,14 @@ global.IS_REACT_ACT_ENVIRONMENT = true;
 const React = require('react');
 const { act } = React;
 const { createRoot } = require('react-dom/client');
+const { createMemoryRouter, RouterProvider } = require('react-router-dom');
 const { OwnerWorkspace } = require('../.test-output/frontend/src/features/owner/OwnerWorkspace');
 const {
   OwnerAppearanceSettings,
 } = require('../.test-output/frontend/src/features/owner/OwnerAppearance');
+const {
+  useOwnerLeaveGuard,
+} = require('../.test-output/frontend/src/features/owner/useOwnerLeaveGuard');
 const { I18nProvider } = require('../.test-output/ui/src/i18n/I18nProvider');
 const { ThemeProvider } = require('../.test-output/ui/src/theme/ThemeProvider');
 const { DEFAULT_LABELS } = require('../.test-output/ui/src/i18n/labels');
@@ -35,6 +39,19 @@ async function mount(current = 'posts', locale = 'en', extra = {}, children) {
   const el = document.createElement('div');
   document.body.append(el);
   const root = createRoot(el);
+  const router = createMemoryRouter(
+    [
+      {
+        path: '*',
+        element: React.createElement(
+          OwnerWorkspace,
+          { current, csrf: 'test-csrf', languagePath: '/admin/' + current, ...extra },
+          children ?? React.createElement('h1', {}, current),
+        ),
+      },
+    ],
+    { initialEntries: [window.location.pathname + window.location.search] },
+  );
   await act(async () =>
     root.render(
       React.createElement(
@@ -43,17 +60,14 @@ async function mount(current = 'posts', locale = 'en', extra = {}, children) {
         React.createElement(
           I18nProvider,
           { locale },
-          React.createElement(
-            OwnerWorkspace,
-            { current, csrf: 'test-csrf', languagePath: '/admin/' + current, ...extra },
-            children ?? React.createElement('h1', {}, current),
-          ),
+          React.createElement(RouterProvider, { router }),
         ),
       ),
     ),
   );
   return {
     el,
+    router,
     cleanup: async () => {
       await act(async () => root.unmount());
       el.remove();
@@ -169,14 +183,15 @@ test('The admin theme switches in place, persists between pages and stays indepe
   };
   try {
     assert.equal(workspace.dataset.adminTheme, 'classic');
-    await choose('sidebar');
-    assert.equal(workspace.dataset.adminTheme, 'sidebar');
-    assert.equal(localStorage.getItem(key), 'sidebar');
+    await choose('slate');
+    assert.equal(workspace.dataset.adminTheme, 'slate');
+    assert.equal(localStorage.getItem(key), 'slate');
     assert.equal(document.documentElement.dataset.theme, 'light');
+    localStorage.setItem(key, 'sidebar');
     const posts = await mount('posts', 'ar');
     try {
       const sidebar = posts.el.querySelector('.owner-workspace');
-      assert.equal(sidebar.dataset.adminTheme, 'sidebar');
+      assert.equal(sidebar.dataset.adminTheme, 'slate');
       assert.equal(sidebar.dir, 'rtl');
       assert.deepEqual(
         [...sidebar.querySelectorAll('nav a')].map((a) => a.pathname),
@@ -192,5 +207,39 @@ test('The admin theme switches in place, persists between pages and stays indepe
   } finally {
     await settings.cleanup();
     localStorage.removeItem(key);
+  }
+});
+
+test('Admin links use the client router and give unsaved changes a chance to stay', async () => {
+  function UnsavedSettings() {
+    useOwnerLeaveGuard(true);
+    return React.createElement('input', { defaultValue: 'Unsaved setting' });
+  }
+  window.history.replaceState({}, '', '/en/admin/settings');
+  const m = await mount('settings', 'en', {}, React.createElement(UnsavedSettings));
+  const previousConfirm = window.confirm;
+  let confirmed = false;
+  let prompts = 0;
+  window.confirm = (message) => {
+    assert.equal(message, DEFAULT_LABELS['owner.confirmLeave'].en);
+    prompts++;
+    return confirmed;
+  };
+  const posts = m.el.querySelector('nav a[href="/en/admin/posts"]');
+  try {
+    await act(async () => posts.click());
+    assert.equal(prompts, 1);
+    assert.equal(m.router.state.location.pathname, '/en/admin/settings');
+    assert.equal(m.el.querySelector('input').value, 'Unsaved setting');
+
+    confirmed = true;
+    await act(async () => posts.click());
+    assert.equal(prompts, 2);
+    assert.equal(m.router.state.location.pathname, '/en/admin/posts');
+    assert.equal(window.location.pathname, '/en/admin/settings');
+  } finally {
+    window.confirm = previousConfirm;
+    await m.cleanup();
+    window.history.replaceState({}, '', '/en/admin/posts');
   }
 });

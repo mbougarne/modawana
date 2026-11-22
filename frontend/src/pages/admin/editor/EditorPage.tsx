@@ -1,3 +1,4 @@
+import { useOwnerLeaveGuard } from '../../../features/owner/useOwnerLeaveGuard';
 import { TaxonomyCreate } from '../../../features/owner/TaxonomyCreate';
 import { titleSlugChange } from '../../../features/content/slug';
 import { publishEditorDraft } from './publishDraft';
@@ -108,6 +109,7 @@ export function EditorPage({ csrf }: { csrf: string }) {
   }, [lang]);
   const allTerms = [...(terms.data?.items || []), ...createdTerms];
   const dirty = JSON.stringify(working) !== initial;
+  const replaceSavedRoute = useOwnerLeaveGuard(dirty);
   function report(e: unknown) {
     const code =
       e instanceof AuthError
@@ -254,16 +256,6 @@ export function EditorPage({ csrf }: { csrf: string }) {
       loadGeneration.current++;
     };
   }, [params.key, lang, query.get('source')]);
-  useEffect(() => {
-    const leave = (e: BeforeUnloadEvent) => {
-      if (dirty) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    };
-    window.addEventListener('beforeunload', leave);
-    return () => window.removeEventListener('beforeunload', leave);
-  }, [dirty]);
   function change<K extends keyof DraftInput>(field: K, value: DraftInput[K]) {
     setWorking((w) => ({ ...w, [field]: value }));
     setNotice('config.unsaved');
@@ -355,7 +347,9 @@ export function EditorPage({ csrf }: { csrf: string }) {
     setNotice('owner.saved');
     if (navigateAfterSave && !params.key) {
       savedNavigation.current = { key, lang, revision: saved.revision.revision_id };
-      navigate(`/${locale}/admin/editor/${key}/${lang}`, { replace: true });
+      replaceSavedRoute(() =>
+        navigate(`/${locale}/admin/editor/${key}/${lang}`, { replace: true }),
+      );
     }
     return saved;
   }
@@ -397,7 +391,9 @@ export function EditorPage({ csrf }: { csrf: string }) {
         }
       } finally {
         if (!params.key && (savedDuringAction || base)) {
-          navigate(`/${locale}/admin/editor/${key}/${lang}`, { replace: true });
+          replaceSavedRoute(() =>
+            navigate(`/${locale}/admin/editor/${key}/${lang}`, { replace: true }),
+          );
         }
       }
       return;

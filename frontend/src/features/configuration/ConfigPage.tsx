@@ -1,3 +1,4 @@
+import { useOwnerLeaveGuard } from '../owner/useOwnerLeaveGuard';
 import { FieldIssues, ValidationIssues } from './ValidationIssues';
 import { redirectOwnerToLogin } from '../auth/navigation';
 import { type FieldIssue, call, AuthError, requestErrorKey, type State } from '../auth/api';
@@ -73,16 +74,7 @@ export function ConfigPage({ kind }: { kind: ConfigKind }) {
     void load();
   }, [kind]);
   const dirty = !!base && JSON.stringify(working) !== JSON.stringify(base.snapshot);
-  useEffect(() => {
-    const leave = (e: BeforeUnloadEvent) => {
-      if (dirty) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    };
-    window.addEventListener('beforeunload', leave);
-    return () => window.removeEventListener('beforeunload', leave);
-  }, [dirty]);
+  useOwnerLeaveGuard(dirty);
   function edit(v: Snapshot) {
     setIssues([]);
     setWorking(v);

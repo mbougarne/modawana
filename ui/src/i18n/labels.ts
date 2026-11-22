@@ -988,7 +988,7 @@ export const DEFAULT_LABELS = {
   'ownerAppearance.title': l('Admin appearance', 'Apparence de l’administration', 'مظهر الإدارة'),
   'ownerAppearance.theme': l('Dashboard theme', 'Thème du tableau de bord', 'سمة لوحة التحكم'),
   'ownerAppearance.classic': l('Classic', 'Classique', 'كلاسيكي'),
-  'ownerAppearance.sidebar': l('Sidebar', 'Barre latérale', 'شريط جانبي'),
+  'ownerAppearance.slate': l('Slate', 'Ardoise', 'أردواز'),
   'ownerAppearance.help': l(
     'Your dashboard theme is saved in this browser.',
     'Le thème du tableau de bord est enregistré dans ce navigateur.',
@@ -1670,6 +1670,11 @@ export const DEFAULT_LABELS = {
     'Restore this revision as a new draft? Unsaved edits will be discarded.',
     'Restaurer cette révision ? Les modifications non enregistrées seront perdues.',
     'استعادة هذه المراجعة كمسودة جديدة؟ ستفقد التغييرات غير المحفوظة.',
+  ),
+  'owner.confirmLeave': l(
+    'Leave this page and discard unsaved changes?',
+    'Quitter cette page et abandonner les modifications non enregistrées ?',
+    'هل تريد مغادرة هذه الصفحة وتجاهل التعديلات غير المحفوظة؟',
   ),
   'owner.confirmDiscard': l(
     'Discard unsaved changes and reload?',
