@@ -3,8 +3,7 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const assert = require('node:assert/strict');
 (async () => {
-  const root = path.resolve(__dirname, '../dist');
-  const base = process.env.BLOG_VISUAL_BASE_URL || 'http://blog.test';
+  const base = process.env.BLOG_VISUAL_BASE_URL || 'http://localhost:3000';
   const output = path.resolve(__dirname, '../test-results');
   await fs.mkdir(output, { recursive: true });
   const browser = await chromium.launch({ headless: true });
@@ -20,27 +19,6 @@ const assert = require('node:assert/strict');
         errors.push(m.text());
       }
     });
-    if (!process.env.BLOG_VISUAL_BASE_URL) {
-      await page.route('http://blog.test/**', async (route) => {
-        const pathname = new URL(route.request().url()).pathname;
-        const file = pathname.startsWith('/assets/')
-          ? path.join(root, pathname)
-          : path.join(root, 'index.html');
-        const extension = path.extname(file);
-        const contentType =
-          {
-            '.html': 'text/html',
-            '.js': 'application/javascript',
-            '.css': 'text/css',
-            '.woff2': 'font/woff2',
-          }[extension] || 'application/octet-stream';
-        try {
-          await route.fulfill({ status: 200, contentType, body: await fs.readFile(file) });
-        } catch {
-          await route.fulfill({ status: 404, body: '' });
-        }
-      });
-    }
     const { visualCases } = await import('../../scripts/smoke-policy.mjs');
     const cases = visualCases();
     for (const { locale, width, theme } of cases) {

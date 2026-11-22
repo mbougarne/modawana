@@ -13,6 +13,8 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/mbougarne/modawana/backend/internal/theme"
 )
 
 var ErrInvalid = errors.New("invalid configuration")
@@ -20,14 +22,15 @@ var ErrReview = errors.New("translation review required")
 
 type Localized map[string]string
 type Site struct {
-	LogoMode  string            `json:"logo_mode"`
-	Wordmark  string            `json:"wordmark"`
-	Monogram  string            `json:"monogram"`
-	LogoID    string            `json:"logo_media_id"`
-	FaviconID string            `json:"favicon_media_id"`
-	Primary   string            `json:"primary"`
-	Secondary string            `json:"secondary"`
-	MenuIcons map[string]string `json:"menu_icons"`
+	PublicTheme string            `json:"public_theme"`
+	LogoMode    string            `json:"logo_mode"`
+	Wordmark    string            `json:"wordmark"`
+	Monogram    string            `json:"monogram"`
+	LogoID      string            `json:"logo_media_id"`
+	FaviconID   string            `json:"favicon_media_id"`
+	Primary     string            `json:"primary"`
+	Secondary   string            `json:"secondary"`
+	MenuIcons   map[string]string `json:"menu_icons"`
 }
 type NowRow struct {
 	ID    string    `json:"id"`
@@ -166,7 +169,7 @@ func email(s string) bool {
 func defaults(kind string) json.RawMessage {
 	switch kind {
 	case "site":
-		return raw(Site{LogoMode: "wordmark", Wordmark: "Blog", Monogram: "B", Primary: "#2B44C4", Secondary: "#F2B33D", MenuIcons: map[string]string{"home": "menu", "writing": "code", "learning": "code", "docs": "code", "about": "link"}})
+		return raw(Site{PublicTheme: theme.Classic, LogoMode: "wordmark", Wordmark: "Blog", Monogram: "B", Primary: "#2B44C4", Secondary: "#F2B33D", MenuIcons: map[string]string{"home": "menu", "writing": "code", "learning": "code", "docs": "code", "about": "link"}})
 	case "profile":
 		e := Localized{"en": "", "ar": "", "fr": ""}
 		return raw(Profile{Name: e, Headline: e, Bio: e, Sticker: e, PortraitAlt: e, BannerAlt: e, Now: []NowRow{}, Links: []Link{}, Experience: []Experience{}, Location: e, Copyright: e, Footer: e, BannerX: 50, BannerY: 50, ShowNow: true, ShowWriting: true, ShowLearning: true, WritingLimit: 5, LearningLimit: 5})

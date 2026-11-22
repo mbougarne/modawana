@@ -2343,6 +2343,16 @@
       "ar": "لا تحقق هذه الألوان التباين المطلوب. اختر ألواناً أخرى وأعد المعاينة."
     }
   },
+  "validation.public_theme": {
+    "section": "validation",
+    "description": "Interface text: validation.public_theme",
+    "placeholders": [],
+    "values": {
+      "en": "Choose a built-in public theme.",
+      "fr": "Choisissez un thème public intégré.",
+      "ar": "اختر سمة مدمجة للموقع العام."
+    }
+  },
   "validation.logo_mode": {
     "section": "validation",
     "description": "Interface text: validation.logo_mode",
@@ -3744,6 +3754,66 @@
       "en": "Primary colour",
       "fr": "Couleur principale",
       "ar": "اللون الأساسي"
+    }
+  },
+  "config.publicAppearance": {
+    "section": "config",
+    "description": "Interface text: config.publicAppearance",
+    "placeholders": [],
+    "values": {
+      "en": "Public appearance",
+      "fr": "Apparence du site public",
+      "ar": "مظهر الموقع العام"
+    }
+  },
+  "config.publicTheme": {
+    "section": "config",
+    "description": "Interface text: config.publicTheme",
+    "placeholders": [],
+    "values": {
+      "en": "Public theme",
+      "fr": "Thème du site public",
+      "ar": "سمة الموقع العام"
+    }
+  },
+  "config.previewPublicTheme": {
+    "section": "config",
+    "description": "Interface text: config.previewPublicTheme",
+    "placeholders": [],
+    "values": {
+      "en": "Preview theme",
+      "fr": "Prévisualiser le thème",
+      "ar": "معاينة السمة"
+    }
+  },
+  "publicTheme.classic": {
+    "section": "publicTheme",
+    "description": "Interface text: publicTheme.classic",
+    "placeholders": [],
+    "values": {
+      "en": "Classic",
+      "fr": "Classique",
+      "ar": "الكلاسيكية"
+    }
+  },
+  "publicTheme.folio": {
+    "section": "publicTheme",
+    "description": "Interface text: publicTheme.folio",
+    "placeholders": [],
+    "values": {
+      "en": "Folio",
+      "fr": "Folio",
+      "ar": "فوليو"
+    }
+  },
+  "publicTheme.studio": {
+    "section": "publicTheme",
+    "description": "Interface text: publicTheme.studio",
+    "placeholders": [],
+    "values": {
+      "en": "Studio",
+      "fr": "Studio",
+      "ar": "استوديو"
     }
   },
   "config.colours": {

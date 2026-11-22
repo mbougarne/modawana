@@ -3,11 +3,16 @@ package siteconfig
 import (
 	"strings"
 	"unicode"
+
+	"github.com/mbougarne/modawana/backend/internal/theme"
 )
 
 func siteIssues(s Site) []FieldIssue {
 	issues := []FieldIssue{}
 	add := func(path, code string) { issues = append(issues, FieldIssue{path, code}) }
+	if _, ok := theme.Lookup(s.PublicTheme); !ok {
+		add("public_theme", "public_theme")
+	}
 	if s.LogoMode != "wordmark" && s.LogoMode != "monogram" && s.LogoMode != "image" {
 		add("logo_mode", "logo_mode")
 	}

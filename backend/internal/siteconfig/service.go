@@ -5,10 +5,12 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"sort"
+
 	"github.com/mbougarne/modawana/backend/internal/db"
 	"github.com/mbougarne/modawana/backend/internal/media"
 	"github.com/mbougarne/modawana/backend/internal/storage"
-	"sort"
+	"github.com/mbougarne/modawana/backend/internal/theme"
 )
 
 type Service struct {
@@ -49,14 +51,18 @@ func validate(kind string, b json.RawMessage) (json.RawMessage, []mediaRef, erro
 			return nil, nil, ErrInvalid
 		}
 		for key := range required {
-			if value, ok := supplied[key]; !ok || (key != "main_action" && string(value) == "null") {
+			value, ok := supplied[key]
+			if !ok && kind == "site" && key == "public_theme" {
+				continue
+			}
+			if !ok || (key != "main_action" && string(value) == "null") {
 				return nil, nil, ErrInvalid
 			}
 		}
 	}
 	switch kind {
 	case "site":
-		var v Site
+		v := Site{PublicTheme: theme.Classic}
 		if decode(b, &v) != nil {
 			return nil, nil, ErrInvalid
 		}

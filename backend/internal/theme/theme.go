@@ -97,6 +97,9 @@ type Footer struct {
 
 // Page carries the shared shell and the view for the requested public route.
 type Page struct {
+	ThemeID       string
+	Error         string
+	HomeLabel     string
 	Locale        string
 	Direction     string
 	Head          template.HTML // host-rendered metadata, styles and island scripts

@@ -88,7 +88,7 @@ func run() int {
 		}
 	}
 	var assets *httpserver.Assets
-	if cfg.Environment == "production" && !local {
+	if !local {
 		assets, err = httpserver.LoadAssets(cfg.FrontendDist)
 		if err != nil {
 			logger.Error("frontend build rejected")

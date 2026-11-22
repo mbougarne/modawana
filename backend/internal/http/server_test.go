@@ -52,7 +52,7 @@ func TestSameOriginAndMissingRoutes(t *testing.T) {
 		status   int
 		contains string
 	}{
-		{"/en", 200, `lang="en"`}, {"/ar", 200, `dir="rtl"`}, {"/fr", 200, `lang="fr"`}, {"/healthz", 200, `"status":"ok"`}, {"/readyz", 200, `"status":"ok"`}, {"/api/v1/public/runtime", 200, `"api_version":"v1"`}, {scriptName, 200, "test asset"}, {"/api/v1/missing", 404, `"code":"not_found"`}, {"/api", 404, `"code":"not_found"`}, {"/media/private", 404, `"code":"not_found"`}, {"/assets/missing.js", 404, `"code":"not_found"`}, {"/assets/../manifest.json", 404, `"code":"not_found"`}, {"/assets/%2e%2e/secret", 404, `"code":"not_found"`}, {"/unknown", 404, `id="root"`}} {
+		{"/en", 200, `lang="en"`}, {"/ar", 200, `dir="rtl"`}, {"/fr", 200, `lang="fr"`}, {"/healthz", 200, `"status":"ok"`}, {"/readyz", 200, `"status":"ok"`}, {"/api/v1/public/runtime", 200, `"api_version":"v1"`}, {scriptName, 200, "test asset"}, {"/api/v1/missing", 404, `"code":"not_found"`}, {"/api", 404, `"code":"not_found"`}, {"/media/private", 404, `"code":"not_found"`}, {"/assets/missing.js", 404, `"code":"not_found"`}, {"/assets/../manifest.json", 404, `"code":"not_found"`}, {"/assets/%2e%2e/secret", 404, `"code":"not_found"`}, {"/unknown", 404, `data-rendered="server"`}} {
 		t.Run(tc.path, func(t *testing.T) {
 			w := httptest.NewRecorder()
 			h.ServeHTTP(w, httptest.NewRequest("GET", tc.path, nil))

@@ -71,6 +71,12 @@ try {
   assert.match(html.headers.get('content-security-policy'), /frame-ancestors 'none'/);
   const body = await html.text();
   assert.match(body, /lang="ar" dir="rtl"/);
+  assert.match(body, /data-rendered="server" data-public-theme="classic"/);
+  assert.doesNotMatch(body, /id="root"/);
+  const missing = await fetch(origin + '/ar/articles/missing');
+  assert.equal(missing.status, 404);
+  assert.equal(missing.headers.get('x-robots-tag'), 'noindex');
+  assert.match(await missing.text(), /data-rendered="server"/);
   assert.ok(body.includes('property="og:image" content="https://blog.test/social-card.png"'));
   assert.ok(body.includes('name="twitter:card" content="summary_large_image"'));
   const card = await fetch(origin + '/social-card.png');

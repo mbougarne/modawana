@@ -205,8 +205,12 @@ func TestThemedReadersPreserveAccessAndLearning(t *testing.T) {
 		t.Fatal(reset.Code, reset.Body.String())
 	}
 	assertHTML(lockedPath, token, 403, []string{"Safe summary"}, []string{"PROTECTED BODY"})
-	fallback := New(Options{Assets: assets, Domain: domain, Auth: service, Config: config.Config{BaseURL: cfg.BaseURL, ForceSPA: true}})
-	if w := get(t, fallback, http.MethodGet, lockedPath); w.Code != 403 || !strings.Contains(w.Body.String(), `id="root"`) || strings.Contains(w.Body.String(), "PROTECTED BODY") {
-		t.Fatal("rollback changed the locked response", w.Code)
+	withoutIslands, err := LoadAssets(buildThemeFixture(t, false))
+	if err != nil {
+		t.Fatal(err)
+	}
+	noIslands := New(Options{Assets: withoutIslands, Domain: domain, Auth: service, Config: config.Config{BaseURL: cfg.BaseURL}})
+	if w := get(t, noIslands, http.MethodGet, lockedPath); w.Code != 403 || !strings.Contains(w.Body.String(), "Safe summary") || strings.Contains(w.Body.String(), "PROTECTED BODY") {
+		t.Fatal("missing assets changed the locked response", w.Code, w.Body.String())
 	}
 }

@@ -1,0 +1,54 @@
+[data-public-theme='folio'] .vb-shell {
+  max-inline-size: 74rem;
+}
+[data-public-theme='folio'] .public-header {
+  border-block-end: 1px solid var(--hairline);
+  border-radius: 0;
+  margin-block-end: var(--space-6);
+}
+[data-public-theme='folio'] .public-nav {
+  background: transparent;
+  border: 0;
+}
+[data-public-theme='folio'] .public-nav a[aria-current='page'] {
+  color: var(--majorelle);
+  background: transparent;
+  text-decoration: underline;
+  text-underline-offset: 0.4em;
+}
+[data-public-theme='folio']
+  :is(.public-hero h1, .vb-title, .vb-pagehead h1, .vb-h2, .vb-post-main b) {
+  font-family: Georgia, var(--font-display), serif;
+  letter-spacing: normal;
+}
+[data-public-theme='folio'] :is(h1, h2, .vb-post-main b):lang(ar) {
+  font-family: var(--font-arabic);
+}
+[data-public-theme='folio'] .public-hero h1 {
+  font-size: clamp(2.5rem, 6vi, 5rem);
+  line-height: 1.15;
+}
+[data-public-theme='folio'] .public-hero .vb-portrait,
+[data-public-theme='folio'] .public-banner {
+  border-radius: var(--radius-sm);
+}
+[data-public-theme='folio'] .public-section {
+  border-block-start: 1px solid var(--hairline);
+  padding-block-start: var(--space-5);
+}
+[data-public-theme='folio'] .vb-post {
+  border-block-end: 1px solid var(--hairline);
+}
+[data-public-theme='folio'] .public-reader-article > .vb-art-head {
+  text-align: start;
+  justify-items: start;
+  margin-inline: 0;
+}
+[data-public-theme='folio'] .public-reader-article > .vb-art-head .vb-art-meta {
+  justify-content: flex-start;
+}
+[data-public-theme='folio'] .vb-footer {
+  border-block-start: 1px solid var(--hairline);
+  border-radius: 0;
+  background: transparent;
+}

@@ -4436,7 +4436,7 @@
     "/api/v1/public/page": {
       "get": {
         "operationId": "resolvePublicPage",
-        "description": "Shared HTML/SPA resolver; public content only. Locked 403 uses PublicPage without body, media, or metadata. / محلّل مشترك لـHTML والواجهة؛ محتوى عام فقط. يستخدم 403 المقفل PublicPage دون متن أو وسائط أو بيانات وصفية.",
+        "description": "Shared public route and metadata resolver. Locked 403 uses PublicPage without body, media, or metadata. / محلّل موحّد للمسارات والبيانات الوصفية العامة. يستخدم 403 المقفل PublicPage دون متن أو وسائط أو بيانات وصفية.",
         "parameters": [
           {
             "name": "path",
@@ -7654,6 +7654,11 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
+          "public_theme": {
+            "enum": ["classic", "folio", "studio"],
+            "default": "classic",
+            "description": "Built-in public presentation. / سمة العرض المدمجة للموقع العام."
+          },
           "logo_mode": {
             "enum": [
               "wordmark",

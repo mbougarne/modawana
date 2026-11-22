@@ -4,13 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"os"
 	"path/filepath"
-	"regexp"
-	"sort"
 	"strings"
 	"testing"
 
@@ -106,13 +105,13 @@ func (themeFixture) ResolvePage(_ context.Context, path string) (content.PageRou
 	}
 }
 
-func themeServer(t *testing.T, withIsland bool, force bool) http.Handler {
+func themeServer(t *testing.T, withIsland bool) http.Handler {
 	t.Helper()
 	assets, err := LoadAssets(buildThemeFixture(t, withIsland))
 	if err != nil {
 		t.Fatal(err)
 	}
-	return New(Options{Assets: assets, Domain: themeFixture{}, Config: config.Config{BaseURL: "https://canonical.example", ForceSPA: force}})
+	return New(Options{Assets: assets, Domain: themeFixture{}, Config: config.Config{BaseURL: "https://canonical.example"}})
 }
 
 func get(t *testing.T, h http.Handler, method, path string) *httptest.ResponseRecorder {
@@ -123,7 +122,7 @@ func get(t *testing.T, h http.Handler, method, path string) *httptest.ResponseRe
 }
 
 func TestThemedArticleReplacesShell(t *testing.T) {
-	h := themeServer(t, true, false)
+	h := themeServer(t, true)
 	w := get(t, h, "GET", "/en/articles/plain")
 	if w.Code != 200 {
 		t.Fatal(w.Code, w.Body.String())
@@ -167,7 +166,7 @@ func TestThemedArticleReplacesShell(t *testing.T) {
 }
 
 func TestThemedMathIncludesIslandOnly(t *testing.T) {
-	h := themeServer(t, true, false)
+	h := themeServer(t, true)
 	response := get(t, h, "GET", "/en/articles/math")
 	math := response.Body.String()
 	if !strings.Contains(math, `<script defer src="`+katexScript+`" nonce="`+response.Header().Get("X-Request-ID")+`"></script>`) {
@@ -179,60 +178,22 @@ func TestThemedMathIncludesIslandOnly(t *testing.T) {
 	}
 }
 
-func TestThemedFallbacks(t *testing.T) {
-	// A frontend build without the katex island keeps math articles on the SPA.
-	h := themeServer(t, false, false)
-	if body := get(t, h, "GET", "/en/articles/math").Body.String(); !strings.Contains(body, `id="root"`) {
-		t.Fatal("expected SPA shell for math without island")
+func TestThemedErrorsAndMissingIsland(t *testing.T) {
+	h := themeServer(t, false)
+	if w := get(t, h, http.MethodGet, "/en/articles/math"); w.Code != 200 ||
+		!strings.Contains(w.Body.String(), "Euler:") || strings.Contains(w.Body.String(), katexScript) ||
+		strings.Contains(w.Body.String(), scriptName) {
+		t.Fatal(w.Code, w.Body.String())
 	}
-	if body := get(t, h, "GET", "/en/articles/plain").Body.String(); !strings.Contains(body, `data-rendered="server"`) {
-		t.Fatal("math-free article must still render server-side")
-	}
-	// The operator override forces the SPA shell for every page.
-	h = themeServer(t, true, true)
-	for _, path := range []string{"/en/articles/plain", "/en", "/en/about", "/en/writing", "/en/search"} {
-		if body := get(t, h, "GET", path).Body.String(); !strings.Contains(body, `id="root"`) {
-			t.Fatal("BLOG_FORCE_SPA ignored on", path)
-		}
-	}
-	// Without collection and discovery support, the indexes retain the shell.
-	h = themeServer(t, true, false)
-	for _, path := range []string{"/en/learn", "/en/docs"} {
-		if body := get(t, h, "GET", path).Body.String(); !strings.Contains(body, `id="root"`) || strings.Contains(body, `data-rendered`) {
-			t.Fatal("non-allowlisted page changed", path)
-		}
-	}
-	if w := get(t, h, "GET", "/en/articles/missing"); w.Code != 404 || !strings.Contains(w.Body.String(), `id="root"`) {
-		t.Fatal("404 changed", w.Code)
-	}
-	// A locked content projection keeps the SPA shell even if a future kind
-	// in the allowlist could lock.
-	if body := get(t, h, "GET", "/en/articles/locked").Body.String(); !strings.Contains(body, `id="root"`) || strings.Contains(body, `data-rendered`) {
-		t.Fatal("locked content must keep the shell")
-	}
-}
-
-var headTag = regexp.MustCompile(`<title>.*?</title>|<meta [^>]*>|<link [^>]*>`)
-
-// The themed head must carry exactly the metadata the shell path carries;
-// only the boot blob and script tags may differ.
-func TestThemedMetadataParityWithShell(t *testing.T) {
-	themedResponse := get(t, themeServer(t, true, false), "GET", "/en/articles/plain")
-	shellResponse := get(t, themeServer(t, true, true), "GET", "/en/articles/plain")
-	themed := strings.ReplaceAll(themedResponse.Body.String(), themedResponse.Header().Get("X-Request-ID"), "NONCE")
-	shell := strings.ReplaceAll(shellResponse.Body.String(), shellResponse.Header().Get("X-Request-ID"), "NONCE")
-	extract := func(body string) []string {
-		tags := headTag.FindAllString(body[:strings.Index(body, "</head>")], -1)
-		sort.Strings(tags)
-		return tags
-	}
-	a, b := extract(themed), extract(shell)
-	if len(a) != len(b) {
-		t.Fatal("head tag count differs", a, b)
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			t.Fatal("metadata drift", a[i], b[i])
+	for path, status := range map[string]int{
+		"/en/learn": 503, "/en/docs": 503, "/en/articles/locked": 503, "/ar/articles/missing": 404,
+	} {
+		w := get(t, h, http.MethodGet, path)
+		body := w.Body.String()
+		if w.Code != status || w.Header().Get("X-Robots-Tag") != "noindex" ||
+			!strings.Contains(body, `data-rendered="server"`) || strings.Contains(body, `id="root"`) ||
+			strings.Contains(body, `rel="canonical"`) {
+			t.Fatal(path, w.Code, body)
 		}
 	}
 }
@@ -350,6 +311,108 @@ func newThemeContent(t *testing.T) (*content.Service, string) {
 	}
 	c := &content.Service{DB: database, Files: files, Access: &access.Live{DB: database}}
 	return c, owner
+}
+
+type themePreviewOwner struct{}
+
+func (themePreviewOwner) Handle(http.ResponseWriter, *http.Request) bool { return false }
+func (themePreviewOwner) Authorized(r *http.Request) bool {
+	return r.Header.Get("X-Test-Owner") == "yes"
+}
+
+func TestPublicThemeSelection(t *testing.T) {
+	ctx := t.Context()
+	c, owner := newThemeContent(t)
+	cfg := &siteconfig.Service{DB: c.DB, Files: c.Files}
+	assets, err := LoadAssets(buildThemeFixture(t, true))
+	if err != nil {
+		t.Fatal(err)
+	}
+	h := New(Options{
+		Assets: assets, Auth: themePreviewOwner{}, SiteConfig: cfg, Domain: &Domain{Content: c, SiteConfig: cfg},
+		Config: config.Config{BaseURL: "https://canonical.example"},
+	})
+	request := func(path, choice string, authenticated bool) *httptest.ResponseRecorder {
+		t.Helper()
+		r := httptest.NewRequest(http.MethodGet, path, nil)
+		r.Header.Set("Accept", "text/html")
+		if authenticated {
+			r.Header.Set("X-Test-Owner", "yes")
+		}
+		w := httptest.NewRecorder()
+		h.ServeHTTP(w, r)
+		if choice != "" {
+			body := w.Body.String()
+			if w.Code != 200 || !strings.Contains(body, `data-public-theme="`+choice+`"`) ||
+				strings.Contains(body, `id="root"`) || strings.Contains(body, scriptName) {
+				t.Fatal(path, choice, w.Code, body)
+			}
+			if choice != "classic" && (!strings.Contains(body, `<style id="builtin-theme" nonce="`+w.Header().Get("X-Request-ID")+`">`) ||
+				!strings.Contains(body, `[data-public-theme='`+choice+`']`)) {
+				t.Fatal("missing theme stylesheet", choice)
+			}
+		}
+		return w
+	}
+	request("/en", "classic", false)
+	const preview = "/ar/admin/settings/theme-preview?theme=folio"
+	if denied := request(preview, "", false); denied.Code != http.StatusFound || strings.Contains(denied.Body.String(), "data-public-theme") {
+		t.Fatal("unexpected anonymous preview", denied.Code, denied.Body.String())
+	}
+	if w := request(preview, "folio", true); w.Header().Get("X-Robots-Tag") != "noindex" ||
+		w.Header().Get("Cache-Control") != "no-store" || strings.Contains(w.Body.String(), `rel="canonical"`) ||
+		!strings.Contains(w.Body.String(), `dir="rtl"`) {
+		t.Fatal("unexpected preview headers or metadata", w.Header(), w.Body.String())
+	}
+	request("/en?theme=folio", "classic", false)
+	doc, err := cfg.Get(ctx, "site")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var snapshot map[string]any
+	if err := json.Unmarshal(doc.Snapshot, &snapshot); err != nil {
+		t.Fatal(err)
+	}
+	input := func() siteconfig.Input {
+		t.Helper()
+		data, err := json.Marshal(snapshot)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return siteconfig.Input{ExpectedVersion: &doc.Version, Snapshot: data}
+	}
+	apply := func() {
+		t.Helper()
+		revision, err := cfg.Apply(ctx, owner, "site", input())
+		if err != nil {
+			t.Fatal(err)
+		}
+		doc = revision
+	}
+	delete(snapshot, "public_theme")
+	apply()
+	if !strings.Contains(string(doc.Snapshot), `"public_theme":"classic"`) {
+		t.Fatal("older site settings must normalize to Classic")
+	}
+	classic := doc.RevisionID
+	for _, choice := range []string{"folio", "studio"} {
+		snapshot["public_theme"] = choice
+		apply()
+		request("/fr", choice, false)
+	}
+	snapshot["public_theme"] = "unknown"
+	if _, err := cfg.Apply(ctx, owner, "site", input()); !errors.Is(err, siteconfig.ErrInvalid) {
+		t.Fatal("accepted an unknown theme", err)
+	}
+	request("/en", "studio", false)
+	restored, err := cfg.Restore(ctx, "site", classic, doc.Version)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = cfg.Apply(ctx, owner, "site", siteconfig.Input{ExpectedVersion: &doc.Version, Snapshot: restored.Snapshot}); err != nil {
+		t.Fatal(err)
+	}
+	request("/en", "classic", false)
 }
 
 func TestThemedProfileUsesAppliedSettingsAndPublishedRevisions(t *testing.T) {

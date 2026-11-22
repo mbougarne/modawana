@@ -2,12 +2,11 @@
 
 [العربية](README.ar.md) · [Project](../README.md)
 
-React, TypeScript and Webpack power public readers and the private dashboard.
+React, TypeScript and Webpack power interactive reader controls and the private dashboard.
 Shared source is imported from root `ui/src` through `@ui`, with one React runtime
 and one npm lockfile. English, Arabic RTL and French share the same components.
 
-Run `node scripts/project.mjs dev` from the root for the Go/Webpack development
-servers. See [local setup](../docs/getting-started.md). Production bundles have hashed
+Run `node scripts/project.mjs dev` from the root for the local Go server and its compiled Webpack assets. See [local setup](../docs/getting-started.md). Production bundles have hashed
 assets and a manifest and are served by Go on the same origin as the API.
 
 ```sh
