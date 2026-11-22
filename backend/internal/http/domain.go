@@ -112,7 +112,7 @@ func (d *Domain) Handle(w http.ResponseWriter, r *http.Request) bool {
 	if d.Learning != nil && (d.learningRoutes(w, r) || d.Content != nil && d.attemptRoutes(w, r)) {
 		return true
 	}
-	if d.SiteConfig != nil && d.configurationRoutes(w, r) {
+	if d.SiteConfig != nil && (d.themeRoutes(w, r) || d.configurationRoutes(w, r)) {
 		return true
 	}
 	if d.Plugins != nil && d.pluginRoutes(w, r) {

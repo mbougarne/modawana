@@ -14,8 +14,9 @@ import (
 )
 
 type Service struct {
-	DB    *sql.DB
-	Files *storage.Store
+	DB     *sql.DB
+	Files  *storage.Store
+	Themes *theme.Service
 }
 type query interface {
 	QueryRowContext(context.Context, string, ...any) *sql.Row
@@ -194,6 +195,9 @@ func (s *Service) Preview(ctx context.Context, kind string, in Input) (Preview, 
 	if in.ExpectedVersion == nil || d.Version != *in.ExpectedVersion {
 		return out, db.ErrVersionConflict
 	}
+	if e = s.validateTheme(ctx, tx, kind, b); e != nil {
+		return out, e
+	}
 	if e = s.validateRefs(ctx, tx, kind, b, refs); e != nil {
 		return out, e
 	}
@@ -226,6 +230,9 @@ func (s *Service) Apply(ctx context.Context, owner, kind string, in Input) (Docu
 		}
 		if d.Version != *in.ExpectedVersion {
 			return db.ErrVersionConflict
+		}
+		if e = s.validateTheme(ctx, tx, kind, b); e != nil {
+			return e
 		}
 		if e = s.validateRefs(ctx, tx, kind, b, refs); e != nil {
 			return e

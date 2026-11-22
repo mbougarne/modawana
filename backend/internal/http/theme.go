@@ -45,10 +45,13 @@ func (s *Server) renderThemed(ctx context.Context, r *http.Request, page content
 			current = "learn"
 		}
 	}
-	builtin, _ := theme.Lookup(settings.Site.PublicTheme)
-	head.ThemeCSS = template.CSS(builtin.CSS)
+	appearance := settings.Theme
+	if appearance.ID == "" {
+		appearance, _ = theme.Lookup(settings.Site.PublicTheme)
+	}
+	head.ThemeCSS = template.CSS(appearance.CSS)
 	view := theme.Page{
-		ThemeID: builtin.ID, Locale: locale, Direction: head.Direction, SkipLabel: label("foundation.skip"),
+		ThemeID: appearance.ID, Layout: appearance.Layout, BannerURL: appearance.BannerURL, Locale: locale, Direction: head.Direction, SkipLabel: label("foundation.skip"),
 		Brand: themeBrand(settings.Site, locale), Nav: themeNav(locale, current, false, label),
 		MenuNav: themeNav(locale, current, true, label), NavLabel: label("nav.main"),
 		SearchLabel: label("nav.search"), SearchURL: "/" + locale + "/search",

@@ -73,7 +73,7 @@ func operate(ctx context.Context, command, archive, root string, d *sql.DB) erro
 			}
 		}()
 		if command == "backup" {
-			e = operations.Backup(ctx, d, files, f)
+			e = operations.Backup(ctx, d, files, root, f)
 		} else {
 			e = (&portability.Service{DB: d, Files: files}).Export(ctx, f)
 		}

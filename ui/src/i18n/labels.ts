@@ -592,9 +592,9 @@ export const DEFAULT_LABELS = {
     'لا تحقق هذه الألوان التباين المطلوب. اختر ألواناً أخرى وأعد المعاينة.',
   ),
   'validation.public_theme': l(
-    'Choose a built-in public theme.',
-    'Choisissez un thème public intégré.',
-    'اختر سمة مدمجة للموقع العام.',
+    'Choose a built-in theme or an approved pack.',
+    'Choisissez un thème intégré ou un pack approuvé.',
+    'اختر سمة مدمجة أو حزمة سمات معتمدة.',
   ),
   'validation.logo_mode': l(
     'Choose Wordmark, Monogram or Image from Logo style.',
@@ -978,6 +978,44 @@ export const DEFAULT_LABELS = {
   ),
   'config.publicTheme': l('Public theme', 'Thème du site public', 'سمة الموقع العام'),
   'config.previewPublicTheme': l('Preview theme', 'Prévisualiser le thème', 'معاينة السمة'),
+  'themePacks.title': l('Theme packs', 'Packs de thèmes', 'حزم السمات'),
+  'themePacks.help': l(
+    'Place packs in the data directory to approve them here. Approving an update to the active pack makes it live.',
+    'Placez les packs dans le dossier de données pour les approuver ici. Approuver une mise à jour du pack actif l’applique au site.',
+    'ضع الحزم في مجلد البيانات لاعتمادها هنا. يؤدي اعتماد تحديث الحزمة النشطة إلى تطبيقه على الموقع.',
+  ),
+  'themePacks.empty': l(
+    'No theme packs found.',
+    'Aucun pack de thèmes trouvé.',
+    'لم يُعثر على حزم سمات.',
+  ),
+  'themePacks.approve': l('Approve pack', 'Approuver le pack', 'اعتماد الحزمة'),
+  'themePacks.remove': l('Remove approval', 'Retirer l’approbation', 'إلغاء الاعتماد'),
+  'themePacks.removeConfirm': l(
+    'Remove approval for this pack? If it is active, the public site will use Classic.',
+    'Retirer l’approbation de ce pack ? S’il est actif, le site public utilisera Classique.',
+    'هل تريد إلغاء اعتماد هذه الحزمة؟ إذا كانت نشطة، فسيستخدم الموقع العام سمة كلاسيك.',
+  ),
+  'themePacks.saved': l(
+    'Theme pack approval updated.',
+    'Approbation du pack mise à jour.',
+    'حُدّث اعتماد الحزمة.',
+  ),
+  'themePacks.failed': l(
+    'Could not update the approval.',
+    'Impossible de modifier l’approbation.',
+    'تعذّر تحديث الاعتماد.',
+  ),
+  'themePacks.conflict': l(
+    'The theme pack changed. Review the current details and try again.',
+    'Le pack de thèmes a changé. Vérifiez les informations actuelles et réessayez.',
+    'تغيّرت حزمة السمات. راجع معلوماتها الحالية وحاول مجدداً.',
+  ),
+  'themePacks.fallback': l(
+    'The applied pack is unavailable. The public site is using Classic.',
+    'Le pack appliqué est indisponible. Le site public utilise Classique.',
+    'الحزمة المطبّقة غير متاحة. يستخدم الموقع العام سمة كلاسيك.',
+  ),
   'publicTheme.classic': l('Classic', 'Classique', 'الكلاسيكية'),
   'publicTheme.folio': l('Folio', 'Folio', 'فوليو'),
   'publicTheme.studio': l('Studio', 'Studio', 'استوديو'),

@@ -208,7 +208,13 @@ export function ConfigPage({ kind }: { kind: ConfigKind }) {
             <UploadActivity.Provider value={(delta) => setUploads((n) => Math.max(0, n + delta))}>
               <fieldset key={generation} className="config-fields" disabled={busy}>
                 {kind === 'settings' ? (
-                  <SettingsForm value={working as SiteSettings} onChange={edit} csrf={csrf} />
+                  <SettingsForm
+                    value={working as SiteSettings}
+                    savedTheme={(base.snapshot as SiteSettings).public_theme}
+                    onCSRF={setCSRF}
+                    onChange={edit}
+                    csrf={csrf}
+                  />
                 ) : kind === 'profile' ? (
                   <ProfileForm value={working as ProfileSettings} onChange={edit} csrf={csrf} />
                 ) : (

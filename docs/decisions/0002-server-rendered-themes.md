@@ -156,12 +156,17 @@ their own follow-up, not part of this record.
 | 3 | Home/about/writing/search; social-card consolidation |
 | 4 | Collections, outlines, lesson pages with islands |
 | 5 | Three built-in themes, theme picker in Settings, SPA public-route removal |
-| 6 | (Later, with ADR 0001 mechanisms) installable theme packs |
+| 6 | Installable theme packs with the owner approval and checksum pattern from ADR 0001 |
 
 Stage 5 uses Classic, Folio and Studio as the built-in public themes. Their
 selection is part of the applied site revision. The public React fallback
 and its operator override were removed after the Go renderer covered every
 public route.
+
+Stage 6 defines a [versioned public theme pack format](../public-pages.md#installable-theme-packs).
+It arranges host partials, scopes presentation CSS, and supports a decorative
+PNG. The owner approves a checksum and applies a validated pack ID through
+the existing site revision workflow.
 
 Each stage is a branch and PR with focused Go tests plus the existing
 browser checks at 320/390/1280px in EN/AR/FR and both appearance modes.

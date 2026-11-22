@@ -14,20 +14,21 @@ var folioCSS string
 //go:embed styles/studio.css
 var studioCSS string
 
-// Builtin pairs the public layout identifier with its embedded CSS.
-type Builtin struct {
-	ID, CSS string
+// Appearance is the validated presentation applied to host-rendered pages.
+type Appearance struct {
+	ID, CSS, BannerURL string
+	Layout             []string
 }
 
-func Lookup(id string) (Builtin, bool) {
+func Lookup(id string) (Appearance, bool) {
 	switch id {
 	case Classic:
-		return Builtin{ID: Classic}, true
+		return Appearance{ID: Classic}, true
 	case Folio:
-		return Builtin{ID: Folio, CSS: folioCSS}, true
+		return Appearance{ID: Folio, CSS: folioCSS}, true
 	case Studio:
-		return Builtin{ID: Studio, CSS: studioCSS}, true
+		return Appearance{ID: Studio, CSS: studioCSS}, true
 	default:
-		return Builtin{ID: Classic}, false
+		return Appearance{ID: Classic}, false
 	}
 }

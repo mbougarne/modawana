@@ -2348,9 +2348,9 @@
     "description": "Interface text: validation.public_theme",
     "placeholders": [],
     "values": {
-      "en": "Choose a built-in public theme.",
-      "fr": "Choisissez un thème public intégré.",
-      "ar": "اختر سمة مدمجة للموقع العام."
+      "en": "Choose a built-in theme or an approved pack.",
+      "fr": "Choisissez un thème intégré ou un pack approuvé.",
+      "ar": "اختر سمة مدمجة أو حزمة سمات معتمدة."
     }
   },
   "validation.logo_mode": {
@@ -3784,6 +3784,106 @@
       "en": "Preview theme",
       "fr": "Prévisualiser le thème",
       "ar": "معاينة السمة"
+    }
+  },
+  "themePacks.title": {
+    "section": "themePacks",
+    "description": "Interface text: themePacks.title",
+    "placeholders": [],
+    "values": {
+      "en": "Theme packs",
+      "fr": "Packs de thèmes",
+      "ar": "حزم السمات"
+    }
+  },
+  "themePacks.help": {
+    "section": "themePacks",
+    "description": "Interface text: themePacks.help",
+    "placeholders": [],
+    "values": {
+      "en": "Place packs in the data directory to approve them here. Approving an update to the active pack makes it live.",
+      "fr": "Placez les packs dans le dossier de données pour les approuver ici. Approuver une mise à jour du pack actif l’applique au site.",
+      "ar": "ضع الحزم في مجلد البيانات لاعتمادها هنا. يؤدي اعتماد تحديث الحزمة النشطة إلى تطبيقه على الموقع."
+    }
+  },
+  "themePacks.empty": {
+    "section": "themePacks",
+    "description": "Interface text: themePacks.empty",
+    "placeholders": [],
+    "values": {
+      "en": "No theme packs found.",
+      "fr": "Aucun pack de thèmes trouvé.",
+      "ar": "لم يُعثر على حزم سمات."
+    }
+  },
+  "themePacks.approve": {
+    "section": "themePacks",
+    "description": "Interface text: themePacks.approve",
+    "placeholders": [],
+    "values": {
+      "en": "Approve pack",
+      "fr": "Approuver le pack",
+      "ar": "اعتماد الحزمة"
+    }
+  },
+  "themePacks.remove": {
+    "section": "themePacks",
+    "description": "Interface text: themePacks.remove",
+    "placeholders": [],
+    "values": {
+      "en": "Remove approval",
+      "fr": "Retirer l’approbation",
+      "ar": "إلغاء الاعتماد"
+    }
+  },
+  "themePacks.removeConfirm": {
+    "section": "themePacks",
+    "description": "Interface text: themePacks.removeConfirm",
+    "placeholders": [],
+    "values": {
+      "en": "Remove approval for this pack? If it is active, the public site will use Classic.",
+      "fr": "Retirer l’approbation de ce pack ? S’il est actif, le site public utilisera Classique.",
+      "ar": "هل تريد إلغاء اعتماد هذه الحزمة؟ إذا كانت نشطة، فسيستخدم الموقع العام سمة كلاسيك."
+    }
+  },
+  "themePacks.saved": {
+    "section": "themePacks",
+    "description": "Interface text: themePacks.saved",
+    "placeholders": [],
+    "values": {
+      "en": "Theme pack approval updated.",
+      "fr": "Approbation du pack mise à jour.",
+      "ar": "حُدّث اعتماد الحزمة."
+    }
+  },
+  "themePacks.failed": {
+    "section": "themePacks",
+    "description": "Interface text: themePacks.failed",
+    "placeholders": [],
+    "values": {
+      "en": "Could not update the approval.",
+      "fr": "Impossible de modifier l’approbation.",
+      "ar": "تعذّر تحديث الاعتماد."
+    }
+  },
+  "themePacks.conflict": {
+    "section": "themePacks",
+    "description": "Interface text: themePacks.conflict",
+    "placeholders": [],
+    "values": {
+      "en": "The theme pack changed. Review the current details and try again.",
+      "fr": "Le pack de thèmes a changé. Vérifiez les informations actuelles et réessayez.",
+      "ar": "تغيّرت حزمة السمات. راجع معلوماتها الحالية وحاول مجدداً."
+    }
+  },
+  "themePacks.fallback": {
+    "section": "themePacks",
+    "description": "Interface text: themePacks.fallback",
+    "placeholders": [],
+    "values": {
+      "en": "The applied pack is unavailable. The public site is using Classic.",
+      "fr": "Le pack appliqué est indisponible. Le site public utilise Classique.",
+      "ar": "الحزمة المطبّقة غير متاحة. يستخدم الموقع العام سمة كلاسيك."
     }
   },
   "publicTheme.classic": {

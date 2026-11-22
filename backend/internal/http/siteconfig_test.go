@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -17,6 +18,7 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/db"
 	"github.com/mbougarne/modawana/backend/internal/siteconfig"
 	"github.com/mbougarne/modawana/backend/internal/storage"
+	"github.com/mbougarne/modawana/backend/internal/theme"
 )
 
 func TestConfigurationOwnerBoundary(t *testing.T) {
@@ -46,7 +48,21 @@ func TestConfigurationOwnerBoundary(t *testing.T) {
 	}
 	cfg := config.Config{BaseURL: "https://example.test"}
 	a := auth.New(d, cfg)
-	service := &siteconfig.Service{DB: d, Files: files}
+	packs := &theme.Service{DB: d, DataRoot: root}
+	service := &siteconfig.Service{DB: d, Files: files, Themes: packs}
+	packPath := filepath.Join(root, theme.PackPath("pack-owner"))
+	if err := os.MkdirAll(filepath.Dir(packPath), 0700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(packPath, []byte(`{"api_version":1,"name":"Owner pack","layout":"{{template \"header\" .}}{{template \"content\" .}}{{template \"footer\" .}}"}`), 0600); err != nil {
+		t.Fatal(err)
+	}
+	pack, err := theme.ReadPack(root, "pack-owner")
+	if err != nil {
+		t.Fatal(err)
+	}
+	approvePath := packAPI + "/pack-owner/approve"
+	approveBody := `{"expected_revision":"","expected_checksum":"` + pack.Checksum + `"}`
 	handler := New(Options{Config: cfg, Auth: a, SiteConfig: service, Domain: &Domain{Auth: a, SiteConfig: service}})
 	for _, tc := range []struct {
 		method, path, body   string
@@ -55,6 +71,12 @@ func TestConfigurationOwnerBoundary(t *testing.T) {
 	}{
 		{"GET", "/api/v1/settings", "", false, false, false, 401},
 		{"GET", "/api/v1/settings", "", true, false, false, 200},
+		{"GET", packAPI, "", false, false, false, 401},
+		{"GET", packAPI, "", true, false, false, 200},
+		{"POST", approvePath, approveBody, true, false, true, 403},
+		{"POST", approvePath, approveBody, true, true, false, 403},
+		{"POST", approvePath, approveBody, true, true, true, 200},
+		{"POST", approvePath, approveBody, true, true, true, 409},
 		{"PUT", "/api/v1/labels", `{"expected_version":0,"snapshot":{}}`, false, false, false, 401},
 		{"PUT", "/api/v1/labels", `{"expected_version":0,"snapshot":{}}`, true, false, true, 403},
 		{"PUT", "/api/v1/labels", `{"expected_version":0,"snapshot":{}}`, true, true, false, 403},

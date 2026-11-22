@@ -3,7 +3,7 @@ import type { LabelOverrides } from '../../../ui/src/i18n/labels';
 
 export type Localized = Partial<Record<Locale, string>>;
 
-export type PublicThemeID = 'classic' | 'folio' | 'studio';
+export type PublicThemeID = 'classic' | 'folio' | 'studio' | `pack-${string}`;
 
 export interface SiteSettings {
   public_theme?: PublicThemeID;

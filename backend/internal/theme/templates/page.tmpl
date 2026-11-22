@@ -3,6 +3,13 @@
 <div class="vb public-site">
 <a class="vb-skip" href="#content">{{.SkipLabel}}</a>
 <div class="vb-shell">
+{{range .Layout}}{{if eq . "header"}}{{template "page-header" $}}{{else if eq . "content"}}{{template "page-content" $}}{{else if eq . "footer"}}{{template "page-footer" $}}{{else if eq . "banner"}}<img class="public-banner" src="{{$.BannerURL}}" alt="">{{end}}{{end}}
+
+</div>
+</div>
+</body></html>
+
+{{define "page-header"}}
 <header class="vb-header public-header">
 <a class="vb-brand" href="{{.Brand.HomeURL}}" dir="auto">{{if eq .Brand.Kind "image"}}<img src="{{.Brand.ImageURL}}" alt="{{.Brand.ImageAlt}}">{{else if eq .Brand.Kind "monogram"}}<span class="vb-mono">{{.Brand.Monogram}}</span>{{else if .Brand.Split}}{{.Brand.Pre}}<span>.</span>{{.Brand.Suf}}{{else}}{{.Brand.Text}}{{end}}</a>
 <nav class="vb-nav public-nav" aria-label="{{.NavLabel}}">
@@ -25,9 +32,13 @@
 </details>
 </div>
 </header>
+{{end}}
+{{define "page-content"}}
 <main id="content" tabindex="-1" class="public-main{{if not .Article}} public-themed-index{{end}}">
 {{if .Error}}<section class="public-section"><h1 class="vb-title">{{.Error}}</h1><a class="vb-link" href="{{.Brand.HomeURL}}">{{.HomeLabel}}</a></section>{{else if .Article}}{{template "public-article" .Article}}{{else if .Home}}{{template "public-home" .Home}}{{else if .About}}{{template "public-about" .About}}{{else if .Discovery}}{{template "public-discovery" .Discovery}}{{else if .Reading}}{{template "public-reading" .Reading}}{{end}}
 </main>
+{{end}}
+{{define "page-footer"}}
 <footer class="vb-footer">
 {{- with .Footer}}
 {{if .Text}}<p class="big" dir="auto">{{.Text}}</p>{{else if .Email}}<p class="big">{{.Question}} <a href="mailto:{{.Email}}">{{.SayHi}}</a></p>{{end}}
@@ -39,6 +50,4 @@
 </div>
 {{- end}}
 </footer>
-</div>
-</div>
-</body></html>
+{{end}}
