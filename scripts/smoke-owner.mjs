@@ -722,6 +722,17 @@ export async function smokeOwner({ context, origin, root, locale, t }) {
     await section('themes').click();
     await themePicker.waitFor();
     await page.locator('select[data-config-path="public_theme"]').waitFor();
+    await page.setViewportSize({ width: 1280, height: 900 });
+    const themeControls = await page.locator('.config-theme-picker').evaluate((picker) => {
+      const select = picker.querySelector('select').getBoundingClientRect();
+      const preview = picker.querySelector('a').getBoundingClientRect();
+      const rtl = getComputedStyle(picker).direction === 'rtl';
+      return {
+        gap: rtl ? select.left - preview.right : preview.left - select.right,
+        bottomDifference: Math.abs(preview.bottom - select.bottom),
+      };
+    });
+    assert.ok(themeControls.gap >= 0 && themeControls.bottomDifference <= 1);
     assert.equal(await page.locator('[data-config-path^="menu_icons."]').count(), 0);
     await section('menus').click();
     await page.locator('[data-config-path^="menu_icons."]').first().waitFor();
@@ -734,6 +745,7 @@ export async function smokeOwner({ context, origin, root, locale, t }) {
         const rail = shell.querySelector('.workspace-navigation').getBoundingClientRect();
         const header = shell.querySelector('.workspace-header').getBoundingClientRect();
         const content = shell.querySelector('.workspace-content').getBoundingClientRect();
+        const save = shell.querySelector('.config-save')?.getBoundingClientRect();
         return {
           document: performance.timeOrigin,
           viewportHeight: innerHeight,
@@ -742,6 +754,7 @@ export async function smokeOwner({ context, origin, root, locale, t }) {
           rail: { x: rail.x, top: rail.top, width: rail.width, bottom: rail.bottom },
           headerWidth: header.width,
           content: { x: content.x, width: content.width },
+          save: save && { left: save.left, right: save.right },
           direction: shell.dir,
         };
       });
@@ -749,6 +762,7 @@ export async function smokeOwner({ context, origin, root, locale, t }) {
       await page.setViewportSize({ width, height: 900 });
       const settings = await metrics();
       assert.ok(settings.overflow <= 1, `Slate settings overflow at ${width}`);
+      assert.ok(settings.save.left >= 0 && settings.save.right <= settings.viewportWidth + 1);
       if (width === 1280) {
         assert.equal(settings.rail.top, 0);
         assert.equal(settings.rail.width, 320);
@@ -758,6 +772,12 @@ export async function smokeOwner({ context, origin, root, locale, t }) {
             ? settings.viewportWidth - settings.rail.x - settings.rail.width
             : settings.rail.x;
         assert.ok(Math.abs(edge) <= 1, 'Slate rail follows inline start');
+        assert.ok(
+          settings.direction === 'rtl'
+            ? settings.save.right <= settings.rail.x
+            : settings.save.left >= settings.rail.x + settings.rail.width,
+          'Slate save bar must stay clear of the sidebar',
+        );
       }
       await page.locator(`.owner-navigation a[href="${postsPath}"]`).click();
       await page.locator(`.owner-navigation a[href="${postsPath}"][aria-current="page"]`).waitFor();

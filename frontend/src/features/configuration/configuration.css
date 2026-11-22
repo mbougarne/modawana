@@ -39,6 +39,18 @@
   margin-block-end: var(--space-4);
   max-inline-size: var(--measure);
 }
+.config-theme-picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+  margin-block-end: var(--space-4);
+}
+.config-theme-picker .config-field {
+  flex: 1 1 10rem;
+  max-inline-size: 20rem;
+  margin: 0;
+}
 .config-page textarea {
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
