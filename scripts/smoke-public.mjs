@@ -360,14 +360,9 @@ export async function smokePublic({ context, origin, root, locale, t }) {
       await page.locator('.public-neighbors a').getAttribute('href'),
       `/${locale}/learn/public-path/public-path-two`,
     );
-    // Lessons stay on the SPA, where a missing translation shows the
-    // explicit notice with site-language choices.
+    assert.equal(await page.evaluate(() => document.body.dataset.rendered), 'server');
     await page.locator('.public-language').click();
-    await page
-      .locator('#language-menu')
-      .getByRole('button', { name: t('language.' + missing), exact: true })
-      .click();
-    await page.getByText(t('public.unavailable'), { exact: true }).waitFor();
+    assert.equal(await page.locator(`#language-menu a[href="/${missing}"]`).count(), 1);
     await page.keyboard.press('Escape');
     await shot('lesson', 320);
     await page.goto(origin + `/${locale}/docs/public-guide/public-guide-one`);
@@ -396,11 +391,14 @@ export async function smokePublic({ context, origin, root, locale, t }) {
     });
     try {
       const plain = await noScriptContext.newPage();
-      for (const suffix of ['', '/about', '/writing', '/search']) {
+      for (const suffix of ['', '/about', '/writing', '/search', '/learn', '/docs']) {
         assert.equal((await plain.goto(origin + '/' + locale + suffix)).status(), 200);
-        await plain.locator('body[data-rendered="server"] main h1').waitFor();
+        await plain.locator('body[data-rendered="server"] main h1').first().waitFor();
         assert.equal(await plain.locator('#root').count(), 0);
       }
+      await plain.goto(origin + `/${locale}/learn/public-path/public-path-one`);
+      await plain.getByText('A published paragraph.', { exact: true }).waitFor();
+      await plain.goto(origin + `/${locale}/search`);
       await plain.locator('input[name="q"]').fill('phasefive');
       await plain.locator('select[name="kind"]').selectOption('article');
       await plain.getByRole('button', { name: t('public.search'), exact: true }).click();
