@@ -2,7 +2,7 @@
 
 [العربية](deployment.ar.md)
 
-Build/test with Go **1.27.3**, Node **22.23.4**, npm **10.9.2** and Docker Engine /
+Build/test with Go **1.27.4**, Node **22.23.4**, npm **10.9.2** and Docker Engine /
 Compose v2 on Linux. One Go process serves API and Webpack assets; production has
 no Node, Redis or separate database. SQLite and immutable files need a local
 persistent filesystem, not NFS or a release directory. Never scale the app to two

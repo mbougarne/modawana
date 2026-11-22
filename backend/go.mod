@@ -1,6 +1,6 @@
 module github.com/mbougarne/modawana/backend
 
-go 1.27.3
+go 1.27.4
 
 require (
 	github.com/abema/go-mp4 v1.7.4

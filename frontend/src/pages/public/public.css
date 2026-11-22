@@ -533,3 +533,54 @@
 .public-details > summary::-webkit-details-marker {
   display: none;
 }
+
+.public-site [hidden] {
+  display: none;
+}
+.public-themed-index .public-hero h1,
+.public-themed-index .vb-pagehead h1 {
+  max-inline-size: 24ch;
+  text-wrap: balance;
+}
+.public-themed-index .vb-post-main {
+  min-inline-size: 0;
+}
+.public-post-summary {
+  display: block;
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+.public-directional-arrow {
+  display: inline-block;
+  direction: ltr;
+}
+[dir='rtl'] .public-directional-arrow {
+  transform: scaleX(-1);
+}
+.public-filter-row a {
+  text-decoration: none;
+}
+.public-filter-row a[aria-current='true'] {
+  background: var(--majorelle-soft);
+  border-color: var(--majorelle);
+  color: var(--ink);
+}
+.public-server-search {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-block-end: var(--space-4);
+}
+.public-server-search .public-search-field {
+  flex: 1 1 17rem;
+  min-inline-size: 0;
+}
+.public-server-search .public-kind {
+  display: grid;
+  gap: var(--space-1);
+}
+.public-server-search .public-kind select {
+  min-block-size: var(--target);
+}

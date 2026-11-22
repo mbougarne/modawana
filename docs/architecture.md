@@ -50,7 +50,7 @@ CSS visibility is not access control. Browser-scoped learning identities are
 separate from owner sessions. Quiz grading and progress changes are transactional;
 answer keys are withheld from reader questions.
 
-Markdown is rendered by one safe frontend pipeline for previews and public reading.
+The Go renderer serves public articles and published About documents. The React Markdown renderer handles previews and public React readers. Both follow the shared Markdown reader contract.
 Raw HTML, executable MDX, arbitrary scripts and uncontrolled remote embeds are not
 supported. Logs omit secrets, query strings and draft bodies. Browser writes use
 same-origin and CSRF checks; machine publishing uses scoped bearer authentication.

@@ -10,7 +10,7 @@ production content, runtime data, generated builds, or private work notes.
 
 ## Checks
 
-Use Go 1.27.3, Node 22.23.4, and npm 10.9.2:
+Use Go 1.27.4, Node 22.23.4, and npm 10.9.2:
 
 ```sh
 node scripts/project.mjs install

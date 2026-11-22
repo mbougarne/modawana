@@ -17,6 +17,7 @@ export default tseslint.config(
       '**/.test-output/**',
       '**/test-results/**',
       'build/**',
+      'generated_images/**',
       'internal/**',
       'design-system/prototype/**',
       'design-system/previews/**',

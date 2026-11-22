@@ -19,7 +19,11 @@ function walk(dir) {
       return [];
     }
     const p = join(dir, e.name);
-    return e.isDirectory() ? walk(p) : e.name.endsWith('.md') ? [relative(root, p)] : [];
+    if (e.isDirectory()) {
+      // A nested checkout has its own documentation inventory.
+      return existsSync(join(p, '.git')) ? [] : walk(p);
+    }
+    return e.name.endsWith('.md') ? [relative(root, p)] : [];
   });
 }
 const errors = [];

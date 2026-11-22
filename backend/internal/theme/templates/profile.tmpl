@@ -1,0 +1,73 @@
+{{define "profile-text"}}{{if .Value}}<span lang="{{.Lang}}" dir="{{.Dir}}">{{.Value}}</span>{{end}}{{end}}
+{{define "profile-portrait"}}
+<div class="vb-portrait"{{if not .URL}} role="img" aria-label="{{.Alt}}"{{end}}>
+{{if .URL}}<img class="vb-photo" src="{{.URL}}" alt="{{.Alt}}">{{else}}
+<svg viewBox="0 0 320 320" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><circle class="sun" cx="{{if .RTL}}58{{else}}262{{end}}" cy="62" r="34"/><rect class="star" x="70" y="70" width="180" height="180" rx="14"/><rect class="star" x="70" y="70" width="180" height="180" rx="14" transform="rotate(45 160 160)"/><text class="ini" x="160" y="194" text-anchor="middle">{{.Monogram}}</text></svg>
+{{end}}
+{{if .Sticker.Value}}<span class="vb-sticker">{{template "profile-text" .Sticker}}</span>{{end}}
+</div>
+{{end}}
+{{define "profile-actions"}}
+{{if .}}<div class="vb-socials">{{range .}}<a class="vb-btn vb-btn-{{.Variant}}" href="{{.URL}}">{{if .Icon}}{{template "public-icon" .Icon}} {{end}}{{template "profile-text" .Text}}</a>{{end}}</div>{{end}}
+{{end}}
+{{define "profile-bio"}}{{range .}}{{if .Bold}}<b>{{.Text}}</b>{{else}}{{.Text}}{{end}}{{end}}{{end}}
+{{define "public-home"}}
+{{with .Banner}}<img id="public-profile-banner" class="public-banner" src="{{.URL}}" alt="{{.Alt}}">{{end}}
+<section class="vb-hero public-hero">
+<div>
+<h1 lang="{{.Heading.Lang}}" dir="{{.Heading.Dir}}">{{range $index, $line := .Headline}}{{if $index}}<br>{{end}}{{range $line}}{{if .Bold}}<em>{{.Text}}</em>{{else}}{{.Text}}{{end}}{{end}}{{end}}</h1>
+{{if .Bio.Value}}<p class="vb-lead" lang="{{.Bio.Lang}}" dir="{{.Bio.Dir}}">{{template "profile-bio" .BioSegments}}</p>{{end}}
+{{template "profile-actions" .Actions}}
+</div>
+{{with .Portrait}}{{template "profile-portrait" .}}{{end}}
+</section>
+{{if .Now}}
+<section class="vb-now">
+<div><h2 class="vb-h2"><span class="vb-live" aria-hidden="true"></span>{{.NowTitle}}</h2>{{if .UpdatedMonth}}<time class="vb-meta" datetime="{{.UpdatedMonth}}">{{.UpdatedText}}</time>{{end}}</div>
+<ul>{{range .Now}}<li><span>{{template "profile-text" .Label}}</span><div class="public-now-text">{{template "profile-text" .Text}}</div></li>{{end}}</ul>
+</section>
+{{end}}
+{{if .WritingTitle}}
+<section class="public-section">
+<div class="vb-sechead public-section-heading"><h2 class="vb-h2">{{.WritingTitle}}</h2><a class="vb-link" href="{{.WritingURL}}">{{.MoreLabel}} {{.Arrow}}</a></div>
+{{if .Posts}}{{template "public-posts" .Posts}}{{else}}<p class="public-empty">{{.Empty}}</p>{{end}}
+</section>
+{{end}}
+{{if .LearningTitle}}
+<section class="public-section">
+<div class="vb-sechead public-section-heading"><h2 class="vb-h2">{{.LearningTitle}}</h2><a class="vb-link" href="{{.LearningURL}}">{{.MoreLabel}} {{.Arrow}}</a></div>
+{{if .Collections}}<div class="vb-learn">{{range .Collections}}<a class="vb-course" href="{{.URL}}"><span class="vb-badge b{{.Badge}}" aria-hidden="true">{{.Initials}}</span><div><h3>{{.Title}}</h3>{{if .Summary}}<p>{{.Summary}}</p>{{end}}<span class="vb-meta">{{.Counts}}</span></div></a>{{end}}</div>{{else}}<p class="public-empty">{{.Empty}}</p>{{end}}
+</section>
+{{end}}
+{{end}}
+{{define "public-about"}}
+<div class="vb-about public-about">
+<aside class="public-about-aside">
+{{template "profile-portrait" .Portrait}}
+{{if .Experience}}
+<section class="vb-card">
+<h2 class="vb-meta">{{.ExperienceLabel}}</h2>
+<ul class="vb-exp">{{range .Experience}}
+<li>
+{{if .Role.Value}}<b>{{template "profile-text" .Role}}</b>{{end}}
+<span>{{if .Organization.Value}}{{template "profile-text" .Organization}} · {{end}}<bdi>{{.Start}}</bdi>{{if .Current}} — {{.Current}}{{else if .End}} — <bdi>{{.End}}</bdi>{{end}}</span>
+{{if .Description.Value}}<p>{{template "profile-text" .Description}}</p>{{end}}
+{{if .URL}}<a class="vb-link" href="{{.URL}}">{{$.WebsiteLabel}}</a>{{end}}
+</li>
+{{end}}</ul>
+</section>
+{{end}}
+</aside>
+<div class="public-about-main">
+<h1 class="vb-title">{{.Title}}</h1>
+{{if .Bio.Value}}<p class="vb-lead" lang="{{.Bio.Lang}}" dir="{{.Bio.Dir}}">{{template "profile-bio" .BioSegments}}</p>{{end}}
+{{if .Body}}<div class="vb-reader">{{.Body}}</div>{{end}}
+{{if .Email}}
+<div class="vb-email"><a href="mailto:{{.Email}}"><bdi>{{.Email}}</bdi></a>{{if .Copy}}<button type="button" data-copy-email="{{.Email}}" data-copied="{{.Copied}}" data-copy-failed="{{.CopyFailed}}" hidden>{{.Copy}}</button>{{end}}</div>
+{{if .Copy}}<p role="status" data-copy-status></p>{{end}}
+{{end}}
+{{if .Location.Value}}<p class="vb-meta">{{template "profile-text" .Location}}</p>{{end}}
+{{template "profile-actions" .Actions}}
+</div>
+</div>
+{{end}}

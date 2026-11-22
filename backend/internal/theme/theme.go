@@ -92,8 +92,8 @@ type Footer struct {
 	Links     []Link
 }
 
-// ArticlePage is everything the article template may render.
-type ArticlePage struct {
+// Page carries the shared shell and the view for the requested public route.
+type Page struct {
 	Locale        string
 	Direction     string
 	Head          template.HTML // host-rendered metadata, styles and island scripts
@@ -108,11 +108,15 @@ type ArticlePage struct {
 	LanguageShort string
 	Languages     []Language
 	MenuLabel     string
-	Article       Article
+	ThemeLabel    string
+	Article       *Article
+	Home          *Home
+	About         *About
+	Discovery     *Discovery
 	Footer        Footer
 }
 
-// RenderArticle writes the complete article document.
-func RenderArticle(w io.Writer, page ArticlePage) error {
-	return templates.ExecuteTemplate(w, "article.tmpl", page)
+// Render writes the complete public document.
+func Render(w io.Writer, page Page) error {
+	return templates.ExecuteTemplate(w, "page.tmpl", page)
 }

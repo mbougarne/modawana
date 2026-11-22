@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="{{.Locale}}" dir="{{.Direction}}"><head>{{.Head}}</head><body data-rendered="server">
+<div class="vb public-site">
+<a class="vb-skip" href="#content">{{.SkipLabel}}</a>
+<div class="vb-shell">
+<header class="vb-header public-header">
+<a class="vb-brand" href="{{.Brand.HomeURL}}" dir="auto">{{if eq .Brand.Kind "image"}}<img src="{{.Brand.ImageURL}}" alt="{{.Brand.ImageAlt}}">{{else if eq .Brand.Kind "monogram"}}<span class="vb-mono">{{.Brand.Monogram}}</span>{{else if .Brand.Split}}{{.Brand.Pre}}<span>.</span>{{.Brand.Suf}}{{else}}{{.Brand.Text}}{{end}}</a>
+<nav class="vb-nav public-nav" aria-label="{{.NavLabel}}">
+{{- range .Nav}}{{if not .Current}}<a href="{{.URL}}">{{.Label}}</a>{{else}}<a href="{{.URL}}" aria-current="page">{{.Label}}</a>{{end}}{{end -}}
+</nav>
+<div class="vb-tools public-tools">
+<a class="vb-icon" href="{{.SearchURL}}" aria-label="{{.SearchLabel}}">{{template "public-icon" "search"}}</a>
+<details class="public-details">
+<summary class="vb-icon public-language" aria-label="{{.LanguageLabel}}" aria-controls="language-menu">{{.LanguageShort}}</summary>
+<div class="public-menu" id="language-menu"><nav aria-label="{{.LanguageLabel}}">
+{{- range .Languages}}<a href="{{.URL}}" lang="{{.Code}}" dir="{{.Dir}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}</a>{{end -}}
+</nav></div>
+</details>
+{{if .ThemeLabel}}<button type="button" class="vb-icon" aria-label="{{.ThemeLabel}}" data-theme-toggle hidden>{{template "public-icon" "moon"}}</button>{{end}}
+<details class="public-details">
+<summary class="vb-icon vb-menu" aria-label="{{.MenuLabel}}" aria-controls="navigation-menu">{{template "public-icon" "menu"}}</summary>
+<div class="public-menu" id="navigation-menu"><nav aria-label="{{.NavLabel}}">
+{{- range .MenuNav}}<a href="{{.URL}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}</a>{{end -}}
+</nav></div>
+</details>
+</div>
+</header>
+<main id="content" tabindex="-1" class="public-main{{if not .Article}} public-themed-index{{end}}">
+{{if .Article}}{{template "public-article" .Article}}{{else if .Home}}{{template "public-home" .Home}}{{else if .About}}{{template "public-about" .About}}{{else if .Discovery}}{{template "public-discovery" .Discovery}}{{end}}
+</main>
+<footer class="vb-footer">
+{{- with .Footer}}
+{{if .Text}}<p class="big" dir="auto">{{.Text}}</p>{{else if .Email}}<p class="big">{{.Question}} <a href="mailto:{{.Email}}">{{.SayHi}}</a></p>{{end}}
+<div class="row">
+<span class="vb-meta">{{if .Copyright}}© {{.Copyright}}{{end}}</span>
+<nav aria-label="{{.NavLabel}}">
+{{- range .Links}}<a href="{{.URL}}">{{.Label}}</a>{{end -}}
+</nav>
+</div>
+{{- end}}
+</footer>
+</div>
+</div>
+</body></html>

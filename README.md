@@ -26,7 +26,7 @@ and builds, not to run the production server. There is no public signup or seede
 
 ## Quick start
 
-Install Go **1.27.3**, Node **22.23.4**, and npm **10.9.2** (the versions pinned in
+Install Go **1.27.4**, Node **22.23.4**, and npm **10.9.2** (the versions pinned in
 this repository), then:
 
 ```sh

@@ -32,8 +32,12 @@ const socialImageLimit = 2048
 const socialDimensionLimit = 16384
 
 type socialMetadata struct {
-	Image, Alt, Type, SiteName string
-	Width, Height              int
+	Image    string `json:"image"`
+	Alt      string `json:"alt"`
+	Type     string `json:"type"`
+	SiteName string `json:"site_name"`
+	Width    int    `json:"width"`
+	Height   int    `json:"height"`
 }
 
 // socialCards is the built-in extension that keeps today's social-card

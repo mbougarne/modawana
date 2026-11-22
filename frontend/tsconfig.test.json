@@ -30,6 +30,7 @@
     "src/pages/public/PublicLayout.tsx",
     "src/features/owner/TaxonomyCreate.tsx",
     "src/pages/public/home.tsx",
-    "src/pages/public/social.ts"
+    "src/pages/public/social.ts",
+    "src/islands/publicControls.ts"
   ]
 }

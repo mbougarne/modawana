@@ -182,9 +182,7 @@ export async function smokePublic({ context, origin, root, locale, t }) {
       (await anon.request.get(origin + `/${locale}/articles/public-path-one`)).status(),
       404,
     );
-    // ADR 0002 stage 2: a full load of the article URL is served from Go
-    // templates with no SPA mount point; SPA-internal navigation to the same
-    // article (exercised below from the search page) keeps using React.
+    // A full load of the article URL is served from its Go template.
     assert.ok(source.includes('data-rendered="server"'));
     assert.ok(!source.includes('id="root"'));
     await page.goto(origin + url);
@@ -217,6 +215,8 @@ export async function smokePublic({ context, origin, root, locale, t }) {
     assert.equal(await page.locator('script[src]').count(), 1);
     await page.goto(origin + '/' + locale);
     await page.locator('.public-hero h1').waitFor();
+    assert.equal(await page.evaluate(() => document.body.dataset.rendered), 'server');
+    assert.equal(await page.locator('#root').count(), 0);
     assert.ok((await page.locator('.public-hero').textContent()).includes('second owner'));
     for (const width of [320, 390, 1280]) {
       for (const theme of ['light', 'dark']) {
@@ -232,7 +232,11 @@ export async function smokePublic({ context, origin, root, locale, t }) {
     assert.deepEqual(
       await page
         .locator('.public-tools > *')
-        .evaluateAll((nodes) => nodes.slice(0, 3).map((n) => n.getAttribute('aria-label'))),
+        .evaluateAll((nodes) =>
+          nodes
+            .slice(0, 3)
+            .map((n) => (n.querySelector('summary') || n).getAttribute('aria-label')),
+        ),
       [t('nav.search'), t('foundation.language'), t('nav.theme')],
     );
     await page.locator('.public-language').click();
@@ -264,25 +268,36 @@ export async function smokePublic({ context, origin, root, locale, t }) {
     await page.goto(origin + `/${locale}/about`);
     await page.locator('.vb-reader').waitFor();
     assert.ok((await page.locator('main').textContent()).includes('Example studio'));
-    await shot('about');
+    assert.equal(await page.evaluate(() => document.body.dataset.rendered), 'server');
+    for (const width of [320, 390, 1280]) {
+      for (const appearance of ['light', 'dark']) {
+        await shot('about', width, appearance);
+      }
+    }
     await page.goto(
       origin + `/${locale}/writing?q=phasefive&kind=article&category=public-code&tag=public-go`,
     );
     await page.locator('.vb-post').waitFor();
     assert.equal(await page.locator('.vb-post').count(), 1);
     assert.ok(!(await page.locator('main').textContent()).includes('PRIVATE'));
-    const tag = page.locator('.public-filters.tag button').filter({ hasText: 'Public Go' });
+    const tag = page.locator('.public-filters.tag a').filter({ hasText: 'Public Go' });
     await tag.click();
     assert.ok(!new URL(page.url()).searchParams.has('tag'));
     await page.goBack();
     await page.locator('.vb-post').waitFor();
     assert.equal(new URL(page.url()).searchParams.get('tag'), 'public-go');
-    await shot('writing');
+    for (const width of [320, 390, 1280]) {
+      for (const appearance of ['light', 'dark']) {
+        await shot('writing', width, appearance);
+      }
+    }
     // Search lives on its own page and updates as the reader types.
     const search = new URL(page.url());
     search.pathname = `/${locale}/search`;
     await page.goto(search.href);
     await page.locator('input[name="q"]').waitFor();
+    assert.equal(await page.evaluate(() => document.body.dataset.rendered), 'server');
+    assert.equal(await page.locator('#root').count(), 0);
     // An older, delayed query must not paint over the current URL/results.
     let unblock;
     let saw;
@@ -292,7 +307,7 @@ export async function smokePublic({ context, origin, root, locale, t }) {
     const gate = new Promise((r) => {
       unblock = r;
     });
-    await page.route('**/api/v1/public/content?**', async (route) => {
+    await page.route(`**/${locale}/search?**`, async (route) => {
       if (new URL(route.request().url()).searchParams.get('q') === 'slow') {
         saw();
         await gate;
@@ -309,9 +324,13 @@ export async function smokePublic({ context, origin, root, locale, t }) {
     await page.waitForURL((url) => url.searchParams.get('q') === 'phasefive');
     await page.locator('.vb-post').waitFor();
     unblock();
-    await page.unroute('**/api/v1/public/content?**');
+    await page.unroute(`**/${locale}/search?**`);
     assert.equal(new URL(page.url()).searchParams.get('q'), 'phasefive');
-    await shot('search');
+    for (const width of [320, 390, 1280]) {
+      for (const appearance of ['light', 'dark']) {
+        await shot('search', width, appearance);
+      }
+    }
     // Archive rows are plain anchors, so this click is a full load that now
     // lands on the server-rendered article.
     await page.locator('.vb-post a').filter({ hasText: 'Public public-article' }).click();
@@ -360,15 +379,37 @@ export async function smokePublic({ context, origin, root, locale, t }) {
       (await anon.request.get(origin + `/${otherLocale}/learn/public-path`)).status(),
       404,
     );
-    // Explicit error and recovery state on a failed metadata request.
-    await page.route('**/api/v1/public/content?**', (route) =>
-      route.fulfill({ status: 503, json: { error: { code: 'unavailable' } } }),
-    );
-    await page.goto(origin + `/${locale}/writing`);
+    // A failed live request leaves the GET form usable for a full page retry.
+    await page.goto(origin + `/${locale}/search`);
+    const searchRoute = `**/${locale}/search?**`;
+    await page.route(searchRoute, (route) => route.fulfill({ status: 503, body: 'Unavailable' }));
+    await page.locator('input[name="q"]').fill('phasefive');
     await page.getByRole('alert').waitFor();
-    await page.unroute('**/api/v1/public/content?**');
-    await page.getByRole('button', { name: t('public.retry'), exact: true }).click();
+    await page.unroute(searchRoute);
+    await page.getByRole('button', { name: t('public.search'), exact: true }).click();
     await page.locator('.vb-post').first().waitFor();
+    assert.equal(new URL(page.url()).searchParams.get('q'), 'phasefive');
+
+    const noScriptContext = await context.browser().newContext({
+      ignoreHTTPSErrors: true,
+      javaScriptEnabled: false,
+    });
+    try {
+      const plain = await noScriptContext.newPage();
+      for (const suffix of ['', '/about', '/writing', '/search']) {
+        assert.equal((await plain.goto(origin + '/' + locale + suffix)).status(), 200);
+        await plain.locator('body[data-rendered="server"] main h1').waitFor();
+        assert.equal(await plain.locator('#root').count(), 0);
+      }
+      await plain.locator('input[name="q"]').fill('phasefive');
+      await plain.locator('select[name="kind"]').selectOption('article');
+      await plain.getByRole('button', { name: t('public.search'), exact: true }).click();
+      await plain.locator('.vb-post').first().waitFor();
+      assert.equal(new URL(plain.url()).searchParams.get('kind'), 'article');
+      assert.ok(!(await plain.locator('main').textContent()).includes('PRIVATE'));
+    } finally {
+      await noScriptContext.close();
+    }
     if (locale === 'en') {
       for (let i = 0; i < 21; i++) {
         const key = 'page-item-' + String(i).padStart(2, '0');
@@ -376,13 +417,13 @@ export async function smokePublic({ context, origin, root, locale, t }) {
         await publish(key, saved);
       }
       await page.goto(origin + '/en/writing?q=pagination-only');
-      await page.getByRole('button', { name: t('public.next'), exact: true }).waitFor();
+      await page.getByRole('link', { name: t('public.next'), exact: true }).waitFor();
       assert.equal(await page.locator('.vb-post').count(), 20);
       const firstTitle = await page.locator('.vb-post-main b').first().textContent();
-      await page.getByRole('button', { name: t('public.next'), exact: true }).click();
+      await page.getByRole('link', { name: t('public.next'), exact: true }).click();
       await page.waitForFunction(() => document.querySelectorAll('.vb-post').length === 1);
       assert.ok(new URL(page.url()).searchParams.has('cursor'));
-      await page.getByRole('button', { name: t('public.previous'), exact: true }).click();
+      await page.getByRole('link', { name: t('public.previous'), exact: true }).click();
       await page.waitForFunction(() => document.querySelectorAll('.vb-post').length === 20);
       assert.equal(new URL(page.url()).searchParams.has('cursor'), false);
       assert.equal(new URL(page.url()).searchParams.get('q'), 'pagination-only');
