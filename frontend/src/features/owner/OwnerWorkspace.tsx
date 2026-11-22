@@ -3,35 +3,39 @@ import { Link, useLocation } from 'react-router-dom';
 import { useI18n } from '../../../../ui/src/i18n/I18nProvider';
 import { useTheme } from '../../../../ui/src/theme/ThemeProvider';
 import { Button } from '../../../../ui/src/components/primitives';
-import { Icon } from '../../../../ui/src/components/Icon';
+import { Icon, type IconName } from '../../../../ui/src/components/Icon';
 import { OwnerLanguageMenu } from './OwnerLanguageMenu';
 import { OwnerAppearanceContext, useOwnerAppearance } from './OwnerAppearance';
 import { call } from '../auth/api';
 
 const pages = [
-  'posts',
-  'collections',
-  'taxonomy',
-  'media',
-  'settings',
-  'profile',
-  'labels',
-  'security',
-  'transfer',
-  'plugins',
-] as const;
+  ['posts', 'ul'],
+  ['collections', 'folder'],
+  ['taxonomy', 'tag'],
+  ['media', 'image'],
+  ['settings', 'settings'],
+  ['profile', 'user'],
+  ['labels', 'quote'],
+  ['security', 'lock'],
+  ['transfer', 'upload'],
+  ['plugins', 'plug'],
+] as const satisfies readonly (readonly [string, IconName])[];
 
-export function OwnerNavigation({ current }: { current?: string } = {}) {
+export function OwnerNavigation({
+  current,
+  showIcons = false,
+}: { current?: string; showIcons?: boolean } = {}) {
   const { locale, t } = useI18n();
   return (
     <nav className="owner-navigation vb-nav" aria-label={t('config.owner')}>
-      {pages.map((page) => (
+      {pages.map(([page, icon]) => (
         <Link
           key={page}
           to={`/${locale}/admin/${page}`}
           aria-current={page === current ? 'page' : undefined}
         >
-          {t('owner.' + page)}
+          {showIcons && <Icon name={icon} size={16} />}
+          <span>{t('owner.' + page)}</span>
         </Link>
       ))}
     </nav>
@@ -85,6 +89,8 @@ export function OwnerWorkspace({
   const { resolved, toggle } = useTheme();
   const location = useLocation();
   const appearance = useOwnerAppearance();
+  const slate = appearance.theme === 'slate';
+  const postsHref = `/${locale}/admin/posts`;
   const [signingOut, setSigningOut] = useState(false);
   const [failed, setFailed] = useState(false);
   const path =
@@ -121,14 +127,25 @@ export function OwnerWorkspace({
         </a>
         <div className="workspace-shell">
           <header className="workspace-header">
-            <Link className="vb-brand" to={'/' + locale + '/admin/posts'}>
+            <Link className="vb-brand" to={postsHref}>
               {t('config.owner')}
             </Link>
+            {slate && (
+              <nav className="workspace-quick-links" aria-label={t('ownerAppearance.quickActions')}>
+                <Link to={`/${locale}/admin/new`}>
+                  <Icon name="plus" size={16} />
+                  {t('owner.new')}
+                </Link>
+                <a href={`/${locale}`}>{t('auth.viewSite')}</a>
+              </nav>
+            )}
             <div className="config-actions workspace-actions">
               <OwnerLanguageMenu path={path} />
-              <Button href={'/' + locale} size="sm">
-                {t('auth.viewSite')}
-              </Button>
+              {!slate && (
+                <Button href={'/' + locale} size="sm">
+                  {t('auth.viewSite')}
+                </Button>
+              )}
               <button
                 type="button"
                 className="vb-icon"
@@ -148,7 +165,12 @@ export function OwnerWorkspace({
             </div>
           </header>
           <div className="workspace-navigation">
-            <OwnerNavigation current={current} />
+            {slate && (
+              <Link className="vb-brand workspace-rail-brand" to={postsHref}>
+                {t('config.owner')}
+              </Link>
+            )}
+            <OwnerNavigation current={current} showIcons={slate} />
           </div>
           <div className="workspace-content">
             {failed && (

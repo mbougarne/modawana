@@ -187,6 +187,15 @@ test('The admin theme switches in place, persists between pages and stays indepe
     assert.equal(workspace.dataset.adminTheme, 'slate');
     assert.equal(localStorage.getItem(key), 'slate');
     assert.equal(document.documentElement.dataset.theme, 'light');
+    assert.equal(
+      workspace.querySelector('.owner-navigation').querySelectorAll('svg').length,
+      pages.length,
+    );
+    assert.deepEqual(
+      [...workspace.querySelectorAll('.workspace-quick-links a')].map((link) => link.pathname),
+      ['/en/admin/new', '/en'],
+    );
+    assert.equal(workspace.querySelector('.workspace-rail-brand').pathname, '/en/admin/posts');
     localStorage.setItem(key, 'sidebar');
     const posts = await mount('posts', 'ar');
     try {
@@ -194,10 +203,13 @@ test('The admin theme switches in place, persists between pages and stays indepe
       assert.equal(sidebar.dataset.adminTheme, 'slate');
       assert.equal(sidebar.dir, 'rtl');
       assert.deepEqual(
-        [...sidebar.querySelectorAll('nav a')].map((a) => a.pathname),
+        [...sidebar.querySelectorAll('.owner-navigation a')].map((a) => a.pathname),
         pages.map((page) => '/ar/admin/' + page),
       );
-      assert.equal(sidebar.querySelector('nav [aria-current="page"]').pathname, '/ar/admin/posts');
+      assert.equal(
+        sidebar.querySelector('.owner-navigation [aria-current="page"]').pathname,
+        '/ar/admin/posts',
+      );
     } finally {
       await posts.cleanup();
     }
@@ -216,6 +228,7 @@ test('Admin links use the client router and give unsaved changes a chance to sta
     return React.createElement('input', { defaultValue: 'Unsaved setting' });
   }
   window.history.replaceState({}, '', '/en/admin/settings');
+  localStorage.setItem('modawana.adminTheme', 'slate');
   const m = await mount('settings', 'en', {}, React.createElement(UnsavedSettings));
   const previousConfirm = window.confirm;
   let confirmed = false;
@@ -225,9 +238,10 @@ test('Admin links use the client router and give unsaved changes a chance to sta
     prompts++;
     return confirmed;
   };
-  const posts = m.el.querySelector('nav a[href="/en/admin/posts"]');
+  const newContent = m.el.querySelector('.workspace-quick-links a[href="/en/admin/new"]');
+  const posts = m.el.querySelector('.owner-navigation a[href="/en/admin/posts"]');
   try {
-    await act(async () => posts.click());
+    await act(async () => newContent.click());
     assert.equal(prompts, 1);
     assert.equal(m.router.state.location.pathname, '/en/admin/settings');
     assert.equal(m.el.querySelector('input').value, 'Unsaved setting');
@@ -240,6 +254,7 @@ test('Admin links use the client router and give unsaved changes a chance to sta
   } finally {
     window.confirm = previousConfirm;
     await m.cleanup();
+    localStorage.removeItem('modawana.adminTheme');
     window.history.replaceState({}, '', '/en/admin/posts');
   }
 });

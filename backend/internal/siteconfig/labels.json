@@ -3896,6 +3896,16 @@
       "ar": "أردواز"
     }
   },
+  "ownerAppearance.quickActions": {
+    "section": "ownerAppearance",
+    "description": "Interface text: ownerAppearance.quickActions",
+    "placeholders": [],
+    "values": {
+      "en": "Quick actions",
+      "fr": "Actions rapides",
+      "ar": "إجراءات سريعة"
+    }
+  },
   "ownerAppearance.help": {
     "section": "ownerAppearance",
     "description": "Interface text: ownerAppearance.help",

@@ -989,6 +989,7 @@ export const DEFAULT_LABELS = {
   'ownerAppearance.theme': l('Dashboard theme', 'Thème du tableau de bord', 'سمة لوحة التحكم'),
   'ownerAppearance.classic': l('Classic', 'Classique', 'كلاسيكي'),
   'ownerAppearance.slate': l('Slate', 'Ardoise', 'أردواز'),
+  'ownerAppearance.quickActions': l('Quick actions', 'Actions rapides', 'إجراءات سريعة'),
   'ownerAppearance.help': l(
     'Your dashboard theme is saved in this browser.',
     'Le thème du tableau de bord est enregistré dans ce navigateur.',

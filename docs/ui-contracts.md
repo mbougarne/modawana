@@ -24,6 +24,6 @@ The visual check requires Playwright Chromium (`cd frontend && npx playwright in
 
 ## Admin appearance
 
-Use **Settings → Admin appearance** to select **Classic** or **Slate**. Slate applies its own light and dark palettes to the dashboard, including lists, forms and the editor. Its navigation sits beside the workspace on wide screens and above it on smaller screens. Modawana saves the choice in the current browser and applies it immediately. Both themes follow the light or dark appearance preference.
+Use **Settings → Admin appearance** to select **Classic** or **Slate**. Slate applies its own light and dark palettes to the dashboard, including lists, forms and the editor. On desktop, Slate pins a full-height sidebar to the start edge and keeps quick actions in a top bar. On smaller screens, the navigation becomes a scrollable row above the content. Its compact form styling preserves the existing image picker. Modawana saves the choice in the current browser and applies it immediately. Both themes follow the light or dark appearance preference.
 
 Admin navigation switches screens without a document reload. The editor and configuration pages confirm before leaving when they contain unsaved changes.
