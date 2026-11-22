@@ -17,6 +17,8 @@ export default tseslint.config(
       '**/.test-output/**',
       '**/test-results/**',
       'build/**',
+      // AssemblyScript's WASI import annotations are parsed by asc in CI.
+      'examples/plugins/typescript/assembly/**',
       'generated_images/**',
       'internal/**',
       'design-system/prototype/**',

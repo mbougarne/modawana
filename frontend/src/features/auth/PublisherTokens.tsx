@@ -70,7 +70,7 @@ export function PublisherTokens({ csrf }: { csrf: string }) {
           />
           {t('publisher.articles')}
         </label>
-        {['draft', 'media', 'quiz', 'publish'].map((scope) => (
+        {['draft', 'media', 'quiz', 'publish', 'plugin_tools'].map((scope) => (
           <label key={scope} className={styles.actions}>
             <input
               type="checkbox"
@@ -85,7 +85,11 @@ export function PublisherTokens({ csrf }: { csrf: string }) {
           </label>
         ))}
         <Button
-          disabled={!label.trim() || !scopes.length || (!collections.trim() && !articles)}
+          disabled={
+            !label.trim() ||
+            !scopes.length ||
+            (!collections.trim() && !articles && scopes.some((scope) => scope !== 'plugin_tools'))
+          }
           onClick={() =>
             void run(async () => {
               const result = await call<Token>(
@@ -130,8 +134,13 @@ export function PublisherTokens({ csrf }: { csrf: string }) {
             <div>
               <strong>{token.label}</strong>
               <p>
-                {token.scopes.map((s) => t('publisher.' + s)).join(' · ')} ·{' '}
-                <bdi>{token.collections.join(', ')}</bdi>
+                {token.scopes.map((s) => t('publisher.' + s)).join(' · ')}
+                {token.collections.length > 0 && (
+                  <>
+                    {' '}
+                    · <bdi>{token.collections.join(', ')}</bdi>
+                  </>
+                )}
                 {token.allow_articles ? ' · ' + t('publisher.articles') : ''}
               </p>
               <p>{t('publisher.expires', { date: date(token.expires_at) })}</p>

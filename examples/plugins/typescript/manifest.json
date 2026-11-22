@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "host_api_version": 3,
+  "slug": "typescript-example",
+  "name": "TypeScript MCP example",
+  "version": "0.1.0",
+  "module": "plugin.wasm",
+  "capabilities": ["mcp_tools"],
+  "mcp_tools": [
+    {
+      "name": "echo",
+      "description": "Echo the validated plugin invocation envelope as text.",
+      "properties": {
+        "message": { "type": "string", "description": "Text to echo." }
+      },
+      "required": ["message"]
+    }
+  ]
+}

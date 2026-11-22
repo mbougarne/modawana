@@ -20,7 +20,7 @@ import (
 
 // HostAPIVersion is the newest host API this binary serves. Manifests
 // requiring a newer version are refused at install time.
-const HostAPIVersion = 2
+const HostAPIVersion = 3
 
 // manifestSchemaVersion is the manifest document schema this binary parses.
 const manifestSchemaVersion = 1
@@ -32,8 +32,8 @@ const maxRoutes = 16
 // ErrManifest reports a manifest that failed strict validation.
 var ErrManifest = errors.New("invalid plugin manifest")
 
-// Capabilities accepted in host API 1 and 2. Content and MCP exposure are later stages.
-var supportedCapabilities = []string{"hooks", "routes", "storage", "settings", "jobs", "http_fetch", "secrets"}
+// Capabilities accepted by this host.
+var supportedCapabilities = []string{"hooks", "routes", "storage", "settings", "jobs", "http_fetch", "secrets", "mcp_tools"}
 
 var slugPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{0,63}$`)
 var hookNamePattern = regexp.MustCompile(`^[a-z0-9_]+(\.[a-z0-9_]+)+$`)
@@ -62,6 +62,7 @@ type Manifest struct {
 	Routes         []ManifestRoute `json:"routes,omitempty"`
 	Settings       []SettingField  `json:"settings,omitempty"`
 	Jobs           []ManifestJob   `json:"jobs,omitempty"`
+	MCPTools       []ManifestTool  `json:"mcp_tools,omitempty"`
 	HTTPSHosts     []string        `json:"https_hosts,omitempty"`
 	Secrets        []NamedSecret   `json:"secrets,omitempty"`
 	Migrations     []Migration     `json:"migrations,omitempty"`
@@ -140,7 +141,10 @@ func (m Manifest) validate(directory string) error {
 	if err := m.validateRoutes(); err != nil {
 		return err
 	}
-	return m.validateStageTwo()
+	if err := m.validateStageTwo(); err != nil {
+		return err
+	}
+	return m.validateTools()
 }
 
 func (m Manifest) validateCapabilities() error {

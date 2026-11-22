@@ -46,10 +46,19 @@ type Runtime struct {
 	fetchClient *http.Client
 }
 
+type invocationAccess uint8
+
+const (
+	pluginLocal invocationAccess = iota
+	pluginExternal
+	pluginReadOnly
+)
+
 type invocation struct {
 	pluginID                        string
 	manifest                        Manifest
 	externalAccess                  bool
+	readOnly                        bool
 	secretAccess                    bool
 	store                           storage
 	fetchCount                      int
@@ -112,7 +121,7 @@ func (r *Runtime) Compile(ctx context.Context, m Manifest, module []byte) (wazer
 // stdin, and returns the bounded stdout bytes. The module sees argv[0] only:
 // no environment, no filesystem preopens, and a hard deadline that closes the
 // module when it elapses.
-func (r *Runtime) invoke(ctx context.Context, p *loaded, input []byte, limit int, external bool, tx *sql.Tx) ([]byte, error) {
+func (r *Runtime) invoke(ctx context.Context, p *loaded, input []byte, limit int, access invocationAccess, tx *sql.Tx) ([]byte, error) {
 	select {
 	case p.gate <- struct{}{}:
 		defer func() { <-p.gate }()
@@ -122,7 +131,7 @@ func (r *Runtime) invoke(ctx context.Context, p *loaded, input []byte, limit int
 	if tx == nil && !p.enabled.Load() {
 		return nil, ErrInvoke
 	}
-	inv := &invocation{pluginID: p.installID, manifest: p.manifest, externalAccess: external, secretAccess: external, store: storage{db: r.storage.db, tx: tx}}
+	inv := &invocation{pluginID: p.installID, manifest: p.manifest, externalAccess: access == pluginExternal, secretAccess: access == pluginExternal, readOnly: access == pluginReadOnly, store: storage{db: r.storage.db, tx: tx}}
 	bounded, cancel := context.WithTimeout(context.WithValue(ctx, invocationKey{}, inv), invokeTimeout)
 	defer cancel()
 	stdout := &boundedBuffer{limit: limit}
@@ -181,7 +190,7 @@ func (r *Runtime) InvokeHook(ctx context.Context, p *loaded, hook string, versio
 	if err != nil {
 		return nil, err
 	}
-	return r.invoke(ctx, p, input, hookResultLimit, false, nil)
+	return r.invoke(ctx, p, input, hookResultLimit, pluginLocal, nil)
 }
 
 type routeEnvelope struct {
@@ -219,7 +228,11 @@ func (r *Runtime) InvokeRoute(ctx context.Context, p *loaded, envelope routeEnve
 		return RouteResult{}, err
 	}
 	privateWrite := envelope.Owner && (envelope.Method == "POST" || envelope.Method == "PUT" || envelope.Method == "PATCH" || envelope.Method == "DELETE")
-	out, err := r.invoke(ctx, p, input, routeBodyLimit+(4<<10), privateWrite, nil)
+	access := pluginLocal
+	if privateWrite {
+		access = pluginExternal
+	}
+	out, err := r.invoke(ctx, p, input, routeBodyLimit+(4<<10), access, nil)
 	if err != nil {
 		return RouteResult{}, err
 	}
@@ -306,6 +319,14 @@ func guarded(ctx context.Context, name string) (*invocation, bool) {
 	if !inv.manifest.Capability(hostFunctionCapability[name]) {
 		deny(inv, name)
 		return inv, false
+	}
+	if inv.readOnly {
+		switch name {
+		case "kv_get", "doc_get":
+		default:
+			deny(inv, name)
+			return inv, false
+		}
 	}
 	return inv, true
 }
@@ -492,6 +513,10 @@ func (r *Runtime) invokeTask(ctx context.Context, p *loaded, kind, name string, 
 	if err != nil {
 		return ErrInvoke
 	}
-	_, err = r.invoke(ctx, p, input, hookResultLimit, kind == "job", tx)
+	access := pluginLocal
+	if kind == "job" {
+		access = pluginExternal
+	}
+	_, err = r.invoke(ctx, p, input, hookResultLimit, access, tx)
 	return err
 }

@@ -17,8 +17,8 @@ import (
 	"time"
 )
 
-// This adapter deliberately delegates every operation to the publisher HTTP
-// boundary, including its transactional scope checks and idempotency ledger.
+// Built-in tools delegate to the publisher HTTP boundary. Plugin tools
+// receive only validated arguments and require a separate publisher grant.
 const mcpPath = "/api/v1/publisher/mcp"
 const mcpVersion = "2026-07-28"
 
@@ -50,7 +50,8 @@ func (d *Domain) mcpRoutes(w http.ResponseWriter, r *http.Request) bool {
 		writeError(w, Forbidden)
 		return true
 	}
-	if _, err := d.Auth.PublisherRequest(r); err != nil {
+	token, err := d.Auth.PublisherRequest(r)
+	if err != nil {
 		w.Header().Set("WWW-Authenticate", `Bearer resource_metadata="`+d.Auth.Config.BaseURL+`/.well-known/oauth-protected-resource", scope="publisher offline_access"`)
 		domainError(w, err)
 		return true
@@ -176,9 +177,9 @@ func (d *Domain) mcpRoutes(w http.ResponseWriter, r *http.Request) bool {
 			reply(400, -32602, request.ID, "Invalid cursor", nil)
 			return true
 		}
-		result = map[string]any{"tools": d.mcpTools()}
+		result = map[string]any{"tools": d.mcpTools(token.PluginTools)}
 	case "tools/call":
-		result, err = d.mcpCall(r, params.Name, params.Arguments)
+		result, err = d.mcpCall(r, params.Name, params.Arguments, token.PluginTools)
 		if err != nil {
 			reply(400, -32602, request.ID, "Unknown tool or invalid arguments", nil)
 			return true
@@ -205,26 +206,31 @@ func (w *mcpCapture) Header() http.Header    { return w.header }
 func (w *mcpCapture) WriteHeader(status int) { w.status = status }
 
 // mcpTools lists every registered tool's definition, in registration order.
-func (d *Domain) mcpTools() []any {
+func (d *Domain) mcpTools(pluginTools bool) []any {
 	registered := d.extensions().MCPTools()
 	tools := make([]any, 0, len(registered))
 	for _, tool := range registered {
-		tools = append(tools, tool.Definition())
+		if !tool.RequiresPluginScope || pluginTools {
+			tools = append(tools, tool.Definition())
+		}
 	}
 	return tools
 }
 
 type mcpRequestKey struct{}
 
-func (d *Domain) mcpCall(r *http.Request, name string, raw json.RawMessage) (map[string]any, error) {
+func (d *Domain) mcpCall(r *http.Request, name string, raw json.RawMessage, pluginTools bool) (map[string]any, error) {
 	// Enforce each advertised tool's argument names and required fields before
 	// decoding the common envelope. Never silently ignore fields from another tool.
+	if len(raw) == 0 {
+		raw = json.RawMessage(`{}`)
+	}
 	var fields map[string]json.RawMessage
-	if json.Unmarshal(raw, &fields) != nil {
+	if json.Unmarshal(raw, &fields) != nil || fields == nil {
 		return nil, io.ErrUnexpectedEOF
 	}
 	tool, known := d.extensions().MCPTool(name)
-	if !known {
+	if !known || tool.RequiresPluginScope && !pluginTools {
 		return nil, io.ErrUnexpectedEOF
 	}
 	for key := range fields {
@@ -237,7 +243,11 @@ func (d *Domain) mcpCall(r *http.Request, name string, raw json.RawMessage) (map
 			return nil, io.ErrUnexpectedEOF
 		}
 	}
-	encoded, err := tool.Call(context.WithValue(r.Context(), mcpRequestKey{}, r), raw)
+	ctx := r.Context()
+	if !tool.RequiresPluginScope {
+		ctx = context.WithValue(ctx, mcpRequestKey{}, r)
+	}
+	encoded, err := tool.Call(ctx, raw)
 	if err != nil {
 		return nil, err
 	}

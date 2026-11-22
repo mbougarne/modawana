@@ -4,8 +4,8 @@
 
 The server can load owner-approved WebAssembly (WASI) plugins, per
 [ADR 0001](decisions/0001-wasm-plugin-host.md). This page documents the
-manifest, owner approval flow, and host APIs 1 and 2. Plugins use Go compiled with
-`GOOS=wasip1 GOARCH=wasm`; the TypeScript toolchain is a later stage.
+manifest, owner approval flow, and host APIs 1–3. Plugins can use Go compiled
+with `GOOS=wasip1 GOARCH=wasm` or the AssemblyScript example below.
 
 ## Directory layout
 
@@ -44,9 +44,9 @@ refused, as are more than 256 files or 64 MiB in total.
 ```
 
 - `host_api_version` names the host API the plugin requires. This binary
-  serves versions 1 and 2 and refuses newer requirements.
-- Both APIs accept `hooks`, `routes`, and `storage`. API 2 adds the capabilities
-  documented below. A plugin declares each capability it uses.
+  serves versions 1–3 and refuses newer requirements.
+- All three APIs accept `hooks`, `routes`, and `storage`. APIs 2 and 3 add the
+  capabilities documented below. A plugin declares each capability it uses.
 - `hooks` subscribes to named hook points with a contract version
   (at most 16).
 - `routes` declares handlers the host mounts under `/plugins/{slug}{path}`
@@ -66,7 +66,7 @@ Nothing executes before approval. From the dashboard **Plugins** page
    SHA-256 checksum of every file in SQLite. The plugin stays disabled.
 2. **Enable** verifies the files still match the approved checksums, refuses
    any host-function import whose capability the manifest does not declare,
-   and only then registers the plugin's hooks and routes. **Disable** unloads
+   and only then registers its hooks, routes, jobs, and tools. **Disable** unloads
    it immediately; a disabled plugin never runs.
 3. Changing any file on disk moves the plugin to **Files changed since
    approval**: it will not load again until the owner re-approves, and the
@@ -184,7 +184,8 @@ the buffered response without issuing the request again.
 Both functions return a length or the existing negative host status codes.
 They are available to scheduled jobs and to owner write routes that passed
 the Origin and CSRF checks. Public routes, read-only routes, hooks and
-migrations receive neither capability during their invocation.
+migrations receive neither capability during their invocation. MCP tools are
+read-only and also receive neither capability.
 
 ### Owner API and recovery
 
@@ -200,5 +201,63 @@ checksums, plus plugin data and settings history. They omit plugin secret
 values. Restore verifies the files and disables plugins with missing files.
 Re-enter their secrets before resuming integrations that need credentials.
 
-Plugin-managed content reads, MCP tools, public static assets, and archive
-signatures remain outside this API version.
+Plugin-managed content reads, public static assets, and archive signatures
+remain outside these API versions.
+
+## Stage 3 MCP tools
+
+Set `host_api_version` to 3 and declare the `mcp_tools` capability. The
+`mcp_tools` array describes up to eight tools. See the
+[example manifest](../examples/plugins/typescript/manifest.json).
+
+- Each tool has a local `name`, a `description`, a `properties` object, and
+  optional `required` property names. The properties can be string, integer
+  (signed 32-bit), number, or boolean. A tool can declare up to 16 properties.
+- The MCP name is `{slug}__{name}`. Only authenticated credentials with
+  the `plugin_tools` publisher permission can discover or call these tools.
+  Issue a token with just this permission when it needs only plugin tools.
+  The grant covers all enabled plugin tools. Standard publisher tools keep
+  enforcing their own scopes and content restrictions.
+- The command receives an envelope such as
+  `{"api":3,"kind":"mcp","tool":"echo","arguments":{"message":"Hello"}}`.
+  Arguments must match the declared properties. The host rejects unknown
+  fields, nulls, and payloads above 16 KiB. String arguments can have up to
+  4096 characters. The guest receives no HTTP request or credential.
+- Return UTF-8 text on stdout up to 64 KiB. The host wraps it as MCP text
+  content. Traps, timeouts, and attempted writes or network access return a
+  tool error. A tool may read its own plugin's storage. It cannot change
+  storage, read secrets, or fetch HTTPS resources.
+
+### AssemblyScript example
+
+The sample uses AssemblyScript, a subset of TypeScript compiled to Wasm.
+It uses a small WASI stdin/stdout adapter. It does not require a JavaScript
+runtime in the server.
+
+```sh
+npm ci --prefix examples/plugins/typescript
+npm run build --prefix examples/plugins/typescript
+```
+
+Copy `build/plugins/typescript-example/` to the server's plugin directory,
+approve and enable it, and call `typescript-example__echo` with a token
+that has `plugin_tools`. CI builds and runs this module through the host.
+
+### First-party extensions
+
+The [social-card metadata selector](../backend/cmd/plugin-social-cards/main.go)
+is also available as a Wasm module. It implements the same hook with the
+same selector as the built-in extension.
+
+```sh
+mkdir -p build/plugins/social-cards-wasm
+(cd backend && GOOS=wasip1 GOARCH=wasm go build -o ../build/plugins/social-cards-wasm/plugin.wasm ./cmd/plugin-social-cards)
+cp backend/cmd/plugin-social-cards/manifest.json build/plugins/social-cards-wasm/
+```
+
+Approve and enable that directory to run the Wasm selector on the public
+metadata hook. The host still controls public media access and result sanitization.
+
+[Notion delivery and lesson scheduling](integrations/remote-publishing.md#in-process-extensions)
+are opt-in native extensions. They reuse the publisher's scoped API,
+durable state, and longer external request budgets.

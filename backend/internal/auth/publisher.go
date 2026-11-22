@@ -11,6 +11,8 @@ import (
 	"unicode/utf8"
 )
 
+const pluginToolsScope = "plugin_tools"
+
 type TokenInput struct {
 	Label         string   `json:"label"`
 	Scopes        []string `json:"scopes"`
@@ -21,6 +23,7 @@ type TokenInput struct {
 type PublisherToken struct {
 	ID            string   `json:"id"`
 	OAuthHash     string   `json:"-"`
+	PluginTools   bool     `json:"-"`
 	Owner         string   `json:"-"`
 	Label         string   `json:"label"`
 	Expires       string   `json:"expires_at"`
@@ -36,10 +39,10 @@ func (s *Service) CreatePublisherToken(ctx context.Context, session Session, in 
 	if strings.TrimSpace(in.Label) == "" || utf8.RuneCountInString(in.Label) > 120 {
 		return out, tokenField("security.token_label", "token_label")
 	}
-	if len(in.Scopes) < 1 || len(in.Scopes) > 4 {
+	if len(in.Scopes) < 1 || len(in.Scopes) > 5 {
 		return out, tokenField("security.token_scopes", "token_scope")
 	}
-	if len(in.Collections) > 50 || len(in.Collections) == 0 && !in.AllowArticles {
+	if len(in.Collections) > 50 || len(in.Collections) == 0 && !in.AllowArticles && !(len(in.Scopes) == 1 && in.Scopes[0] == pluginToolsScope) {
 		return out, tokenField("security.token_collections", "token_collection")
 	}
 	if in.Days < 1 || in.Days > 365 {
@@ -47,7 +50,7 @@ func (s *Service) CreatePublisherToken(ctx context.Context, session Session, in 
 	}
 	seen := map[string]bool{}
 	for _, scope := range in.Scopes {
-		if seen[scope] || (scope != "draft" && scope != "media" && scope != "quiz" && scope != "publish") {
+		if seen[scope] || (scope != "draft" && scope != "media" && scope != "quiz" && scope != "publish" && scope != pluginToolsScope) {
 			return out, tokenField("security.token_scopes", "token_scope")
 		}
 		seen[scope] = true
@@ -119,7 +122,7 @@ func (s *Service) PublisherRequest(r *http.Request) (PublisherToken, error) {
 	if !strings.HasPrefix(r.Header.Get("Authorization"), "Bearer ") || !validSecret(raw) || r.URL.RawQuery != "" {
 		return out, ErrAuth
 	}
-	e := s.DB.QueryRowContext(r.Context(), "SELECT id,owner_id,label,expires_at,allow_articles FROM api_tokens WHERE token_hash=? AND revoked_at IS NULL AND expires_at>?", digest(raw), s.now()).Scan(&out.ID, &out.Owner, &out.Label, &out.Expires, &out.AllowArticles)
+	e := s.DB.QueryRowContext(r.Context(), `SELECT t.id,t.owner_id,t.label,t.expires_at,t.allow_articles,EXISTS(SELECT 1 FROM api_token_scopes s WHERE s.token_id=t.id AND s.scope=?) FROM api_tokens t WHERE t.token_hash=? AND t.revoked_at IS NULL AND t.expires_at>?`, pluginToolsScope, digest(raw), s.now()).Scan(&out.ID, &out.Owner, &out.Label, &out.Expires, &out.AllowArticles, &out.PluginTools)
 	if errors.Is(e, sql.ErrNoRows) {
 		return s.oauthPublisher(r, raw)
 	}

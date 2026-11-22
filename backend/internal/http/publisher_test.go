@@ -97,6 +97,32 @@ func testPublisherIsolation(t *testing.T, mcp string) {
 			server.ServeHTTP(w, r)
 			return w
 		}
+		if e := domain.extensions().Install(echoTool{scoped: true}); e != nil {
+			t.Fatal(e)
+		}
+		list := `{"jsonrpc":"2.0","id":1,"method":"tools/list"}`
+		call := `{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"echo_tool","arguments":{"value":"sample"}}}`
+		if w := probe(list, nil); w.Code != 200 || strings.Contains(w.Body.String(), "echo_tool") {
+			t.Fatal("unscoped discovery", w.Code, w.Body.String())
+		}
+		if w := probe(call, nil); w.Code != 400 {
+			t.Fatal("unscoped invocation", w.Code, w.Body.String())
+		}
+		if _, e := database.Exec("INSERT INTO api_token_scopes VALUES(?,'plugin_tools')", token); e != nil {
+			t.Fatal(e)
+		}
+		if w := probe(list, nil); w.Code != 200 || !strings.Contains(w.Body.String(), "echo_tool") {
+			t.Fatal("scoped discovery", w.Code, w.Body.String())
+		}
+		if w := probe(call, nil); w.Code != 200 || !strings.Contains(w.Body.String(), "sample") {
+			t.Fatal("scoped invocation", w.Code, w.Body.String())
+		}
+		if _, e := database.Exec("DELETE FROM api_token_scopes WHERE token_id=? AND scope='plugin_tools'", token); e != nil {
+			t.Fatal(e)
+		}
+		if w := probe(call, nil); w.Code != 400 {
+			t.Fatal("removed scope still accepted", w.Code, w.Body.String())
+		}
 		legacy := `{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"test","version":"1"}}}`
 		if w := probe(legacy, nil); w.Code != 200 || !strings.Contains(w.Body.String(), "protocolVersion") {
 			t.Fatal(w.Code, w.Body.String())

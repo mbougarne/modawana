@@ -35,7 +35,7 @@ func (s *Service) oauthPublisher(r *http.Request, raw string) (PublisherToken, e
 	if r.URL.Path != MCPResourcePath && !internal {
 		return out, ErrAuth
 	}
-	e := s.DB.QueryRowContext(r.Context(), `SELECT t.id,t.owner_id,t.label,t.expires_at,t.allow_articles,g.access_hash FROM oauth_grants g JOIN api_tokens t ON t.id=g.token_id JOIN owner o ON o.id=t.owner_id WHERE g.access_hash=? AND g.revoked=0 AND g.access_expires>? AND g.expires_at>? AND g.auth_version=o.auth_version AND t.revoked_at IS NULL AND t.expires_at>?`, digest(raw), s.now(), s.now(), s.now()).Scan(&out.ID, &out.Owner, &out.Label, &out.Expires, &out.AllowArticles, &out.OAuthHash)
+	e := s.DB.QueryRowContext(r.Context(), `SELECT t.id,t.owner_id,t.label,t.expires_at,t.allow_articles,g.access_hash,EXISTS(SELECT 1 FROM api_token_scopes s WHERE s.token_id=t.id AND s.scope=?) FROM oauth_grants g JOIN api_tokens t ON t.id=g.token_id JOIN owner o ON o.id=t.owner_id WHERE g.access_hash=? AND g.revoked=0 AND g.access_expires>? AND g.expires_at>? AND g.auth_version=o.auth_version AND t.revoked_at IS NULL AND t.expires_at>?`, pluginToolsScope, digest(raw), s.now(), s.now(), s.now()).Scan(&out.ID, &out.Owner, &out.Label, &out.Expires, &out.AllowArticles, &out.OAuthHash, &out.PluginTools)
 	if e != nil {
 		return PublisherToken{}, ErrAuth
 	}

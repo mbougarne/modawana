@@ -1605,6 +1605,16 @@
       "ar": "وجهات HTTPS المسموح بها"
     }
   },
+  "plugins.mcpTools": {
+    "section": "plugins",
+    "description": "Interface text: plugins.mcpTools",
+    "placeholders": [],
+    "values": {
+      "en": "MCP tools",
+      "fr": "Outils MCP",
+      "ar": "أدوات MCP"
+    }
+  },
   "plugins.jobs": {
     "section": "plugins",
     "description": "Interface text: plugins.jobs",
@@ -8546,6 +8556,16 @@
       "en": "Upload content media",
       "fr": "Téléverser les médias du contenu",
       "ar": "رفع وسائط المحتوى"
+    }
+  },
+  "publisher.plugin_tools": {
+    "section": "publisher",
+    "description": "Interface text: publisher.plugin_tools",
+    "placeholders": [],
+    "values": {
+      "en": "Use enabled plugins’ read-only MCP tools",
+      "fr": "Utiliser les outils MCP en lecture seule des extensions actives",
+      "ar": "استخدام أدوات MCP للقراءة فقط في الإضافات المفعّلة"
     }
   },
   "publisher.quiz": {
