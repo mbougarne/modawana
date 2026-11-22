@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"sync"
 	"time"
 
@@ -39,15 +40,22 @@ var ErrInvoke = errors.New("plugin invocation failed")
 // functions. Modules run with no preopened directories, no sockets, and no
 // environment; the only effects reach the host through modawana_v1 imports.
 type Runtime struct {
-	wazero  wazero.Runtime
-	storage storage
+	wazero      wazero.Runtime
+	storage     storage
+	keySource   func() ([]byte, error)
+	fetchClient *http.Client
 }
 
 type invocation struct {
-	pluginID     string
-	capabilities func(string) bool
-	mu           sync.Mutex
-	violation    string
+	pluginID                        string
+	manifest                        Manifest
+	externalAccess                  bool
+	secretAccess                    bool
+	store                           storage
+	fetchCount                      int
+	pendingRequest, pendingResponse []byte
+	mu                              sync.Mutex
+	violation                       string
 }
 
 type invocationKey struct{}
@@ -60,7 +68,7 @@ func current(ctx context.Context) *invocation {
 // NewRuntime builds the shared engine. Close releases its resources.
 func NewRuntime(ctx context.Context, database *sql.DB) (*Runtime, error) {
 	config := wazero.NewRuntimeConfig().WithCloseOnContextDone(true).WithMemoryLimitPages(memoryLimitPages)
-	r := &Runtime{wazero: wazero.NewRuntimeWithConfig(ctx, config), storage: storage{db: database}}
+	r := &Runtime{wazero: wazero.NewRuntimeWithConfig(ctx, config), storage: storage{db: database}, fetchClient: newFetchClient()}
 	if _, err := wasi_snapshot_preview1.Instantiate(ctx, r.wazero); err != nil {
 		_ = r.wazero.Close(ctx)
 		return nil, err
@@ -104,14 +112,17 @@ func (r *Runtime) Compile(ctx context.Context, m Manifest, module []byte) (wazer
 // stdin, and returns the bounded stdout bytes. The module sees argv[0] only:
 // no environment, no filesystem preopens, and a hard deadline that closes the
 // module when it elapses.
-func (r *Runtime) invoke(ctx context.Context, p *loaded, input []byte, limit int) ([]byte, error) {
+func (r *Runtime) invoke(ctx context.Context, p *loaded, input []byte, limit int, external bool, tx *sql.Tx) ([]byte, error) {
 	select {
 	case p.gate <- struct{}{}:
 		defer func() { <-p.gate }()
 	case <-ctx.Done():
 		return nil, fmt.Errorf("%w: canceled", ErrInvoke)
 	}
-	inv := &invocation{pluginID: p.installID, capabilities: p.manifest.Capability}
+	if tx == nil && !p.enabled.Load() {
+		return nil, ErrInvoke
+	}
+	inv := &invocation{pluginID: p.installID, manifest: p.manifest, externalAccess: external, secretAccess: external, store: storage{db: r.storage.db, tx: tx}}
 	bounded, cancel := context.WithTimeout(context.WithValue(ctx, invocationKey{}, inv), invokeTimeout)
 	defer cancel()
 	stdout := &boundedBuffer{limit: limit}
@@ -151,31 +162,37 @@ func invokeReason(ctx context.Context, err error) string {
 }
 
 type hookEnvelope struct {
-	API         int             `json:"api"`
-	Kind        string          `json:"kind"`
-	Hook        string          `json:"hook"`
-	HookVersion int             `json:"hook_version"`
-	Payload     json.RawMessage `json:"payload"`
+	API         int                        `json:"api"`
+	Kind        string                     `json:"kind"`
+	Hook        string                     `json:"hook"`
+	HookVersion int                        `json:"hook_version"`
+	Payload     json.RawMessage            `json:"payload"`
+	Settings    map[string]json.RawMessage `json:"settings,omitempty"`
 }
 
 // InvokeHook exchanges the same bounded JSON bytes the stage 0 registries use:
 // the payload passes through unchanged and stdout is the hook result.
 func (r *Runtime) InvokeHook(ctx context.Context, p *loaded, hook string, version int, payload []byte) ([]byte, error) {
-	input, err := json.Marshal(hookEnvelope{API: p.manifest.HostAPIVersion, Kind: "hook", Hook: hook, HookVersion: version, Payload: payload})
+	settings, err := r.invocationSettings(ctx, p)
 	if err != nil {
 		return nil, err
 	}
-	return r.invoke(ctx, p, input, hookResultLimit)
+	input, err := json.Marshal(hookEnvelope{Settings: settings, API: p.manifest.HostAPIVersion, Kind: "hook", Hook: hook, HookVersion: version, Payload: payload})
+	if err != nil {
+		return nil, err
+	}
+	return r.invoke(ctx, p, input, hookResultLimit, false, nil)
 }
 
 type routeEnvelope struct {
-	API    int                 `json:"api"`
-	Kind   string              `json:"kind"`
-	Method string              `json:"method"`
-	Path   string              `json:"path"`
-	Query  map[string][]string `json:"query,omitempty"`
-	Owner  bool                `json:"owner"`
-	Body   string              `json:"body,omitempty"`
+	API      int                        `json:"api"`
+	Kind     string                     `json:"kind"`
+	Method   string                     `json:"method"`
+	Path     string                     `json:"path"`
+	Query    map[string][]string        `json:"query,omitempty"`
+	Owner    bool                       `json:"owner"`
+	Body     string                     `json:"body,omitempty"`
+	Settings map[string]json.RawMessage `json:"settings,omitempty"`
 }
 
 // RouteResult is a plugin route response after host validation. The host
@@ -192,11 +209,17 @@ var routeContentTypes = map[string]bool{"application/json": true, "text/plain": 
 func (r *Runtime) InvokeRoute(ctx context.Context, p *loaded, envelope routeEnvelope) (RouteResult, error) {
 	envelope.API = p.manifest.HostAPIVersion
 	envelope.Kind = "route"
+	var err error
+	envelope.Settings, err = r.invocationSettings(ctx, p)
+	if err != nil {
+		return RouteResult{}, err
+	}
 	input, err := json.Marshal(envelope)
 	if err != nil {
 		return RouteResult{}, err
 	}
-	out, err := r.invoke(ctx, p, input, routeBodyLimit+(4<<10))
+	privateWrite := envelope.Owner && (envelope.Method == "POST" || envelope.Method == "PUT" || envelope.Method == "PATCH" || envelope.Method == "DELETE")
+	out, err := r.invoke(ctx, p, input, routeBodyLimit+(4<<10), privateWrite, nil)
 	if err != nil {
 		return RouteResult{}, err
 	}
@@ -235,6 +258,7 @@ func (b *boundedBuffer) Write(p []byte) (int, error) {
 var hostFunctionCapability = map[string]string{
 	"kv_get": "storage", "kv_set": "storage", "kv_delete": "storage",
 	"doc_get": "storage", "doc_put": "storage", "doc_delete": "storage",
+	"secret_get": "secrets", "http_fetch": "http_fetch",
 }
 
 // Result codes shared with plugins. Non-negative values are lengths.
@@ -279,7 +303,7 @@ func guarded(ctx context.Context, name string) (*invocation, bool) {
 	if inv == nil {
 		return nil, false
 	}
-	if !inv.capabilities(hostFunctionCapability[name]) {
+	if !inv.manifest.Capability(hostFunctionCapability[name]) {
 		deny(inv, name)
 		return inv, false
 	}
@@ -316,7 +340,7 @@ func (r *Runtime) instantiateHostModule(ctx context.Context) error {
 		if !ok {
 			return codeInvalid
 		}
-		value, err := r.storage.kvGet(ctx, inv.pluginID, string(key))
+		value, err := inv.store.kvGet(ctx, inv.pluginID, string(key))
 		if err != nil {
 			return storageCode(err)
 		}
@@ -332,7 +356,7 @@ func (r *Runtime) instantiateHostModule(ctx context.Context) error {
 		if !okKey || !okValue {
 			return codeInvalid
 		}
-		return storageCode(r.storage.kvSet(ctx, inv.pluginID, string(key), value))
+		return storageCode(inv.store.kvSet(ctx, inv.pluginID, string(key), value))
 	}).Export("kv_set")
 	builder.NewFunctionBuilder().WithFunc(func(ctx context.Context, m api.Module, keyPtr, keyLen uint32) int32 {
 		inv, ok := guarded(ctx, "kv_delete")
@@ -343,7 +367,7 @@ func (r *Runtime) instantiateHostModule(ctx context.Context) error {
 		if !ok {
 			return codeInvalid
 		}
-		return storageCode(r.storage.kvDelete(ctx, inv.pluginID, string(key)))
+		return storageCode(inv.store.kvDelete(ctx, inv.pluginID, string(key)))
 	}).Export("kv_delete")
 	builder.NewFunctionBuilder().WithFunc(func(ctx context.Context, m api.Module, colPtr, colLen, idPtr, idLen, bufPtr, bufCap uint32) int32 {
 		inv, ok := guarded(ctx, "doc_get")
@@ -355,7 +379,7 @@ func (r *Runtime) instantiateHostModule(ctx context.Context) error {
 		if !okCol || !okID {
 			return codeInvalid
 		}
-		body, err := r.storage.docGet(ctx, inv.pluginID, string(collection), string(id))
+		body, err := inv.store.docGet(ctx, inv.pluginID, string(collection), string(id))
 		if err != nil {
 			return storageCode(err)
 		}
@@ -372,7 +396,7 @@ func (r *Runtime) instantiateHostModule(ctx context.Context) error {
 		if !okCol || !okID || !okBody {
 			return codeInvalid
 		}
-		return storageCode(r.storage.docPut(ctx, inv.pluginID, string(collection), string(id), body))
+		return storageCode(inv.store.docPut(ctx, inv.pluginID, string(collection), string(id), body))
 	}).Export("doc_put")
 	builder.NewFunctionBuilder().WithFunc(func(ctx context.Context, m api.Module, colPtr, colLen, idPtr, idLen uint32) int32 {
 		inv, ok := guarded(ctx, "doc_delete")
@@ -384,8 +408,90 @@ func (r *Runtime) instantiateHostModule(ctx context.Context) error {
 		if !okCol || !okID {
 			return codeInvalid
 		}
-		return storageCode(r.storage.docDelete(ctx, inv.pluginID, string(collection), string(id)))
+		return storageCode(inv.store.docDelete(ctx, inv.pluginID, string(collection), string(id)))
 	}).Export("doc_delete")
+	builder.NewFunctionBuilder().WithFunc(func(ctx context.Context, m api.Module, namePtr, nameLen, bufPtr, bufCap uint32) int32 {
+		inv, ok := guarded(ctx, "secret_get")
+		if !ok || !inv.secretAccess {
+			return codeDenied
+		}
+		if nameLen > 48 {
+			return codeInvalid
+		}
+		name, ok := readMemory(m, namePtr, nameLen)
+		if !ok {
+			return codeInvalid
+		}
+		value, err := r.readSecret(ctx, inv, string(name))
+		if err != nil {
+			return storageCode(err)
+		}
+		return respond(m, bufPtr, bufCap, value)
+	}).Export("secret_get")
+	builder.NewFunctionBuilder().WithFunc(func(ctx context.Context, m api.Module, reqPtr, reqLen, bufPtr, bufCap uint32) int32 {
+		inv, ok := guarded(ctx, "http_fetch")
+		if !ok || !inv.externalAccess {
+			return codeDenied
+		}
+		if reqLen > fetchInputLimit {
+			return codeInvalid
+		}
+		raw, ok := readMemory(m, reqPtr, reqLen)
+		if !ok {
+			return codeInvalid
+		}
+		// A retry with a larger buffer retrieves the first response instead of
+		// issuing a duplicate outbound request.
+		if inv.pendingRequest != nil {
+			if !bytes.Equal(raw, inv.pendingRequest) {
+				return codeInvalid
+			}
+		} else {
+			if inv.fetchCount >= 4 {
+				return codeQuota
+			}
+			inv.fetchCount++
+			out, err := r.fetch(ctx, inv, raw)
+			if err != nil {
+				return storageCode(err)
+			}
+			inv.pendingRequest, inv.pendingResponse = bytes.Clone(raw), out
+		}
+		n := respond(m, bufPtr, bufCap, inv.pendingResponse)
+		if n >= 0 && uint32(n) <= bufCap {
+			inv.pendingRequest, inv.pendingResponse = nil, nil
+		}
+		return n
+	}).Export("http_fetch")
 	_, err := builder.Instantiate(ctx)
+	return err
+}
+
+func (r *Runtime) invocationSettings(ctx context.Context, p *loaded) (map[string]json.RawMessage, error) {
+	if !p.manifest.Capability("settings") {
+		return nil, nil
+	}
+	return readPluginSettings(ctx, r.storage.db, p.installID, p.manifest)
+}
+
+func (r *Runtime) invokeTask(ctx context.Context, p *loaded, kind, name string, tx *sql.Tx) error {
+	var settings map[string]json.RawMessage
+	if tx == nil {
+		var err error
+		settings, err = r.invocationSettings(ctx, p)
+		if err != nil {
+			return ErrInvoke
+		}
+	}
+	input, err := json.Marshal(struct {
+		API      int                        `json:"api"`
+		Kind     string                     `json:"kind"`
+		Name     string                     `json:"name"`
+		Settings map[string]json.RawMessage `json:"settings,omitempty"`
+	}{p.manifest.HostAPIVersion, kind, name, settings})
+	if err != nil {
+		return ErrInvoke
+	}
+	_, err = r.invoke(ctx, p, input, hookResultLimit, kind == "job", tx)
 	return err
 }

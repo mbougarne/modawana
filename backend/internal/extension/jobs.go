@@ -25,6 +25,7 @@ type Job struct {
 	Run func(ctx context.Context) error
 
 	slug string
+	stop context.CancelFunc
 }
 
 // Jobs returns the registered jobs in installation order.
@@ -34,19 +35,39 @@ func (h *Host) Jobs() []Job {
 	return append([]Job(nil), h.jobs...)
 }
 
-// RunJobs runs every registered job on its own schedule until ctx is
-// canceled, recording each outcome. Install every extension before calling
-// it: jobs registered afterwards are not picked up.
+type jobRunner struct {
+	ctx context.Context
+	wg  sync.WaitGroup
+}
+
+func (r *jobRunner) start(h *Host, job Job) context.CancelFunc {
+	ctx, stop := context.WithCancel(r.ctx)
+	r.wg.Add(1)
+	go func() {
+		defer r.wg.Done()
+		h.runJob(ctx, job)
+	}()
+	return stop
+}
+
+// RunJobs follows the live job registry until the server context ends.
 func (h *Host) RunJobs(ctx context.Context) {
-	var group sync.WaitGroup
-	for _, job := range h.Jobs() {
-		group.Add(1)
-		go func() {
-			defer group.Done()
-			h.runJob(ctx, job)
-		}()
+	runner := &jobRunner{ctx: ctx}
+	h.mu.Lock()
+	if h.jobRunner != nil {
+		h.mu.Unlock()
+		return
 	}
-	group.Wait()
+	h.jobRunner = runner
+	for i, job := range h.jobs {
+		h.jobs[i].stop = runner.start(h, job)
+	}
+	h.mu.Unlock()
+	<-ctx.Done()
+	h.mu.Lock()
+	h.jobRunner = nil
+	h.mu.Unlock()
+	runner.wg.Wait()
 }
 
 func (h *Host) runJob(ctx context.Context, job Job) {
@@ -60,8 +81,14 @@ func (h *Host) runJob(ctx context.Context, job Job) {
 			return
 		case <-timer.C:
 		}
+		if ctx.Err() != nil {
+			return
+		}
 		started := time.Now()
 		err := runJobOnce(ctx, job)
+		if ctx.Err() != nil {
+			return
+		}
 		delay = nextJobDelay(delay, job, err != nil, failed)
 		failed = err != nil
 		if err != nil {

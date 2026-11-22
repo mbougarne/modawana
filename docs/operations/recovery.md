@@ -12,6 +12,10 @@ answers. The separate 32-byte `BLOG_AUTH_KEY_FILE` is deliberately excluded. Bac
 that key in a separate encrypted offline location, with the age decryption identity
 and independent passkey/recovery instructions. Never commit these secrets.
 
+Backups also include checksum-matching plugin files, plugin settings and plugin
+data. Plugin secret values are excluded. Re-enter secrets after restore.
+A plugin without its approved files is restored disabled. [Plugin recovery](../plugins.md#owner-api-and-recovery)
+
 Target RPO is **24 hours**, contingent on successful daily off-server transfer.
 Install age, rsync, OpenSSH and GNU coreutils/findutils/flock on the Linux operator
 host. Configure `BLOG_BINARY` (absolute native executable), normal BLOG environment,
@@ -73,6 +77,10 @@ credential revocation. The real-server browser drill covers maintenance denial,
 virtual passkey re-enrollment and reopening; it does not prove physical-key support.
 
 ## العربية
+
+تشمل النسخ الاحتياطية ملفات الإضافات المطابقة لبصماتها وإعداداتها وبياناتها.
+تُستبعد قيم الأسرار. أدخلها مجدداً بعد الاستعادة. تُستعاد الإضافة معطلة
+إذا غابت ملفاتها المعتمدة. [استعادة الإضافات](../plugins.ar.md#واجهة-المالك-والاستعادة)
 
 لا يُعد تصدير المحتوى بديلاً عن خطة التعافي من الكوارث (disaster recovery). يقوم الأمر `blog backup --file /private/snapshot.zip` بالاعتماد على واجهة النسخ الاحتياطي الحي في SQLite، ثم ينسخ كافة المراجعات والوسائط المحفوظة والمشار إليها تحت حماية قفل صيانة التخزين الحصري. يتضمن الأرشيف المضغوط (ZIP) تاريخ مخطط البيانات، وأحجام الملفات، وبصمات التجزئة؛ ويحتوي على سجلات بيانات اعتماد المالك وإجابات الاختبارات الخاصة؛ لذا يجب الحفاظ على سريته التامة. ولا يتضمن الأرشيف ملف مفتاح التشفير المنفصل ذي 32 بايت والمحدد في `BLOG_AUTH_KEY_FILE`؛ حيث يجب أخذ نسخة احتياطية مشفرة ومستقلة لهذا المفتاح في موقع آمن غير متصل بالإنترنت، مصحوباً بهوية فك التشفير لأداة age وتعليمات تسجيل مفتاح المرور البديل والاسترداد. احذر من وضع هذه الأسرار في مستودع Git.
 

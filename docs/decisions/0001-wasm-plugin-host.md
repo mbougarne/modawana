@@ -174,6 +174,9 @@ idempotency keys, matching the publisher's durable-delivery rules.
 | 3 | Notion delivery and lesson scheduler as plugins; MCP tool exposure; TypeScript toolchain | First-party parity on the public API |
 | 4 | Comments plugin (per the revised moderation policy), then store, social media, AI providers | The platform goal |
 
+The [API 2 guide](../plugins.md#stage-2-capabilities) defines the shipped
+manifest fields, invocation rules, owner settings, and backup behavior.
+
 Each stage lands behind its own branch and PR with focused tests; a stage is
 not a public compatibility promise until the host API is declared stable.
 

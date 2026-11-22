@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"encoding/json"
@@ -25,14 +26,16 @@ import (
 // loaded modules registered on the extension host. Nothing executes before
 // the owner approves the manifest and enables the plugin.
 type Service struct {
-	DB      *sql.DB
-	Dir     string
-	Host    *extension.Host
-	Runtime *Runtime
-	Logger  *slog.Logger
+	DB          *sql.DB
+	Dir         string
+	Host        *extension.Host
+	Runtime     *Runtime
+	Logger      *slog.Logger
+	Maintenance func() bool
 
-	mu     sync.Mutex
-	loaded map[string]*loaded
+	lifecycle sync.Mutex
+	mu        sync.Mutex
+	loaded    map[string]*loaded
 }
 
 type loaded struct {
@@ -61,6 +64,7 @@ type Install struct {
 // state of the files on disk, and the pending manifest when they differ.
 type Status struct {
 	Install
+	CandidateChecksum string `json:"candidate_checksum,omitempty"`
 	// State is installed, changed (files differ from the approved checksums),
 	// missing (no files on disk), available (files but no approval yet), or
 	// invalid (files present but rejected; Reason says why).
@@ -150,6 +154,7 @@ func (s *Service) List(ctx context.Context) ([]Status, error) {
 		case !SameFiles(directory.Files, record.Files):
 			status.State = "changed"
 			status.NextManifest = json.RawMessage(directory.RawManifest)
+			status.CandidateChecksum = fileSetChecksum(directory.Files)
 			status.AddedCapabilities = AddedCapabilities(approved, directory.Manifest)
 		}
 		out = append(out, status)
@@ -173,6 +178,7 @@ func (s *Service) List(ctx context.Context) ([]Status, error) {
 			status.Version = directory.Manifest.Version
 			status.Capabilities = directory.Manifest.Capabilities
 			status.NextManifest = json.RawMessage(directory.RawManifest)
+			status.CandidateChecksum = fileSetChecksum(directory.Files)
 		}
 		out = append(out, status)
 	}
@@ -185,9 +191,28 @@ func (s *Service) List(ctx context.Context) ([]Status, error) {
 // the fresh-reauthentication recheck run inside the transaction. expected is
 // the optimistic row version, 0 for a first install.
 func (s *Service) Approve(ctx context.Context, slug string, expected int64, check func(*sql.Tx) error) (Install, error) {
+	return s.approve(ctx, slug, "", expected, check, false)
+}
+
+// ApproveCandidate binds the web approval to the reviewed directory version.
+func (s *Service) ApproveCandidate(ctx context.Context, slug, checksum string, expected int64, check func(*sql.Tx) error) (Install, error) {
+	return s.approve(ctx, slug, checksum, expected, check, true)
+}
+
+func (s *Service) approve(ctx context.Context, slug, checksum string, expected int64, check func(*sql.Tx) error, bindCandidate bool) (Install, error) {
+	s.lifecycle.Lock()
+	defer s.lifecycle.Unlock()
+	resume, err := s.pause(ctx, slug)
+	if err != nil {
+		return Install{}, err
+	}
+	defer resume()
 	directory, err := ReadDirectory(s.Dir, slug)
 	if err != nil {
 		return Install{}, err
+	}
+	if bindCandidate && (checksum != "" || directory.Manifest.HostAPIVersion >= 2) && fileSetChecksum(directory.Files) != checksum {
+		return Install{}, db.ErrVersionConflict
 	}
 	files, err := json.Marshal(directory.Files)
 	if err != nil {
@@ -203,8 +228,9 @@ func (s *Service) Approve(ctx context.Context, slug string, expected int64, chec
 		return Install{}, err
 	}
 	var id string
+	var enabled bool
 	now := db.UTC(time.Now())
-	err = tx.QueryRowContext(ctx, "SELECT id FROM plugin_installs WHERE slug=?", slug).Scan(&id)
+	err = tx.QueryRowContext(ctx, "SELECT id,enabled FROM plugin_installs WHERE slug=?", slug).Scan(&id, &enabled)
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
 		if expected != 0 {
@@ -225,21 +251,31 @@ func (s *Service) Approve(ctx context.Context, slug string, expected int64, chec
 	if err != nil {
 		return Install{}, err
 	}
-	if err = tx.Commit(); err != nil {
+	if err := pruneRemovedSecrets(ctx, tx, id, m); err != nil {
 		return Install{}, err
 	}
-	record, err := s.install(ctx, slug)
-	if err != nil {
-		return record, err
+	if err := checkMigrationHistory(ctx, tx, id, m.Migrations); err != nil {
+		return Install{}, err
 	}
-	// Re-approval of an enabled plugin reloads it so the running module is
-	// always the approved one; a load failure disables nothing silently.
-	if record.Enabled {
-		if err = s.load(ctx, record); err != nil {
-			return record, err
+	var candidate *loaded
+	if enabled {
+		candidate, err = s.prepare(ctx, tx, id, directory)
+		if err != nil {
+			return Install{}, err
 		}
 	}
-	return record, nil
+	if err = tx.Commit(); err != nil {
+		if candidate != nil {
+			_ = candidate.compiled.Close(ctx)
+		}
+		return Install{}, err
+	}
+	if candidate != nil {
+		if err := s.activate(ctx, candidate); err != nil {
+			return Install{}, err
+		}
+	}
+	return s.install(ctx, slug)
 }
 
 // SetEnabled flips the plugin on or off with fresh reauthentication. Enabling
@@ -247,6 +283,13 @@ func (s *Service) Approve(ctx context.Context, slug string, expected int64, chec
 // before the flag commits; disabling unloads it so a disabled plugin never
 // runs again, not even for an in-flight registry.
 func (s *Service) SetEnabled(ctx context.Context, slug string, enable bool, expected int64, check func(*sql.Tx) error) (Install, error) {
+	s.lifecycle.Lock()
+	defer s.lifecycle.Unlock()
+	resume, err := s.pause(ctx, slug)
+	if err != nil {
+		return Install{}, err
+	}
+	defer resume()
 	record, err := s.install(ctx, slug)
 	if err != nil {
 		return record, err
@@ -269,23 +312,28 @@ func (s *Service) SetEnabled(ctx context.Context, slug string, enable bool, expe
 	if _, err = tx.ExecContext(ctx, "UPDATE plugin_installs SET enabled=?, updated_at=? WHERE id=?", value, db.UTC(time.Now()), record.ID); err != nil {
 		return record, err
 	}
-	// Enabling loads before the commit so a module that fails verification
-	// rolls the flag back, and unloads again if the commit itself fails.
-	// Disabling unloads only after the commit, so the registries never run
-	// ahead of the durable flag; either failure leaves the plugin off.
+	var candidate *loaded
 	if enable {
-		record.Enabled = true
-		if err = s.load(ctx, record); err != nil {
+		directory, err := s.verifiedDirectory(record)
+		if err != nil {
+			return record, err
+		}
+		candidate, err = s.prepare(ctx, tx, record.ID, directory)
+		if err != nil {
 			return record, err
 		}
 	}
 	if err = tx.Commit(); err != nil {
-		if enable {
-			s.unload(slug)
+		if candidate != nil {
+			_ = candidate.compiled.Close(ctx)
 		}
 		return record, err
 	}
-	if !enable {
+	if candidate != nil {
+		if err := s.activate(ctx, candidate); err != nil {
+			return record, err
+		}
+	} else {
 		s.unload(slug)
 	}
 	return s.install(ctx, slug)
@@ -295,6 +343,13 @@ func (s *Service) SetEnabled(ctx context.Context, slug string, enable bool, expe
 // plugin's storage. Files under plugins/{slug}/ stay for the operator to
 // delete: the host never removes data-root files on an API call.
 func (s *Service) Remove(ctx context.Context, slug string, expected int64, check func(*sql.Tx) error) error {
+	s.lifecycle.Lock()
+	defer s.lifecycle.Unlock()
+	resume, err := s.pause(ctx, slug)
+	if err != nil {
+		return err
+	}
+	defer resume()
 	tx, err := s.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -334,6 +389,8 @@ func (s *Service) Remove(ctx context.Context, slug string, expected int64, check
 // plugin that fails to load is logged and skipped; it stays approved but does
 // not run until the owner re-approves matching files.
 func (s *Service) LoadEnabled(ctx context.Context) error {
+	s.lifecycle.Lock()
+	defer s.lifecycle.Unlock()
 	installed, err := s.installs(ctx)
 	if err != nil {
 		return err
@@ -356,42 +413,109 @@ func (s *Service) running(slug string) bool {
 	return p != nil && p.enabled.Load()
 }
 
-// load verifies the directory against the approved checksums, compiles the
-// approved module, and registers the plugin's hooks and routes on the host.
-func (s *Service) load(ctx context.Context, record Install) error {
+func (s *Service) verifiedDirectory(record Install) (Directory, error) {
 	directory, err := ReadDirectory(s.Dir, record.Slug)
 	if err != nil {
-		return err
+		return Directory{}, err
 	}
-	if !SameFiles(directory.Files, record.Files) {
-		return ErrChecksum
+	if !SameFiles(directory.Files, record.Files) || !bytes.Equal(directory.RawManifest, record.Manifest) {
+		return Directory{}, ErrChecksum
 	}
-	var approved Manifest
-	if err = json.Unmarshal(record.Manifest, &approved); err != nil || approved.Slug != record.Slug {
-		return ErrChecksum
-	}
-	compiled, err := s.Runtime.Compile(ctx, approved, directory.Module)
+	return directory, nil
+}
+
+func (s *Service) load(ctx context.Context, record Install) error {
+	directory, err := s.verifiedDirectory(record)
 	if err != nil {
 		return err
 	}
-	p := &loaded{installID: record.ID, manifest: approved, compiled: compiled, gate: make(chan struct{}, invocationGate)}
-	p.enabled.Store(true)
+	tx, err := s.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	candidate, err := s.prepare(ctx, tx, record.ID, directory)
+	if err != nil {
+		return err
+	}
+	if err := tx.Commit(); err != nil {
+		_ = candidate.compiled.Close(ctx)
+		return err
+	}
+	return s.activate(ctx, candidate)
+}
+
+func (s *Service) prepare(ctx context.Context, tx *sql.Tx, id string, directory Directory) (*loaded, error) {
+	slug := directory.Manifest.Slug
+	s.mu.Lock()
+	previous := s.loaded[slug]
+	s.mu.Unlock()
+	if previous == nil && s.Host.Installed(slug) {
+		return nil, ErrManifest
+	}
+	compiled, err := s.Runtime.Compile(ctx, directory.Manifest, directory.Module)
+	if err != nil {
+		return nil, err
+	}
+	p := &loaded{installID: id, manifest: directory.Manifest, compiled: compiled, gate: make(chan struct{}, invocationGate)}
+	if err := s.applyMigrations(ctx, tx, p); err != nil {
+		_ = compiled.Close(ctx)
+		return nil, err
+	}
+	return p, nil
+}
+
+func (s *Service) activate(ctx context.Context, p *loaded) error {
+	slug := p.manifest.Slug
+	s.unload(slug)
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	if previous := s.loaded[record.Slug]; previous != nil {
-		previous.enabled.Store(false)
-		s.Host.Uninstall(record.Slug)
-		_ = previous.compiled.Close(ctx)
-	}
-	if err = s.Host.Install(&wasmExtension{service: s, plugin: p}); err != nil {
-		_ = compiled.Close(ctx)
+	p.enabled.Store(true)
+	if err := s.Host.Install(&wasmExtension{service: s, plugin: p}); err != nil {
+		p.enabled.Store(false)
+		_ = p.compiled.Close(ctx)
 		return err
 	}
 	if s.loaded == nil {
 		s.loaded = map[string]*loaded{}
 	}
-	s.loaded[record.Slug] = p
+	s.loaded[slug] = p
 	return nil
+}
+
+// pause prevents the old module from writing while a migration is being applied.
+// A rejected transition resumes the same loaded module.
+func (s *Service) pause(ctx context.Context, slug string) (func(), error) {
+	s.mu.Lock()
+	p := s.loaded[slug]
+	s.mu.Unlock()
+	if p == nil {
+		return func() {}, nil
+	}
+	p.enabled.Store(false)
+	resume := func() {
+		s.mu.Lock()
+		defer s.mu.Unlock()
+		if s.loaded[slug] == p {
+			p.enabled.Store(true)
+		}
+	}
+	count := 0
+	defer func() {
+		for range count {
+			<-p.gate
+		}
+	}()
+	for range invocationGate {
+		select {
+		case p.gate <- struct{}{}:
+			count++
+		case <-ctx.Done():
+			resume()
+			return nil, ctx.Err()
+		}
+	}
+	return resume, nil
 }
 
 func (s *Service) unload(slug string) {
@@ -437,6 +561,20 @@ func (x *wasmExtension) Register(r *extension.Registrar) error {
 			return err
 		}
 	}
+	for _, job := range x.plugin.manifest.Jobs {
+		if err := r.Job(extension.Job{
+			Name: job.Name, Every: time.Duration(job.EverySeconds) * time.Second, Timeout: invokeTimeout,
+			Run: func(ctx context.Context) error {
+				if x.service.Maintenance != nil && x.service.Maintenance() {
+					return nil
+				}
+				return x.service.Runtime.invokeTask(ctx, x.plugin, "job", job.Name, nil)
+			},
+		}); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

@@ -34,15 +34,16 @@ type Extension interface {
 
 // Host owns every registry and dispatches to registered extensions.
 type Host struct {
-	logger   *slog.Logger
-	mu       sync.RWMutex
-	slugs    map[string]bool
-	hooks    map[string][]hookRegistration
-	jobs     []Job
-	routes   []RouteRegistration
-	sections []SettingsRegistration
-	tools    []MCPTool
-	indexed  map[string]int
+	logger    *slog.Logger
+	mu        sync.RWMutex
+	slugs     map[string]bool
+	hooks     map[string][]hookRegistration
+	jobs      []Job
+	routes    []RouteRegistration
+	sections  []SettingsRegistration
+	tools     []MCPTool
+	indexed   map[string]int
+	jobRunner *jobRunner
 }
 
 // NewHost returns an empty host. A nil logger discards outcome records.
@@ -85,7 +86,12 @@ func (h *Host) Install(x Extension) error {
 	for name, registrations := range r.hooks {
 		h.hooks[name] = append(h.hooks[name], registrations...)
 	}
-	h.jobs = append(h.jobs, r.jobs...)
+	for _, job := range r.jobs {
+		if h.jobRunner != nil {
+			job.stop = h.jobRunner.start(h, job)
+		}
+		h.jobs = append(h.jobs, job)
+	}
 	h.routes = append(h.routes, r.routes...)
 	h.sections = append(h.sections, r.sections...)
 	for _, tool := range r.tools {
@@ -95,11 +101,7 @@ func (h *Host) Install(x Extension) error {
 	return nil
 }
 
-// Uninstall removes every registration owned by the slug, atomically with
-// respect to dispatch. The WebAssembly plugin host uses it when the owner
-// disables or replaces a plugin; built-ins are never uninstalled. It does not
-// stop jobs an already-running job runner picked up — stage 1 plugins cannot
-// register jobs, and the jobs capability lands with its own lifecycle.
+// Uninstall removes the registrations and cancels running jobs owned by the slug.
 func (h *Host) Uninstall(slug string) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -124,6 +126,8 @@ func (h *Host) Uninstall(slug string) {
 	for _, job := range h.jobs {
 		if job.slug != slug {
 			jobs = append(jobs, job)
+		} else if job.stop != nil {
+			job.stop()
 		}
 	}
 	h.jobs = jobs

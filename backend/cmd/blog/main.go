@@ -175,10 +175,10 @@ func run() int {
 		return 1
 	}
 	defer runtime.Close(context.Background())
-	plugins := &plugin.Service{DB: database, Dir: filepath.Join(cfg.DataRoot, "plugins"), Host: host, Runtime: runtime, Logger: logger}
+	runtime.SetKeySource(cfg.ReadAuthKey)
+	plugins := &plugin.Service{DB: database, Dir: filepath.Join(cfg.DataRoot, "plugins"), Host: host, Runtime: runtime, Logger: logger, Maintenance: func() bool { return operations.Maintenance(cfg.DataRoot) }}
 	domain := &httpserver.Domain{Learning: identities, SiteConfig: settings, Content: contents, Auth: authentication, Media: media.New(database, files, policy), Extensions: host, Plugins: plugins}
-	// Install every built-in before the job runner starts: the runner only
-	// picks up jobs registered before it runs.
+	// Register built-ins before approved plugins.
 	for _, builtin := range append([]extension.Extension{&maintenanceJobs{db: database, files: files}}, domain.Builtins()...) {
 		if err = host.Install(builtin); err != nil {
 			logger.Error("built-in extension registration failed", "extension", builtin.Slug(), "reason", err.Error())
@@ -191,7 +191,15 @@ func run() int {
 		logger.Error("plugin startup load failed", "reason", err.Error())
 		return 1
 	}
-	go host.RunJobs(ctx)
+	jobsDone := make(chan struct{})
+	go func() {
+		defer close(jobsDone)
+		host.RunJobs(ctx)
+	}()
+	defer func() {
+		stop()
+		<-jobsDone
+	}()
 	if cfg.Environment == "production" && len(cfg.TrustedProxies) == 0 {
 		logger.Warn("no trusted proxies configured; reverse-proxy deployments must set BLOG_TRUSTED_PROXIES to observed proxy peers for per-client throttling")
 	}

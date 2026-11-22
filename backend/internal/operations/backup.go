@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/mbougarne/modawana/backend/internal/bundle"
 	"github.com/mbougarne/modawana/backend/internal/db"
+	"github.com/mbougarne/modawana/backend/internal/plugin"
 	"github.com/mbougarne/modawana/backend/internal/storage"
 	"github.com/mbougarne/modawana/backend/internal/theme"
 	"io"
@@ -71,6 +72,9 @@ func Backup(ctx context.Context, d *sql.DB, files *storage.Store, dataRoot strin
 		if e = db.Snapshot(ctx, d, filepath.Join(root, "blog.sqlite")); e != nil {
 			return e
 		}
+		if e = stripPluginSecrets(ctx, root); e != nil {
+			return e
+		}
 		snapshot, e := openSnapshot(root)
 		if e != nil {
 			return e
@@ -84,6 +88,11 @@ func Backup(ctx context.Context, d *sql.DB, files *storage.Store, dataRoot strin
 			return e
 		}
 		approved, e := theme.Approvals(ctx, snapshot)
+		if e != nil {
+			snapshot.Close()
+			return e
+		}
+		plugins, e := plugin.ArchiveRecords(ctx, snapshot)
 		snapshot.Close()
 		if e != nil {
 			return e
@@ -136,12 +145,40 @@ func Backup(ctx context.Context, d *sql.DB, files *storage.Store, dataRoot strin
 			}
 			paths = append(paths, key)
 		}
+		for _, record := range plugins {
+			files, err := record.CopyVerifiedFiles(dataRoot, root)
+			if err != nil {
+				return err
+			}
+			paths = append(paths, files...)
+		}
 		return bundle.Write(out, "backup", root, paths)
 	})
 }
 func openSnapshot(root string) (*sql.DB, error) {
+	return openSnapshotMode(root, "ro")
+}
+
+func stripPluginSecrets(ctx context.Context, root string) error {
+	database, err := openSnapshotMode(root, "rw")
+	if err != nil {
+		return err
+	}
+	defer database.Close()
+	database.SetMaxOpenConns(1)
+	// Rebuild pages as well as deleting rows, so old deleted ciphertext is
+	// removed even when the plugin_secrets table is already empty.
+	for _, statement := range []string{"PRAGMA secure_delete=ON", "DELETE FROM plugin_secrets", "VACUUM"} {
+		if _, err := database.ExecContext(ctx, statement); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func openSnapshotMode(root, mode string) (*sql.DB, error) {
 	u := url.URL{Scheme: "file", Path: filepath.Join(root, "blog.sqlite")}
-	q := url.Values{"mode": {"ro"}, "_pragma": {"trusted_schema(0)", "foreign_keys(1)"}}
+	q := url.Values{"mode": {mode}, "_pragma": {"trusted_schema(0)", "foreign_keys(1)"}}
 	u.RawQuery = q.Encode()
 	return sql.Open("sqlite", u.String())
 }
@@ -174,10 +211,22 @@ func Restore(ctx context.Context, archive, target string) error {
 		return e
 	}
 	approved, e := theme.Approvals(ctx, snapshot)
+	if e != nil {
+		snapshot.Close()
+		return e
+	}
+	plugins, e := plugin.ArchiveRecords(ctx, snapshot)
 	snapshot.Close()
 	if e != nil {
 		return e
 	}
+	filesByPath := map[string]plugin.File{}
+	for _, record := range plugins {
+		for _, file := range record.Files {
+			filesByPath[record.Path(file)] = file
+		}
+	}
+	included := map[string]bool{}
 	themeFiles := map[string]theme.Approval{}
 	for _, a := range approved {
 		themeFiles[theme.PackPath(a.ID)] = a
@@ -191,6 +240,13 @@ func Restore(ctx context.Context, archive, target string) error {
 			delete(expected, f.Path)
 			continue
 		}
+		if file, ok := filesByPath[f.Path]; ok {
+			if f.SHA256 != file.SHA256 || f.Size != file.Size {
+				return bundle.ErrInvalid
+			}
+			included[f.Path] = true
+			continue
+		}
 		a, ok := themeFiles[f.Path]
 		if !ok || a.Checksum != f.SHA256 {
 			return bundle.ErrInvalid
@@ -201,6 +257,23 @@ func Restore(ctx context.Context, archive, target string) error {
 	}
 	if len(expected) != 0 {
 		return bundle.ErrInvalid
+	}
+	var disabled []string
+	for _, record := range plugins {
+		count := 0
+		for _, file := range record.Files {
+			if included[record.Path(file)] {
+				count++
+			}
+		}
+		if count == 0 {
+			disabled = append(disabled, record.Slug)
+			continue
+		}
+		directory, err := plugin.ReadDirectory(filepath.Join(root, "plugins"), record.Slug)
+		if err != nil || !plugin.SameFiles(directory.Files, record.Files) {
+			return bundle.ErrInvalid
+		}
 	}
 	fs, e := storage.Open(root)
 	if e != nil {
@@ -242,8 +315,15 @@ func Restore(ctx context.Context, archive, target string) error {
 		d.Close()
 		return e
 	}
-	for _, q := range []string{"DELETE FROM oauth_clients", "DELETE FROM auth_flows", "DELETE FROM auth_grants", "DELETE FROM sessions", "DELETE FROM recovery_codes", "DELETE FROM passkeys", "DELETE FROM api_tokens", "DELETE FROM auth_throttles", "DELETE FROM idempotency_records", "DELETE FROM learning_identities", "UPDATE owner SET password_hash=NULL,totp_cipher=NULL,totp_step=-1,auth_version=auth_version+1"} {
+	for _, q := range []string{"DELETE FROM plugin_secrets", "DELETE FROM oauth_clients", "DELETE FROM auth_flows", "DELETE FROM auth_grants", "DELETE FROM sessions", "DELETE FROM recovery_codes", "DELETE FROM passkeys", "DELETE FROM api_tokens", "DELETE FROM auth_throttles", "DELETE FROM idempotency_records", "DELETE FROM learning_identities", "UPDATE owner SET password_hash=NULL,totp_cipher=NULL,totp_step=-1,auth_version=auth_version+1"} {
 		if _, e = tx.ExecContext(ctx, q); e != nil {
+			tx.Rollback()
+			d.Close()
+			return e
+		}
+	}
+	for _, slug := range disabled {
+		if _, e = tx.ExecContext(ctx, "UPDATE plugin_installs SET enabled=0,version=version+1 WHERE slug=? AND enabled=1", slug); e != nil {
 			tx.Rollback()
 			d.Close()
 			return e

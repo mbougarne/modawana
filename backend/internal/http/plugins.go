@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strings"
@@ -16,7 +17,9 @@ func pluginError(w http.ResponseWriter, e error) {
 		// Validation reasons are stable strings without data-root paths; the
 		// owner needs them to fix the plugin directory.
 		writeJSON(w, 422, map[string]any{"error": map[string]any{"code": "invalid_fields", "message": messages[InvalidFields], "request_id": w.Header().Get("X-Request-ID"), "fields": []siteconfig.FieldIssue{{Path: "plugin", Code: e.Error()}}}})
-	case errors.Is(e, plugin.ErrInvoke):
+	case errors.Is(e, plugin.ErrStorageInvalid), errors.Is(e, plugin.ErrMigration):
+		writeError(w, InvalidFields)
+	case errors.Is(e, plugin.ErrInvoke), errors.Is(e, plugin.ErrSecretKey):
 		writeError(w, Unavailable)
 	default:
 		domainError(w, e)
@@ -30,6 +33,10 @@ func pluginError(w http.ResponseWriter, e error) {
 // mutation's transaction, like other sensitive owner operations.
 func (d *Domain) pluginRoutes(w http.ResponseWriter, r *http.Request) bool {
 	p := r.URL.Path
+	if strings.HasPrefix(p, "/api/v1/plugin-configuration/") {
+		d.pluginConfiguration(w, r, strings.TrimPrefix(p, "/api/v1/plugin-configuration/"))
+		return true
+	}
 	if strings.HasPrefix(p, "/plugins/") {
 		d.servePluginRoute(w, r, strings.TrimPrefix(p, "/plugins"), true)
 		return true
@@ -65,7 +72,8 @@ func (d *Domain) pluginRoutes(w http.ResponseWriter, r *http.Request) bool {
 
 func (d *Domain) managePlugin(w http.ResponseWriter, r *http.Request, slug, action string) {
 	var in struct {
-		ExpectedVersion int64 `json:"expected_version"`
+		ExpectedVersion int64  `json:"expected_version"`
+		Checksum        string `json:"candidate_checksum,omitempty"`
 	}
 	if !DecodeJSON(w, r, &in, 4096) {
 		return
@@ -77,7 +85,7 @@ func (d *Domain) managePlugin(w http.ResponseWriter, r *http.Request, slug, acti
 	}
 	switch action {
 	case "install":
-		out, e := d.Plugins.Approve(r.Context(), slug, in.ExpectedVersion, check)
+		out, e := d.Plugins.ApproveCandidate(r.Context(), slug, in.Checksum, in.ExpectedVersion, check)
 		if e != nil {
 			pluginError(w, e)
 		} else {
@@ -130,4 +138,56 @@ func (d *Domain) servePluginRoute(w http.ResponseWriter, r *http.Request, suffix
 		return
 	}
 	matched.Handler.ServeHTTP(w, r)
+}
+
+func (d *Domain) pluginConfiguration(w http.ResponseWriter, r *http.Request, suffix string) {
+	if _, err := d.Auth.OwnerRequest(r); err != nil {
+		domainError(w, err)
+		return
+	}
+	parts := strings.Split(suffix, "/")
+	ctx := r.Context()
+	switch {
+	case len(parts) == 1 && r.Method == http.MethodGet:
+		out, err := d.Plugins.Configuration(ctx, parts[0])
+		if err != nil {
+			pluginError(w, err)
+		} else {
+			writeJSON(w, http.StatusOK, out)
+		}
+	case len(parts) == 1 && r.Method == http.MethodPut:
+		var input plugin.SettingsInput
+		if !DecodeJSON(w, r, &input, 160<<10) {
+			return
+		}
+		if err := d.Plugins.SaveSettings(ctx, parts[0], input); err != nil {
+			pluginError(w, err)
+		} else {
+			w.WriteHeader(http.StatusNoContent)
+		}
+	case len(parts) == 3 && parts[1] == "secrets" && r.Method == http.MethodPut:
+		var input struct {
+			Version int64           `json:"expected_version"`
+			Value   json.RawMessage `json:"value"`
+		}
+		if !DecodeJSON(w, r, &input, 32<<10) {
+			return
+		}
+		var value *string
+		if json.Unmarshal(input.Value, &value) != nil {
+			writeError(w, InvalidFields)
+			return
+		}
+		check, err := d.Auth.FreshOwnerCheck(r)
+		if err == nil {
+			err = d.Plugins.ChangeSecret(ctx, parts[0], parts[2], value, input.Version, check)
+		}
+		if err != nil {
+			pluginError(w, err)
+		} else {
+			w.WriteHeader(http.StatusNoContent)
+		}
+	default:
+		writeError(w, MethodNotAllowed)
+	}
 }

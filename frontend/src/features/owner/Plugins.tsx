@@ -4,6 +4,7 @@ import { OwnerPageHeading } from './OwnerWorkspace';
 import { useResource } from '../../pages/public/api';
 import { ResourceState } from '../../pages/public/ResourceState';
 import { authenticatedTransfer } from '../auth/reauthenticate';
+import { PluginConfiguration, type PluginManifest } from './PluginConfiguration';
 
 type PluginItem = {
   slug: string;
@@ -16,6 +17,9 @@ type PluginItem = {
   capabilities?: string[];
   added_capabilities?: string[];
   reason?: string;
+  manifest?: PluginManifest;
+  next_manifest?: PluginManifest;
+  candidate_checksum?: string;
 };
 
 export function Plugins() {
@@ -39,7 +43,10 @@ export function Plugins() {
         credentials: 'same-origin',
         cache: 'no-store',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ expected_version: item.row_version || 0 }),
+        body: JSON.stringify({
+          expected_version: item.row_version || 0,
+          candidate_checksum: action === 'install' ? item.candidate_checksum : undefined,
+        }),
       });
       setFailed(!response.ok);
       setNotice(
@@ -67,57 +74,81 @@ export function Plugins() {
       <OwnerPageHeading title={t('owner.plugins')} description={t('workspace.pluginsHelp')} />
       <ResourceState resource={resource} />
       {resource.data && items.length === 0 && <p>{t('plugins.empty')}</p>}
-      {items.map((item) => (
-        <section key={item.slug} className="owner-panel owner-form">
-          <h2>
-            {item.name || item.slug}{' '}
-            {item.version && <span className="vb-meta">{item.version}</span>}
-          </h2>
-          <p className="vb-meta">
-            {item.slug} · {t('plugins.state.' + item.state)}
-            {item.state === 'installed' && (
-              <> · {t(item.enabled ? 'plugins.enabled' : 'plugins.disabled')}</>
-            )}
-          </p>
-          {item.capabilities && item.capabilities.length > 0 && (
-            <p>
-              {t('plugins.capabilities')}:{' '}
-              {item.capabilities.map((capability) => (
-                <Tag key={capability}>{capability}</Tag>
-              ))}
+      {items.map((item) => {
+        const manifest = item.next_manifest || item.manifest;
+        return (
+          <section key={item.slug} className="owner-panel owner-form">
+            <h2>
+              {item.name || item.slug}{' '}
+              {item.version && <span className="vb-meta">{item.version}</span>}
+            </h2>
+            <p className="vb-meta">
+              {item.slug} · {t('plugins.state.' + item.state)}
+              {item.state === 'installed' && (
+                <> · {t(item.enabled ? 'plugins.enabled' : 'plugins.disabled')}</>
+              )}
             </p>
-          )}
-          {item.added_capabilities && item.added_capabilities.length > 0 && (
-            <p role="alert" className="workspace-alert" data-tone="warning">
-              {t('plugins.addedCapabilities')}:{' '}
-              {item.added_capabilities.map((capability) => (
-                <Tag key={capability}>{capability}</Tag>
-              ))}
-            </p>
-          )}
-          {item.reason && <p className="vb-meta">{item.reason}</p>}
-          <div className="owner-fields">
-            {(item.state === 'available' || item.state === 'changed') && (
-              <Button disabled={!!busy} onClick={() => act(item, 'install')}>
-                {t(item.state === 'available' ? 'plugins.install' : 'plugins.reapprove')}
-              </Button>
+            {item.capabilities && item.capabilities.length > 0 && (
+              <p>
+                {t('plugins.capabilities')}:{' '}
+                {item.capabilities.map((capability) => (
+                  <Tag key={capability}>{capability}</Tag>
+                ))}
+              </p>
             )}
-            {item.state !== 'available' && item.state !== 'invalid' && (
-              <>
-                <Button
-                  disabled={!!busy || (!item.enabled && item.state !== 'installed')}
-                  onClick={() => act(item, item.enabled ? 'disable' : 'enable')}
-                >
-                  {t(item.enabled ? 'plugins.disable' : 'plugins.enable')}
-                </Button>
-                <Button variant="quiet" disabled={!!busy} onClick={() => act(item, 'remove')}>
-                  {t('plugins.remove')}
-                </Button>
-              </>
+            {item.added_capabilities && item.added_capabilities.length > 0 && (
+              <p role="alert" className="workspace-alert" data-tone="warning">
+                {t('plugins.addedCapabilities')}:{' '}
+                {item.added_capabilities.map((capability) => (
+                  <Tag key={capability}>{capability}</Tag>
+                ))}
+              </p>
             )}
-          </div>
-        </section>
-      ))}
+            {manifest?.https_hosts?.length ? (
+              <p>
+                {t('plugins.httpsHosts')}{' '}
+                {manifest.https_hosts.map((host) => (
+                  <Tag key={host}>{host}</Tag>
+                ))}
+              </p>
+            ) : null}
+            {manifest?.jobs?.length ? (
+              <p>
+                {t('plugins.jobs')}{' '}
+                {manifest.jobs.map((job) => (
+                  <Tag key={job.name}>{job.name}</Tag>
+                ))}
+              </p>
+            ) : null}
+            {item.state === 'installed' &&
+            manifest &&
+            (manifest.settings?.length || manifest.secrets?.length) ? (
+              <PluginConfiguration slug={item.slug} manifest={manifest} onUpdate={resource.retry} />
+            ) : null}
+            {item.reason && <p className="vb-meta">{item.reason}</p>}
+            <div className="owner-fields">
+              {(item.state === 'available' || item.state === 'changed') && (
+                <Button disabled={!!busy} onClick={() => act(item, 'install')}>
+                  {t(item.state === 'available' ? 'plugins.install' : 'plugins.reapprove')}
+                </Button>
+              )}
+              {item.state !== 'available' && item.state !== 'invalid' && (
+                <>
+                  <Button
+                    disabled={!!busy || (!item.enabled && item.state !== 'installed')}
+                    onClick={() => act(item, item.enabled ? 'disable' : 'enable')}
+                  >
+                    {t(item.enabled ? 'plugins.disable' : 'plugins.enable')}
+                  </Button>
+                  <Button variant="quiet" disabled={!!busy} onClick={() => act(item, 'remove')}>
+                    {t('plugins.remove')}
+                  </Button>
+                </>
+              )}
+            </div>
+          </section>
+        );
+      })}
       {notice && (
         <p role="status" className="workspace-alert" data-tone={failed ? 'warning' : 'success'}>
           {t(notice)}

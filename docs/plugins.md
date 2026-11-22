@@ -3,9 +3,8 @@
 [العربية](plugins.ar.md) · [Documentation](README.md) · [ADR 0001](decisions/0001-wasm-plugin-host.md)
 
 The server can load owner-approved WebAssembly (WASI) plugins, per
-[ADR 0001](decisions/0001-wasm-plugin-host.md). This page documents the stage 1
-surface: the plugin directory layout, the manifest, the owner approval flow,
-and the sandbox guarantees. Plugins written for stage 1 use Go compiled with
+[ADR 0001](decisions/0001-wasm-plugin-host.md). This page documents the
+manifest, owner approval flow, and host APIs 1 and 2. Plugins use Go compiled with
 `GOOS=wasip1 GOARCH=wasm`; the TypeScript toolchain is a later stage.
 
 ## Directory layout
@@ -45,11 +44,9 @@ refused, as are more than 256 files or 64 MiB in total.
 ```
 
 - `host_api_version` names the host API the plugin requires. This binary
-  serves version 1 and refuses newer requirements.
-- `capabilities` may declare `hooks`, `routes`, and `storage` in stage 1.
-  Every other ADR capability (settings, jobs, http_fetch, secrets,
-  content_read, mcp_tools) is refused until the stage that delivers it.
-  A capability must be declared to be used and used to be declared.
+  serves versions 1 and 2 and refuses newer requirements.
+- Both APIs accept `hooks`, `routes`, and `storage`. API 2 adds the capabilities
+  documented below. A plugin declares each capability it uses.
 - `hooks` subscribes to named hook points with a contract version
   (at most 16).
 - `routes` declares handlers the host mounts under `/plugins/{slug}{path}`
@@ -102,8 +99,7 @@ document collections in host-owned SQLite tables (`plugin_kv`,
 `plugin_documents`), keyed by the install record so plugins can never read
 each other's data. Stage 1 quotas per plugin: 1024 keys and 1 MiB of
 key–value data (values at most 64 KiB); 4096 documents and 4 MiB of document
-data (bodies at most 256 KiB of valid JSON). Plugin-declared migrations
-arrive in stage 2.
+data (bodies at most 256 KiB of valid JSON). API 2 plugins can migrate this data using the same quotas.
 
 ## Invocation contract
 
@@ -123,12 +119,86 @@ Build it with:
 node scripts/build-example-plugin.mjs
 ```
 
-## Stage 1 limitations
+## Stage 2 capabilities
 
-- Capabilities beyond `hooks`, `routes`, and `storage` are refused.
-- Public plugin routes are `GET`/`HEAD` only; static assets are checksummed
-  but not served.
-- No plugin-declared migrations, no settings schema rendering, no jobs, no
-  outbound HTTP, no secrets, no MCP tool exposure.
-- No signature verification: installation is an explicit owner action with
-  checksum pinning, and only the operator can place plugin files.
+Set `host_api_version` to 2 to use these declarations. The import module name
+remains `modawana_v1` so modules can reuse the original storage functions.
+The owner approves the checksum of the displayed candidate file set through
+the Plugins page. The page shows declared HTTPS hosts and scheduled jobs before
+approval. Existing API 1 modules still load.
+
+| Capability | Manifest field | Meaning |
+| --- | --- | --- |
+| `settings` | `settings` | Up to 24 fields with `name`, localized `label`, `type` and `default` |
+| `jobs` | `jobs` | Up to 8 jobs with `name` and `every_seconds`, from 60 to 86400 |
+| `http_fetch` | `https_hosts` | Up to 8 exact lowercase ASCII DNS hostnames |
+| `secrets` | `secrets` | Up to 8 named secrets with localized `label` |
+| `storage` | Optional `migrations` | Up to 32 ordered steps with `name` and lowercase SHA-256 `checksum` |
+
+Names are lowercase ASCII and start with a letter. They can contain digits,
+underscores and hyphens, up to 48 characters. Labels require an English value.
+French and Arabic labels fall back to English. Settings types are `string`
+(up to 1024 bytes), `boolean`, and `integer` (signed 32-bit). Every field needs
+a default of that type.
+
+The dashboard generates the settings form from the approved manifest. It
+retains up to 50 versions and restores a selected version as a new save.
+Restoring applies the current schema and defaults. Settings are available as
+the `settings` object in hook, route, and job inputs. Keep credentials in
+named secrets. The UI only reports whether a declared secret is present.
+
+### Jobs and migrations
+
+The host sends jobs `{"api":2,"kind":"job","name":"sync","settings":{…}}`.
+Jobs are scheduled on enable, canceled on disable or remove, and paused
+during restore maintenance. The first run follows one full interval from
+enable or restart. The host bounds each run to five seconds and records
+outcomes and backoff in the server logs.
+
+The host invokes a new migration with
+`{"api":2,"kind":"migration","name":"initialize"}`. The command uses the
+existing storage functions against a single transaction and exits zero on
+success. A migration batch has a 15-second limit. A failed migration rolls back storage and enable or upgrade changes.
+Use a stable checksum for each step. The host matches the applied prefix
+against the declared names and checksums and rejects reordered, changed, or
+removed steps. The approved plugin file set separately pins the module bytes.
+
+### HTTPS and secrets
+
+`secret_get(name_ptr, name_len, buffer_ptr, buffer_capacity)` reads a declared
+secret into the caller's guest memory on demand. The operator key encrypts
+the value at rest with a key derived specifically for plugins. Updating or
+removing secrets requires recent owner authentication.
+
+`http_fetch(request_ptr, request_len, buffer_ptr, buffer_capacity)` accepts
+a JSON object with `url`, `method`, optional `headers`, and optional base64
+`body`. The result is JSON with `status` and base64 `body`. Supported methods
+are GET, HEAD, POST, PUT, PATCH and DELETE. Accepted headers are Accept,
+Content-Type, Authorization, X-API-Key, and Idempotency-Key. The host dials
+verified public addresses using TLS and the approved hostname. Redirects are returned without following them. The host refuses
+proxies, private addresses, and non-default ports. Up to four
+requests run per invocation, with a three-second timeout and a 64 KiB response
+body limit. Retry a short response buffer with the same request bytes to read
+the buffered response without issuing the request again.
+
+Both functions return a length or the existing negative host status codes.
+They are available to scheduled jobs and to owner write routes that passed
+the Origin and CSRF checks. Public routes, read-only routes, hooks and
+migrations receive neither capability during their invocation.
+
+### Owner API and recovery
+
+- GET `/api/v1/plugin-configuration/{slug}` returns `version`, effective
+  `values`, settings `history` and a map of secret names to presence flags.
+- PUT the same route with `expected_version` and complete `values`, or
+  `expected_version` and `restore_version`.
+- PUT `/api/v1/plugin-configuration/{slug}/secrets/{name}` with
+  `expected_version` and `value`. Use a string to set it or null to remove it.
+
+Coordinated backups include approved files that match their recorded
+checksums, plus plugin data and settings history. They omit plugin secret
+values. Restore verifies the files and disables plugins with missing files.
+Re-enter their secrets before resuming integrations that need credentials.
+
+Plugin-managed content reads, MCP tools, public static assets, and archive
+signatures remain outside this API version.
