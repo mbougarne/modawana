@@ -3,6 +3,7 @@ package plugin
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -10,6 +11,7 @@ import (
 	"os"
 	"path"
 	"sort"
+	"syscall"
 )
 
 // ErrFiles reports an unreadable or out-of-bounds plugin directory.
@@ -52,6 +54,10 @@ func ReadDirectory(pluginsDir, slug string) (Directory, error) {
 		return out, ErrFiles
 	}
 	defer root.Close()
+	info, err := root.Lstat(slug)
+	if err != nil || !info.IsDir() {
+		return out, ErrFiles
+	}
 	dir, err := root.OpenRoot(slug)
 	if err != nil {
 		return out, ErrFiles
@@ -68,6 +74,9 @@ func ReadDirectory(pluginsDir, slug string) (Directory, error) {
 	}
 	if out.Module, err = readBounded(dir, out.Manifest.Module, maxModuleBytes); err != nil {
 		return out, err
+	}
+	if !matchesBytes(out.Files, "manifest.json", out.RawManifest) || !matchesBytes(out.Files, out.Manifest.Module, out.Module) {
+		return Directory{}, ErrChecksum
 	}
 	return out, nil
 }
@@ -88,7 +97,7 @@ func checksumAll(dir *os.Root) ([]File, error) {
 		if len(files) >= maxPluginFiles {
 			return fmt.Errorf("%w: more than %d files", ErrFiles, maxPluginFiles)
 		}
-		f, e := dir.Open(name)
+		f, e := openRegular(dir, name)
 		if e != nil {
 			return ErrFiles
 		}
@@ -113,7 +122,7 @@ func checksumAll(dir *os.Root) ([]File, error) {
 }
 
 func readBounded(dir *os.Root, name string, limit int64) ([]byte, error) {
-	f, err := dir.Open(name)
+	f, err := openRegular(dir, name)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %q missing", ErrFiles, name)
 	}
@@ -139,4 +148,33 @@ func SameFiles(a, b []File) bool {
 		}
 	}
 	return true
+}
+
+func fileSetChecksum(files []File) string {
+	encoded, _ := json.Marshal(files)
+	sum := sha256.Sum256(encoded)
+	return hex.EncodeToString(sum[:])
+}
+
+func openRegular(dir *os.Root, name string) (*os.File, error) {
+	f, err := dir.OpenFile(name, os.O_RDONLY|syscall.O_NOFOLLOW|syscall.O_NONBLOCK, 0)
+	if err != nil {
+		return nil, ErrFiles
+	}
+	info, err := f.Stat()
+	if err != nil || !info.Mode().IsRegular() {
+		f.Close()
+		return nil, ErrFiles
+	}
+	return f, nil
+}
+
+func matchesBytes(files []File, name string, raw []byte) bool {
+	sum := sha256.Sum256(raw)
+	for _, f := range files {
+		if f.Path == name {
+			return f.Size == int64(len(raw)) && f.SHA256 == hex.EncodeToString(sum[:])
+		}
+	}
+	return false
 }

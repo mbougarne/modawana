@@ -260,3 +260,59 @@ func TestRouteAndSettingsRegistries(t *testing.T) {
 		t.Fatal(sections)
 	}
 }
+
+func TestJobsFollowInstallAndUninstallWhileRunning(t *testing.T) {
+	host := NewHost(nil)
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		host.RunJobs(ctx)
+	}()
+	deadline := time.Now().Add(time.Second)
+	for {
+		host.mu.RLock()
+		running := host.jobRunner != nil
+		host.mu.RUnlock()
+		if running {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("job runner did not start")
+		}
+		time.Sleep(time.Millisecond)
+	}
+	started := make(chan struct{}, 1)
+	stopped := make(chan struct{}, 1)
+	if err := host.Install(jobFixture{run: func(ctx context.Context) error {
+		started <- struct{}{}
+		<-ctx.Done()
+		stopped <- struct{}{}
+		return ctx.Err()
+	}}); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case <-started:
+	case <-time.After(time.Second):
+		t.Fatal("new job was not scheduled")
+	}
+	host.Uninstall("dynamic-jobs")
+	select {
+	case <-stopped:
+	case <-time.After(time.Second):
+		t.Fatal("uninstall did not cancel the active job")
+	}
+	cancel()
+	<-done
+}
+
+type jobFixture struct {
+	run func(context.Context) error
+}
+
+func (jobFixture) Slug() string { return "dynamic-jobs" }
+func (f jobFixture) Register(r *Registrar) error {
+	return r.Job(Job{Name: "test", Every: time.Millisecond, Timeout: 5 * time.Second, Run: f.run})
+}

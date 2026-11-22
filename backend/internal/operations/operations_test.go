@@ -10,6 +10,7 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/content"
 	"github.com/mbougarne/modawana/backend/internal/db"
 	"github.com/mbougarne/modawana/backend/internal/learning"
+	"github.com/mbougarne/modawana/backend/internal/plugin"
 	"github.com/mbougarne/modawana/backend/internal/storage"
 	"github.com/mbougarne/modawana/backend/internal/theme"
 	"os"
@@ -324,5 +325,98 @@ func TestBackupRestoresApprovedThemePacks(t *testing.T) {
 	}
 	if err := Restore(ctx, corrupt, filepath.Join(t.TempDir(), "corrupt")); err != bundle.ErrInvalid {
 		t.Fatal("restore accepted a file with the wrong approval checksum", err)
+	}
+}
+
+func TestBackupKeepsApprovedPluginFilesAndScrubsSecrets(t *testing.T) {
+	ctx := t.Context()
+	root := t.TempDir()
+	if err := os.Chmod(root, 0700); err != nil {
+		t.Fatal(err)
+	}
+	d, err := db.Open(ctx, root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer d.Close()
+	store, err := storage.Open(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer store.Close()
+	plugins := &plugin.Service{DB: d, Dir: filepath.Join(root, "plugins")}
+	const sentinel = "opaque-test-ciphertext-bytes"
+	const removed = "previously-deleted-test-ciphertext"
+	for _, slug := range []string{"retained", "missing"} {
+		dir := filepath.Join(plugins.Dir, slug)
+		if err := os.MkdirAll(dir, 0700); err != nil {
+			t.Fatal(err)
+		}
+		manifest := `{"schema_version":1,"host_api_version":1,"slug":"` + slug + `","name":"Backup fixture","version":"1","module":"plugin.wasm","capabilities":["storage"]}`
+		for name, payload := range map[string]string{"manifest.json": manifest, "plugin.wasm": "module fixture"} {
+			if err := os.WriteFile(filepath.Join(dir, name), []byte(payload), 0600); err != nil {
+				t.Fatal(err)
+			}
+		}
+		record, err := plugins.Approve(ctx, slug, 0, func(*sql.Tx) error { return nil })
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := d.Exec("UPDATE plugin_installs SET enabled=1 WHERE id=?", record.ID); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := d.Exec("INSERT INTO plugin_secrets VALUES(?,?,?)", record.ID, "token", []byte(sentinel)); err != nil {
+			t.Fatal(err)
+		}
+		if slug == "missing" {
+			if _, err := d.Exec("INSERT INTO plugin_secrets VALUES(?,?,?)", record.ID, "removed", []byte(removed)); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := d.Exec("DELETE FROM plugin_secrets WHERE plugin_id=? AND name='removed'", record.ID); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.Remove(filepath.Join(dir, "plugin.wasm")); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	archive := filepath.Join(t.TempDir(), "backup.zip")
+	var data bytes.Buffer
+	if err := Backup(ctx, d, store, root, &data); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(archive, data.Bytes(), 0600); err != nil {
+		t.Fatal(err)
+	}
+	extracted, _, err := bundle.Read(archive, "backup")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(extracted)
+	file, err := os.ReadFile(filepath.Join(extracted, "blog.sqlite"))
+	if err != nil || bytes.Contains(file, []byte(sentinel)) || bytes.Contains(file, []byte(removed)) {
+		t.Fatal("plugin secret survived in the archive", err)
+	}
+	var existing int
+	if err := d.QueryRow("SELECT count(*) FROM plugin_secrets").Scan(&existing); err != nil || existing != 2 {
+		t.Fatal("backup changed the live secrets", existing, err)
+	}
+	dest := filepath.Join(t.TempDir(), "restored")
+	if err := Restore(ctx, archive, dest); err != nil {
+		t.Fatal(err)
+	}
+	restored, err := db.Open(ctx, dest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer restored.Close()
+	for _, slug := range []string{"retained", "missing"} {
+		var enabled bool
+		if err := restored.QueryRow("SELECT enabled FROM plugin_installs WHERE slug=?", slug).Scan(&enabled); err != nil || enabled != (slug == "retained") {
+			t.Fatal(slug, enabled, err)
+		}
+	}
+	if _, err := plugin.ReadDirectory(filepath.Join(dest, "plugins"), "retained"); err != nil {
+		t.Fatal("approved files did not survive restore", err)
 	}
 }

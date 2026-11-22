@@ -93,3 +93,9 @@ The existing site revisions store the selected theme ID. Coordinated backups
 include matching approved pack files, and restore verifies their checksums.
 If the selected pack is unavailable, the public site uses Classic.
 See [the pack format](../../docs/public-pages.md#installable-theme-packs).
+
+## 0017 — Plugin settings, secrets and migrations
+
+Adds versioned plugin settings, encrypted named secrets, and the applied
+plugin migration history. Existing plugin approvals and storage are kept.
+See the [plugin contract](../../docs/plugins.md#stage-2-capabilities).

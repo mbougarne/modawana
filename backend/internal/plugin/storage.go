@@ -46,6 +46,7 @@ var collectionPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,63}$`)
 // pass the usage check on stale reads and overshoot a quota.
 type storage struct {
 	db *sql.DB
+	tx *sql.Tx
 }
 
 func (s storage) kvGet(ctx context.Context, pluginID, key string) ([]byte, error) {
@@ -53,7 +54,7 @@ func (s storage) kvGet(ctx context.Context, pluginID, key string) ([]byte, error
 		return nil, ErrStorageInvalid
 	}
 	var value []byte
-	err := s.db.QueryRowContext(ctx, "SELECT value FROM plugin_kv WHERE plugin_id=? AND key=?", pluginID, key).Scan(&value)
+	err := s.connection().QueryRowContext(ctx, "SELECT value FROM plugin_kv WHERE plugin_id=? AND key=?", pluginID, key).Scan(&value)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
 	}
@@ -64,33 +65,30 @@ func (s storage) kvSet(ctx context.Context, pluginID, key string, value []byte) 
 	if !kvKeyPattern.MatchString(key) || len(value) > maxKVValue {
 		return ErrStorageInvalid
 	}
-	tx, err := s.db.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-	var keys int
-	var used int64
-	err = tx.QueryRowContext(ctx, "SELECT count(*), coalesce(sum(length(key)+length(value)),0) FROM plugin_kv WHERE plugin_id=? AND key!=?", pluginID, key).Scan(&keys, &used)
-	if err != nil {
-		return err
-	}
-	if keys+1 > maxKVKeys || used+int64(len(key)+len(value)) > maxKVBytes {
-		return ErrQuota
-	}
-	_, err = tx.ExecContext(ctx, `INSERT INTO plugin_kv(plugin_id,key,value,updated_at) VALUES(?,?,?,?)
+	return s.write(ctx, func(tx *sql.Tx) error {
+		var keys int
+		var used int64
+		err := tx.QueryRowContext(ctx, "SELECT count(*), coalesce(sum(length(key)+length(value)),0) FROM plugin_kv WHERE plugin_id=? AND key!=?", pluginID, key).Scan(&keys, &used)
+		if err != nil {
+			return err
+		}
+		if keys+1 > maxKVKeys || used+int64(len(key)+len(value)) > maxKVBytes {
+			return ErrQuota
+		}
+		_, err = tx.ExecContext(ctx, `INSERT INTO plugin_kv(plugin_id,key,value,updated_at) VALUES(?,?,?,?)
  ON CONFLICT(plugin_id,key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at`, pluginID, key, value, db.UTC(time.Now()))
-	if err != nil {
-		return err
-	}
-	return tx.Commit()
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 }
 
 func (s storage) kvDelete(ctx context.Context, pluginID, key string) error {
 	if !kvKeyPattern.MatchString(key) {
 		return ErrStorageInvalid
 	}
-	result, err := s.db.ExecContext(ctx, "DELETE FROM plugin_kv WHERE plugin_id=? AND key=?", pluginID, key)
+	result, err := s.connection().ExecContext(ctx, "DELETE FROM plugin_kv WHERE plugin_id=? AND key=?", pluginID, key)
 	if err != nil {
 		return err
 	}
@@ -109,7 +107,7 @@ func (s storage) docGet(ctx context.Context, pluginID, collection, id string) ([
 		return nil, ErrStorageInvalid
 	}
 	var body string
-	err := s.db.QueryRowContext(ctx, "SELECT body FROM plugin_documents WHERE plugin_id=? AND collection=? AND doc_id=?", pluginID, collection, id).Scan(&body)
+	err := s.connection().QueryRowContext(ctx, "SELECT body FROM plugin_documents WHERE plugin_id=? AND collection=? AND doc_id=?", pluginID, collection, id).Scan(&body)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, ErrNotFound
 	}
@@ -120,33 +118,30 @@ func (s storage) docPut(ctx context.Context, pluginID, collection, id string, bo
 	if !collectionPattern.MatchString(collection) || !kvKeyPattern.MatchString(id) || len(body) > maxDocBody || !json.Valid(body) {
 		return ErrStorageInvalid
 	}
-	tx, err := s.db.BeginTx(ctx, nil)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-	var docs int
-	var used int64
-	err = tx.QueryRowContext(ctx, "SELECT count(*), coalesce(sum(length(body)),0) FROM plugin_documents WHERE plugin_id=? AND NOT (collection=? AND doc_id=?)", pluginID, collection, id).Scan(&docs, &used)
-	if err != nil {
-		return err
-	}
-	if docs+1 > maxDocs || used+int64(len(body)) > maxDocsBytes {
-		return ErrQuota
-	}
-	_, err = tx.ExecContext(ctx, `INSERT INTO plugin_documents(plugin_id,collection,doc_id,body,updated_at) VALUES(?,?,?,?,?)
+	return s.write(ctx, func(tx *sql.Tx) error {
+		var docs int
+		var used int64
+		err := tx.QueryRowContext(ctx, "SELECT count(*), coalesce(sum(length(body)),0) FROM plugin_documents WHERE plugin_id=? AND NOT (collection=? AND doc_id=?)", pluginID, collection, id).Scan(&docs, &used)
+		if err != nil {
+			return err
+		}
+		if docs+1 > maxDocs || used+int64(len(body)) > maxDocsBytes {
+			return ErrQuota
+		}
+		_, err = tx.ExecContext(ctx, `INSERT INTO plugin_documents(plugin_id,collection,doc_id,body,updated_at) VALUES(?,?,?,?,?)
  ON CONFLICT(plugin_id,collection,doc_id) DO UPDATE SET body=excluded.body, updated_at=excluded.updated_at`, pluginID, collection, id, string(body), db.UTC(time.Now()))
-	if err != nil {
-		return err
-	}
-	return tx.Commit()
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 }
 
 func (s storage) docDelete(ctx context.Context, pluginID, collection, id string) error {
 	if !collectionPattern.MatchString(collection) || !kvKeyPattern.MatchString(id) {
 		return ErrStorageInvalid
 	}
-	result, err := s.db.ExecContext(ctx, "DELETE FROM plugin_documents WHERE plugin_id=? AND collection=? AND doc_id=?", pluginID, collection, id)
+	result, err := s.connection().ExecContext(ctx, "DELETE FROM plugin_documents WHERE plugin_id=? AND collection=? AND doc_id=?", pluginID, collection, id)
 	if err != nil {
 		return err
 	}
@@ -158,4 +153,31 @@ func (s storage) docDelete(ctx context.Context, pluginID, collection, id string)
 		return ErrNotFound
 	}
 	return nil
+}
+
+type storageConnection interface {
+	pluginReader
+	ExecContext(context.Context, string, ...any) (sql.Result, error)
+}
+
+func (s storage) connection() storageConnection {
+	if s.tx != nil {
+		return s.tx
+	}
+	return s.db
+}
+
+func (s storage) write(ctx context.Context, update func(*sql.Tx) error) error {
+	if s.tx != nil {
+		return update(s.tx)
+	}
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	if err := update(tx); err != nil {
+		return err
+	}
+	return tx.Commit()
 }

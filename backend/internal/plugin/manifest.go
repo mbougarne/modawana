@@ -1,4 +1,4 @@
-// Package plugin is the ADR 0001 stage 1 WebAssembly plugin host: it loads
+// Package plugin implements the ADR 0001 WebAssembly plugin host: it loads
 // owner-approved WASI modules from plugins/{slug}/ under the data root and
 // installs them on the extension registries as a second implementation of
 // extension.Extension. The host keeps all authority: plugins exchange bounded
@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"regexp"
 	"slices"
 	"strings"
@@ -19,7 +20,7 @@ import (
 
 // HostAPIVersion is the newest host API this binary serves. Manifests
 // requiring a newer version are refused at install time.
-const HostAPIVersion = 1
+const HostAPIVersion = 2
 
 // manifestSchemaVersion is the manifest document schema this binary parses.
 const manifestSchemaVersion = 1
@@ -31,10 +32,8 @@ const maxRoutes = 16
 // ErrManifest reports a manifest that failed strict validation.
 var ErrManifest = errors.New("invalid plugin manifest")
 
-// Capabilities installable in stage 1. Everything else in the ADR capability
-// table (settings, jobs, http_fetch, secrets, content_read, mcp_tools) is
-// refused until the stage that delivers it.
-var supportedCapabilities = []string{"hooks", "routes", "storage"}
+// Capabilities accepted in host API 1 and 2. Content and MCP exposure are later stages.
+var supportedCapabilities = []string{"hooks", "routes", "storage", "settings", "jobs", "http_fetch", "secrets"}
 
 var slugPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{0,63}$`)
 var hookNamePattern = regexp.MustCompile(`^[a-z0-9_]+(\.[a-z0-9_]+)+$`)
@@ -61,6 +60,11 @@ type Manifest struct {
 	Capabilities   []string        `json:"capabilities"`
 	Hooks          []ManifestHook  `json:"hooks,omitempty"`
 	Routes         []ManifestRoute `json:"routes,omitempty"`
+	Settings       []SettingField  `json:"settings,omitempty"`
+	Jobs           []ManifestJob   `json:"jobs,omitempty"`
+	HTTPSHosts     []string        `json:"https_hosts,omitempty"`
+	Secrets        []NamedSecret   `json:"secrets,omitempty"`
+	Migrations     []Migration     `json:"migrations,omitempty"`
 }
 
 // ManifestHook declares one hook subscription and its contract version.
@@ -93,7 +97,7 @@ func ParseManifest(raw []byte, directory string) (Manifest, error) {
 	if err := decoder.Decode(&m); err != nil {
 		return m, fmt.Errorf("%w: %s", ErrManifest, err.Error())
 	}
-	if decoder.More() {
+	if decoder.Decode(new(any)) != io.EOF {
 		return m, fmt.Errorf("%w: trailing data", ErrManifest)
 	}
 	if err := m.validate(directory); err != nil {
@@ -133,7 +137,10 @@ func (m Manifest) validate(directory string) error {
 	if err := m.validateHooks(); err != nil {
 		return err
 	}
-	return m.validateRoutes()
+	if err := m.validateRoutes(); err != nil {
+		return err
+	}
+	return m.validateStageTwo()
 }
 
 func (m Manifest) validateCapabilities() error {

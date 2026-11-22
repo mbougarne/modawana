@@ -10,10 +10,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
-	"syscall"
 	"time"
 	"unicode/utf8"
 
@@ -24,33 +21,8 @@ import (
 )
 
 func (s *Service) encryptionKey() ([]byte, error) {
-	p := s.Config.AuthKeyFile
-	if !filepath.IsAbs(p) {
-		return nil, ErrUnavailable
-	}
-	resolved, e := filepath.EvalSymlinks(p)
-	if e != nil {
-		return nil, ErrUnavailable
-	}
-	dataRoot, e := filepath.EvalSymlinks(s.Config.DataRoot)
-	if e != nil {
-		return nil, ErrUnavailable
-	}
-	rel, e := filepath.Rel(dataRoot, resolved)
-	if e != nil || rel == "." || (!strings.HasPrefix(rel, ".."+string(filepath.Separator)) && rel != "..") {
-		return nil, ErrUnavailable
-	}
-	f, e := os.OpenFile(p, os.O_RDONLY|syscall.O_NOFOLLOW, 0)
-	if e != nil {
-		return nil, ErrUnavailable
-	}
-	defer f.Close()
-	info, e := f.Stat()
-	if e != nil || !info.Mode().IsRegular() || info.Mode().Perm()&0077 != 0 || info.Size() != 32 {
-		return nil, ErrUnavailable
-	}
-	key := make([]byte, 32)
-	if _, e = f.ReadAt(key, 0); e != nil {
+	key, err := s.Config.ReadAuthKey()
+	if err != nil {
 		return nil, ErrUnavailable
 	}
 	return key, nil

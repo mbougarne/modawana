@@ -130,6 +130,12 @@ func TestPluginRoutesOwnerBoundaryAndLifecycle(t *testing.T) {
 	if w := request("GET", "/api/v1/plugins", "", false, false); w.Code != 401 {
 		t.Fatal("list without session", w.Code)
 	}
+	if w := request("GET", "/api/v1/plugin-configuration/example", "", false, false); w.Code != 401 {
+		t.Fatal("plugin configuration without session", w.Code)
+	}
+	if w := request("PUT", "/api/v1/plugin-configuration/example/secrets/token", `{"expected_version":1,"value":"test"}`, true, false); w.Code != 403 {
+		t.Fatal("secret mutation without origin and CSRF", w.Code)
+	}
 	w := request("GET", "/api/v1/plugins", "", true, false)
 	if w.Code != 200 || !strings.Contains(w.Body.String(), `"state":"available"`) {
 		t.Fatal("list", w.Code, w.Body.String())

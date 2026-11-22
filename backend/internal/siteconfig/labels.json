@@ -1525,6 +1525,96 @@
       "ar": "لا توجد إضافات. أضف مجلد إضافة داخل plugins/ في مجلد البيانات."
     }
   },
+  "plugins.settings": {
+    "section": "plugins",
+    "description": "Interface text: plugins.settings",
+    "placeholders": [],
+    "values": {
+      "en": "Plugin settings",
+      "fr": "Paramètres de l’extension",
+      "ar": "إعدادات الإضافة"
+    }
+  },
+  "plugins.saveSettings": {
+    "section": "plugins",
+    "description": "Interface text: plugins.saveSettings",
+    "placeholders": [],
+    "values": {
+      "en": "Save settings",
+      "fr": "Enregistrer les paramètres",
+      "ar": "حفظ الإعدادات"
+    }
+  },
+  "plugins.settingsHistory": {
+    "section": "plugins",
+    "description": "Interface text: plugins.settingsHistory",
+    "placeholders": [],
+    "values": {
+      "en": "Settings history",
+      "fr": "Historique des paramètres",
+      "ar": "سجل الإعدادات"
+    }
+  },
+  "plugins.selectRevision": {
+    "section": "plugins",
+    "description": "Interface text: plugins.selectRevision",
+    "placeholders": [],
+    "values": {
+      "en": "Select a revision",
+      "fr": "Choisir une révision",
+      "ar": "اختر مراجعة"
+    }
+  },
+  "plugins.restoreSettings": {
+    "section": "plugins",
+    "description": "Interface text: plugins.restoreSettings",
+    "placeholders": [],
+    "values": {
+      "en": "Restore settings",
+      "fr": "Restaurer les paramètres",
+      "ar": "استعادة الإعدادات"
+    }
+  },
+  "plugins.saveSecret": {
+    "section": "plugins",
+    "description": "Interface text: plugins.saveSecret",
+    "placeholders": [],
+    "values": {
+      "en": "Save secret",
+      "fr": "Enregistrer le secret",
+      "ar": "حفظ السر"
+    }
+  },
+  "plugins.removeSecret": {
+    "section": "plugins",
+    "description": "Interface text: plugins.removeSecret",
+    "placeholders": [],
+    "values": {
+      "en": "Remove secret",
+      "fr": "Supprimer le secret",
+      "ar": "إزالة السر"
+    }
+  },
+  "plugins.httpsHosts": {
+    "section": "plugins",
+    "description": "Interface text: plugins.httpsHosts",
+    "placeholders": [],
+    "values": {
+      "en": "Approved HTTPS destinations",
+      "fr": "Destinations HTTPS autorisées",
+      "ar": "وجهات HTTPS المسموح بها"
+    }
+  },
+  "plugins.jobs": {
+    "section": "plugins",
+    "description": "Interface text: plugins.jobs",
+    "placeholders": [],
+    "values": {
+      "en": "Scheduled jobs",
+      "fr": "Tâches planifiées",
+      "ar": "المهام المجدولة"
+    }
+  },
   "plugins.state.available": {
     "section": "plugins",
     "description": "Interface text: plugins.state.available",
