@@ -791,6 +791,11 @@ export const DEFAULT_LABELS = {
     'Choisissez une destination disponible dans ce menu.',
     'اختر وجهة متاحة في هذه القائمة.',
   ),
+  'validation.menu_page': l(
+    'Choose an existing standalone page.',
+    'Choisissez une page autonome existante.',
+    'اختر صفحة مستقلة موجودة.',
+  ),
   'validation.range': l(
     'Use a value from {min} to {max}.',
     'Utilisez une valeur de {min} à {max}.',
@@ -1027,6 +1032,12 @@ export const DEFAULT_LABELS = {
     'لا تحتوي هذه القائمة على روابط.',
   ),
   'config.menuTarget': l('Destination', 'Destination', 'الوجهة'),
+  'config.menuPage': l('Select page', 'Choisir une page', 'اختيار صفحة'),
+  'config.menuPageHelp': l(
+    'Search by title or key. The link uses the published title and appears in each language where the page is published.',
+    'Recherchez par titre ou clé. Le lien reprend le titre publié et apparaît dans chaque langue où la page est publiée.',
+    'ابحث بالعنوان أو المفتاح. يستخدم الرابط العنوان المنشور ويظهر في كل لغة نُشرت بها الصفحة.',
+  ),
   'config.customMenuLink': l('Custom link', 'Lien personnalisé', 'رابط مخصص'),
   'config.useDefaultMenu': l(
     'Use default links',

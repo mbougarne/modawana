@@ -6440,7 +6440,8 @@
                 "lesson",
                 "doc",
                 "learning_item",
-                "docs_item"
+                "docs_item",
+                "page"
               ]
             }
           },
@@ -8227,8 +8228,13 @@
               "learning",
               "docs",
               "about",
+              "page",
               "custom"
             ]
+          },
+          "page_key": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,119}$"
           },
           "label": {
             "type": "object",
@@ -8277,6 +8283,20 @@
             "label",
             "url"
           ]
+        },
+        "else": {
+          "if": {
+            "properties": {
+              "target": {
+                "const": "page"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "page_key"
+            ]
+          }
         }
       },
       "ProfileLink": {

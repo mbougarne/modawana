@@ -92,7 +92,9 @@ export function ValidationIssues({
             ? 'rowText'
             : sub === 'target'
               ? 'menuTarget'
-              : sub;
+              : sub === 'page_key'
+                ? 'menuPage'
+                : sub;
       labels.push(sub === 'id' ? t('validation.rowIdentity') : t('config.' + key));
     }
     const lang = parts.at(-1);
@@ -111,6 +113,7 @@ export function ValidationIssues({
     'email',
     'reference',
     'menu_target',
+    'menu_page',
     'id',
     'required',
     'url',

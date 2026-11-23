@@ -3,6 +3,7 @@ package siteconfig
 import (
 	"context"
 	"encoding/json"
+	"regexp"
 	"strconv"
 	"strings"
 	"unicode"
@@ -10,6 +11,8 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/render"
 	"github.com/mbougarne/modawana/backend/internal/theme"
 )
+
+var menuPageKey = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,119}$`)
 
 func siteIssues(s Site) []FieldIssue {
 	issues := []FieldIssue{}
@@ -83,11 +86,14 @@ func menuIssues(path string, items []MenuItem) []FieldIssue {
 		seen[item.ID] = true
 		switch item.Target {
 		case "home", "writing", "learning", "docs", "about":
-			if targets[item.Target] || item.URL != "" || len(item.Label) != 0 {
+			if targets[item.Target] || item.URL != "" || len(item.Label) != 0 || item.PageKey != "" {
 				issues = append(issues, FieldIssue{row + ".target", "menu_target"})
 			}
 			targets[item.Target] = true
 		case "custom":
+			if item.PageKey != "" {
+				issues = append(issues, FieldIssue{row + ".target", "menu_target"})
+			}
 			if _, ok := render.SafeLink(item.URL); !ok || !safeURL(item.URL) {
 				issues = append(issues, FieldIssue{row + ".url", "url"})
 			}
@@ -95,6 +101,13 @@ func menuIssues(path string, items []MenuItem) []FieldIssue {
 				issues = append(issues, FieldIssue{row + ".label.en", "required"})
 			} else if !localized(item.Label, 80) {
 				issues = append(issues, FieldIssue{row + ".label", "text"})
+			}
+		case "page":
+			if !menuPageKey.MatchString(item.PageKey) {
+				issues = append(issues, FieldIssue{row + ".page_key", "menu_page"})
+			}
+			if item.URL != "" || len(item.Label) != 0 {
+				issues = append(issues, FieldIssue{row + ".target", "menu_target"})
 			}
 		default:
 			issues = append(issues, FieldIssue{row + ".target", "menu_target"})

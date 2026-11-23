@@ -168,6 +168,13 @@ func (s *Service) validateRefs(ctx context.Context, q query, kind string, b json
 			return invalidMedia()
 		}
 	}
+	if kind == "site" {
+		var site Site
+		if e := json.Unmarshal(b, &site); e != nil {
+			return e
+		}
+		return validateMenuPageReferences(ctx, q, site)
+	}
 	if kind == "profile" {
 		var p Profile
 		_ = json.Unmarshal(b, &p)
