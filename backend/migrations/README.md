@@ -99,3 +99,11 @@ See [the pack format](../../docs/public-pages.md#installable-theme-packs).
 Adds versioned plugin settings, encrypted named secrets, and the applied
 plugin migration history. Existing plugin approvals and storage are kept.
 See the [plugin contract](../../docs/plugins.md#stage-2-capabilities).
+
+## 0019 — Transactional event delivery
+
+Adds versioned publication events, approved subscriptions, and leased delivery
+state to the same SQLite database. This migration preserves existing plugin
+approvals, content revisions, and publication pointers. Enabling a new
+subscription delivers subsequent publications.
+See [durable publication events](../../docs/plugins.md#durable-publication-events-api-5).

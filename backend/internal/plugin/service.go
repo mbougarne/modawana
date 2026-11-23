@@ -257,6 +257,11 @@ func (s *Service) approve(ctx context.Context, slug, checksum string, expected i
 	if err != nil {
 		return Install{}, err
 	}
+	if len(m.Events) > 0 || expected > 0 {
+		if err := replaceEventSubscriptions(ctx, tx, id, m.Events); err != nil {
+			return Install{}, err
+		}
+	}
 	if err := pruneRemovedSecrets(ctx, tx, id, m); err != nil {
 		return Install{}, err
 	}

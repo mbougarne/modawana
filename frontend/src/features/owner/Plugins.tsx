@@ -7,6 +7,7 @@ import { ResourceState } from '../../pages/public/ResourceState';
 import { authenticatedTransfer } from '../auth/reauthenticate';
 import { PluginConfiguration, type PluginManifest } from './PluginConfiguration';
 import { localizedContribution, useExtensionCatalog } from './ExtensionCatalog';
+import { PluginDeliveries } from './PluginDeliveries';
 
 type PluginItem = {
   slug: string;
@@ -31,7 +32,7 @@ type PluginItem = {
   candidate_checksum?: string;
 };
 
-export function Plugins() {
+export function Plugins({ csrf }: { csrf: string }) {
   const { t, locale } = useI18n();
   const { items: catalog, refresh } = useExtensionCatalog();
   const { hash } = useLocation();
@@ -172,6 +173,18 @@ export function Plugins() {
                 ))}
               </p>
             )}
+            {manifest?.events?.length ? (
+              <p>
+                {t('plugins.eventSubscriptions')}{' '}
+                {manifest.events.map((event) => (
+                  <Tag key={event.name}>
+                    <bdi>
+                      {event.name} v{event.version}
+                    </bdi>
+                  </Tag>
+                ))}
+              </p>
+            ) : null}
             {manifest?.https_hosts?.length ? (
               <p>
                 {t('plugins.httpsHosts')}{' '}
@@ -257,6 +270,7 @@ export function Plugins() {
           </section>
         );
       })}
+      <PluginDeliveries csrf={csrf} />
       {notice && (
         <p role="status" className="workspace-alert" data-tone={failed ? 'warning' : 'success'}>
           {t(notice)}

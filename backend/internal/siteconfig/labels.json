@@ -1867,6 +1867,208 @@
       "ar": "منشورة"
     }
   },
+  "plugins.eventSubscriptions": {
+    "section": "plugins",
+    "description": "Interface text: plugins.eventSubscriptions",
+    "placeholders": [],
+    "values": {
+      "en": "Event subscriptions",
+      "fr": "Abonnements aux événements",
+      "ar": "اشتراكات الأحداث"
+    }
+  },
+  "plugins.deliveries": {
+    "section": "plugins",
+    "description": "Interface text: plugins.deliveries",
+    "placeholders": [],
+    "values": {
+      "en": "Event deliveries",
+      "fr": "Livraisons d’événements",
+      "ar": "تسليم الأحداث"
+    }
+  },
+  "plugins.deliveries.empty": {
+    "section": "plugins",
+    "description": "Interface text: plugins.deliveries.empty",
+    "placeholders": [],
+    "values": {
+      "en": "No event deliveries yet.",
+      "fr": "Aucune livraison pour le moment.",
+      "ar": "لا توجد عمليات تسليم بعد."
+    }
+  },
+  "plugins.deliveries.refresh": {
+    "section": "plugins",
+    "description": "Interface text: plugins.deliveries.refresh",
+    "placeholders": [],
+    "values": {
+      "en": "Refresh deliveries",
+      "fr": "Actualiser les livraisons",
+      "ar": "تحديث عمليات التسليم"
+    }
+  },
+  "plugins.deliveries.pending": {
+    "section": "plugins",
+    "description": "Interface text: plugins.deliveries.pending",
+    "placeholders": [],
+    "values": {
+      "en": "Queued",
+      "fr": "En file d’attente",
+      "ar": "في قائمة الانتظار"
+    }
+  },
+  "plugins.deliveries.running": {
+    "section": "plugins",
+    "description": "Interface text: plugins.deliveries.running",
+    "placeholders": [],
+    "values": {
+      "en": "Running",
+      "fr": "En cours",
+      "ar": "قيد التنفيذ"
+    }
+  },
+  "plugins.deliveries.succeeded": {
+    "section": "plugins",
+    "description": "Interface text: plugins.deliveries.succeeded",
+    "placeholders": [],
+    "values": {
+      "en": "Delivered",
+      "fr": "Livré",
+      "ar": "تم التسليم"
+    }
+  },
+  "plugins.deliveries.failed": {
+    "section": "plugins",
+    "description": "Interface text: plugins.deliveries.failed",
+    "placeholders": [],
+    "values": {
+      "en": "Failed",
+      "fr": "Échec",
+      "ar": "فشل"
+    }
+  },
+  "plugins.deliveries.paused": {
+    "section": "plugins",
+    "description": "Interface text: plugins.deliveries.paused",
+    "placeholders": [],
+    "values": {
+      "en": "Subscriber paused",
+      "fr": "Abonné en pause",
+      "ar": "المشترك متوقف"
+    }
+  },
+  "plugins.deliveries.nextAttempt": {
+    "section": "plugins",
+    "description": "Interface text: plugins.deliveries.nextAttempt",
+    "placeholders": [],
+    "values": {
+      "en": "Next attempt",
+      "fr": "Prochaine tentative",
+      "ar": "المحاولة التالية"
+    }
+  },
+  "plugins.deliveries.attempts": {
+    "section": "plugins",
+    "description": "Interface text: plugins.deliveries.attempts",
+    "placeholders": [
+      "n"
+    ],
+    "values": {
+      "en": "Attempts: {n}",
+      "fr": "Tentatives : {n}",
+      "ar": "عدد المحاولات: {n}"
+    }
+  },
+  "plugins.deliveries.retry": {
+    "section": "plugins",
+    "description": "Interface text: plugins.deliveries.retry",
+    "placeholders": [],
+    "values": {
+      "en": "Retry delivery",
+      "fr": "Relancer la livraison",
+      "ar": "إعادة محاولة التسليم"
+    }
+  },
+  "plugins.deliveries.requeued": {
+    "section": "plugins",
+    "description": "Interface text: plugins.deliveries.requeued",
+    "placeholders": [],
+    "values": {
+      "en": "Delivery queued again.",
+      "fr": "Livraison remise en file d’attente.",
+      "ar": "أُعيدت عملية التسليم إلى قائمة الانتظار."
+    }
+  },
+  "plugins.deliveries.previous": {
+    "section": "plugins",
+    "description": "Interface text: plugins.deliveries.previous",
+    "placeholders": [],
+    "values": {
+      "en": "Newer deliveries",
+      "fr": "Livraisons plus récentes",
+      "ar": "عمليات التسليم الأحدث"
+    }
+  },
+  "plugins.deliveries.more": {
+    "section": "plugins",
+    "description": "Interface text: plugins.deliveries.more",
+    "placeholders": [],
+    "values": {
+      "en": "Older deliveries",
+      "fr": "Livraisons plus anciennes",
+      "ar": "عمليات التسليم الأقدم"
+    }
+  },
+  "plugins.deliveries.error.delivery_failed": {
+    "section": "plugins",
+    "description": "Interface text: plugins.deliveries.error.delivery_failed",
+    "placeholders": [],
+    "values": {
+      "en": "The subscriber failed to run.",
+      "fr": "L’exécution de l’abonné a échoué.",
+      "ar": "فشل تشغيل المشترك."
+    }
+  },
+  "plugins.deliveries.error.effect_rejected": {
+    "section": "plugins",
+    "description": "Interface text: plugins.deliveries.error.effect_rejected",
+    "placeholders": [],
+    "values": {
+      "en": "The host rejected the result.",
+      "fr": "L’hôte a rejeté le résultat.",
+      "ar": "رفض المضيف النتيجة."
+    }
+  },
+  "plugins.deliveries.error.subscriber_unavailable": {
+    "section": "plugins",
+    "description": "Interface text: plugins.deliveries.error.subscriber_unavailable",
+    "placeholders": [],
+    "values": {
+      "en": "The subscriber was unavailable.",
+      "fr": "L’abonné était indisponible.",
+      "ar": "لم يكن المشترك متاحًا."
+    }
+  },
+  "plugins.deliveries.error.lease_expired": {
+    "section": "plugins",
+    "description": "Interface text: plugins.deliveries.error.lease_expired",
+    "placeholders": [],
+    "values": {
+      "en": "The last attempt ended before delivery was recorded.",
+      "fr": "La dernière tentative s’est terminée avant l’enregistrement de la livraison.",
+      "ar": "انتهت المحاولة الأخيرة قبل تسجيل التسليم."
+    }
+  },
+  "plugins.deliveries.error.timed_out": {
+    "section": "plugins",
+    "description": "Interface text: plugins.deliveries.error.timed_out",
+    "placeholders": [],
+    "values": {
+      "en": "The attempt timed out.",
+      "fr": "La tentative a expiré.",
+      "ar": "انتهت مهلة المحاولة."
+    }
+  },
   "plugins.state.available": {
     "section": "plugins",
     "description": "Interface text: plugins.state.available",

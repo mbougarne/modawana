@@ -23,6 +23,7 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/extension"
 	httpserver "github.com/mbougarne/modawana/backend/internal/http"
 	"github.com/mbougarne/modawana/backend/internal/media"
+	"github.com/mbougarne/modawana/backend/internal/outbox"
 	"github.com/mbougarne/modawana/backend/internal/plugin"
 	"github.com/mbougarne/modawana/backend/internal/publisher"
 	"github.com/mbougarne/modawana/backend/internal/siteconfig"
@@ -179,7 +180,8 @@ func run() int {
 	defer runtime.Close(context.Background())
 	runtime.SetKeySource(cfg.ReadAuthKey)
 	plugins := &plugin.Service{DB: database, Dir: filepath.Join(cfg.DataRoot, "plugins"), Host: host, Runtime: runtime, Logger: logger, Maintenance: func() bool { return operations.Maintenance(cfg.DataRoot) }}
-	domain := &httpserver.Domain{Learning: identities, SiteConfig: settings, Content: contents, Auth: authentication, Media: media.New(database, files, policy), Extensions: host, Plugins: plugins}
+	deliveries := &outbox.Worker{DB: database, Handle: plugins.PrepareEvent, Paused: plugins.Maintenance, Logger: logger}
+	domain := &httpserver.Domain{Learning: identities, SiteConfig: settings, Content: contents, Auth: authentication, Media: media.New(database, files, policy), Extensions: host, Plugins: plugins, Deliveries: deliveries}
 	publishing, err := publisher.Extensions(cfg.BaseURL, os.Getenv, plugins.Maintenance)
 	if err != nil {
 		logger.Error("publisher extension configuration rejected", "reason", err.Error())
@@ -200,6 +202,11 @@ func run() int {
 		return 1
 	}
 	jobsDone := make(chan struct{})
+	deliveriesDone := make(chan struct{})
+	go func() {
+		defer close(deliveriesDone)
+		deliveries.Run(ctx)
+	}()
 	go func() {
 		defer close(jobsDone)
 		host.RunJobs(ctx)
@@ -207,6 +214,7 @@ func run() int {
 	defer func() {
 		stop()
 		<-jobsDone
+		<-deliveriesDone
 	}()
 	if cfg.Environment == "production" && len(cfg.TrustedProxies) == 0 {
 		logger.Warn("no trusted proxies configured; reverse-proxy deployments must set BLOG_TRUSTED_PROXIES to observed proxy peers for per-client throttling")
