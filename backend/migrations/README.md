@@ -107,3 +107,9 @@ state to the same SQLite database. This migration preserves existing plugin
 approvals, content revisions, and publication pointers. Enabling a new
 subscription delivers subsequent publications.
 See [durable publication events](../../docs/plugins.md#durable-publication-events-api-5).
+
+## 0020 — Verified webhook inbox
+
+Adds provider connection bindings, durable verified receipts, and monotonic
+resource status. Signing keys stay outside the data root. See the
+[webhook inbox contract](../../docs/plugins.md#verified-webhook-inbox).

@@ -337,3 +337,38 @@ Disabling a subscription pauses its outstanding work. Reinstalling a removed
 plugin creates a new identity. Delivery history is retained in SQLite and
 included in coordinated backups. Ordinary interval jobs keep their existing
 scheduler.
+
+### Verified webhook inbox
+
+The dedicated Go ingress supports the `standard-v1` reference adapter. It uses
+the symmetric [Standard Webhooks](https://github.com/standard-webhooks/standard-webhooks/blob/main/spec/standard-webhooks.md)
+signature over the delivery ID, timestamp and exact request bytes. It accepts
+a bounded JSON request over the provider's configured HTTPS endpoint.
+
+Set `BLOG_WEBHOOK_CONNECTIONS` to a JSON array of connection declarations.
+Each needs a stable `id`, `adapter` set to `standard-v1`, the expected
+`account`, a `mode` of `sandbox` or `live`, and an absolute `key_file`.
+Use separate signing keys for separate connections. The key file must be a
+private regular file outside the data root. It contains a JSON object with a
+`current` key in the `whsec_` plus base64 format. For rotation, atomically
+replace the file. Include `previous` and an RFC 3339 `previous_until` only if
+the old key should remain valid during an overlap. Removing a connection from
+configuration pauses its undelivered receipts. Changing the account or mode
+requires a new connection ID.
+
+Send `POST /api/v1/webhooks/standard-v1/{connection}` with the
+`Webhook-Id`, `Webhook-Timestamp`, and `Webhook-Signature` headers. The
+reference event body has `type: "resource.status"`, an RFC 3339 `timestamp`,
+and `data` containing `connection`, `account`, `mode`, `resource_id`, a
+positive integer `version`, and `status` of `active` or `inactive`. The
+signed connection, account, and mode must match the endpoint. The delivery
+timestamp has a five-minute tolerance in either direction.
+
+The ingress returns 202 after saving a verified receipt, 200 for a verified
+retry with the same connection, event ID, and body, and 409 for a conflicting
+body. Temporary credential or database failures return 503. The worker applies
+only increasing resource versions. Late arrivals are marked superseded and
+conflicting states at the same version are flagged for inspection. The owner
+can list redacted receipt status via `GET /api/v1/webhook-receipts` and
+paginate using `?before={before}`. SQLite stores the normalized event and
+body digest. Logs and receipt responses omit raw bodies and keys.

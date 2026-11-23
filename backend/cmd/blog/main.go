@@ -29,6 +29,7 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/siteconfig"
 	"github.com/mbougarne/modawana/backend/internal/storage"
 	"github.com/mbougarne/modawana/backend/internal/theme"
+	"github.com/mbougarne/modawana/backend/internal/webhook"
 )
 
 // maintenanceJobs registers the hourly cleanup batch, formerly an ad-hoc
@@ -181,7 +182,12 @@ func run() int {
 	runtime.SetKeySource(cfg.ReadAuthKey)
 	plugins := &plugin.Service{DB: database, Dir: filepath.Join(cfg.DataRoot, "plugins"), Host: host, Runtime: runtime, Logger: logger, Maintenance: func() bool { return operations.Maintenance(cfg.DataRoot) }}
 	deliveries := &outbox.Worker{DB: database, Handle: plugins.PrepareEvent, Paused: plugins.Maintenance, Logger: logger}
-	domain := &httpserver.Domain{Learning: identities, SiteConfig: settings, Content: contents, Auth: authentication, Media: media.New(database, files, policy), Extensions: host, Plugins: plugins, Deliveries: deliveries}
+	webhooks, err := webhook.Open(ctx, database, cfg.DataRoot, os.Getenv("BLOG_WEBHOOK_CONNECTIONS"))
+	if err != nil {
+		logger.Error("webhook connection configuration rejected")
+		return 1
+	}
+	domain := &httpserver.Domain{Learning: identities, SiteConfig: settings, Content: contents, Auth: authentication, Media: media.New(database, files, policy), Extensions: host, Plugins: plugins, Deliveries: deliveries, Webhooks: webhooks}
 	publishing, err := publisher.Extensions(cfg.BaseURL, os.Getenv, plugins.Maintenance)
 	if err != nil {
 		logger.Error("publisher extension configuration rejected", "reason", err.Error())
@@ -203,6 +209,11 @@ func run() int {
 	}
 	jobsDone := make(chan struct{})
 	deliveriesDone := make(chan struct{})
+	webhooksDone := make(chan struct{})
+	go func() {
+		defer close(webhooksDone)
+		webhooks.Run(ctx, plugins.Maintenance, logger)
+	}()
 	go func() {
 		defer close(deliveriesDone)
 		deliveries.Run(ctx)
@@ -215,6 +226,7 @@ func run() int {
 		stop()
 		<-jobsDone
 		<-deliveriesDone
+		<-webhooksDone
 	}()
 	if cfg.Environment == "production" && len(cfg.TrustedProxies) == 0 {
 		logger.Warn("no trusted proxies configured; reverse-proxy deployments must set BLOG_TRUSTED_PROXIES to observed proxy peers for per-client throttling")
