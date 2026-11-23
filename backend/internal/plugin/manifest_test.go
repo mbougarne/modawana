@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 )
@@ -28,7 +29,7 @@ func TestManifestStrictValidation(t *testing.T) {
 		}
 	}
 	reject("unknown field", `"slug"`, `"surprise": true, "slug"`)
-	reject("newer host API", `"host_api_version": 1`, `"host_api_version": 4`)
+	reject("newer host API", `"host_api_version": 1`, fmt.Sprintf(`"host_api_version": %d`, HostAPIVersion+1))
 	reject("unknown schema", `"schema_version": 1`, `"schema_version": 7`)
 	reject("unsupported capability", `"storage"]`, `"secrets"]`)
 	reject("duplicate capability", `["hooks"`, `["storage", "hooks"`)
