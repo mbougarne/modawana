@@ -22,6 +22,7 @@
 ## Development reference
 
 - [Architecture](architecture.md) and [configuration/learning contracts](architecture-appendix-configurable-learning.md).
+- [Proposed CMS platform and managed hosting](cms-platform-architecture.md), including the builder, first-party modules, and rollout sequence.
 - [Architecture decision records](decisions/README.md): the plugin host and server-rendered themes.
 - [API reference](api/README.md) and [OpenAPI schema](api/v1.openapi.json).
 - [Design](design.md), [UI contracts](ui-contracts.md), [Markdown](markdown-reader.md), and [public routes](public-pages.md).

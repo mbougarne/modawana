@@ -6,12 +6,15 @@ import { ReferencePicker } from '../../../features/owner/ReferencePicker';
 import { StableKeyField } from '@ui/components/StableKeyField';
 import { EditorTabs } from '../../../../../ui/src/editor/EditorTabs';
 import { EditorTags } from '../../../../../ui/src/editor/EditorTags';
+import { PageBlockEditor } from './PageBlockEditor';
+import { createBlock, landingBlocks, textFitsMarkdownBlock } from './pageBlocks';
 import { QuizBuilder } from './QuizBuilder';
 import { validQuiz } from '../../../api/learning';
 import type { QuizPath } from '../../../api/learning';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Button, Field, I18nProvider, MarkdownToolbar, useI18n, type MarkdownAction } from '@ui';
+import { resolveLabel } from '../../../../../ui/src/i18n/resolve';
 import { markdownEdit, editorStatistics } from '@ui/editor/markdown';
 import { call, AuthError, requestErrorKey } from '../../../features/auth/api';
 import { MarkdownReader } from '../../../features/markdown/MarkdownReader';
@@ -26,6 +29,7 @@ import type {
   Revision,
   CollectionDocument,
   PageTemplate,
+  PageBlockDocument,
 } from '../../../api/content';
 import { useResource } from '../../public/api';
 
@@ -49,6 +53,8 @@ function fromDraft(d: Draft): DraftInput {
     expected_version: d.version,
     kind: d.kind,
     page_template: d.revision.page_template,
+    body_format: d.revision.body_format,
+    page_blocks: d.revision.page_blocks,
     source_locale: d.source_locale,
     slug: d.revision.slug,
     title: d.revision.title,
@@ -73,6 +79,7 @@ export function EditorPage({ csrf }: { csrf: string }) {
   const [base, setBase] = useState<Draft>();
   const [working, setWorking] = useState<DraftInput>(() => empty(lang, initialKind));
   const [initial, setInitial] = useState(() => JSON.stringify(empty(lang, initialKind)));
+  const blockMode = working.body_format === 'blocks';
   const standalone = working.kind === 'page';
   const canQuiz = working.kind === 'article' || working.kind === 'lesson';
   const [pendingFile, setPendingFile] = useState<File>();
@@ -117,6 +124,16 @@ export function EditorPage({ csrf }: { csrf: string }) {
   const dirty = JSON.stringify(working) !== initial;
   const replaceSavedRoute = useOwnerLeaveGuard(dirty);
   function report(e: unknown) {
+    if (e instanceof AuthError) {
+      const blockIssue = e.fields.find((field) => field.path === 'page_blocks');
+      if (
+        blockIssue?.code === 'page_block_unavailable' ||
+        blockIssue?.code === 'page_block_media'
+      ) {
+        setNotice('pageBlocks.' + blockIssue.code);
+        return;
+      }
+    }
     const code =
       e instanceof AuthError
         ? e.fields.find((field) => field.code.startsWith('conversion_'))?.code
@@ -218,11 +235,14 @@ export function EditorPage({ csrf }: { csrf: string }) {
                   })),
                 }
               : undefined;
-            const form = {
+            const form: DraftInput = {
               quiz,
               ...empty(lang),
               kind: d.kind,
               page_template: published.page_template,
+              body_format: published.body_format,
+              page_blocks:
+                published.body_format === 'blocks' ? { version: 1, blocks: [] } : undefined,
               source_locale: d.source_locale,
               source_revision_id: d.published_revision_id,
             };
@@ -315,9 +335,36 @@ export function EditorPage({ csrf }: { csrf: string }) {
     }));
     setNotice('builder.sourceLoaded');
   }
+  function useBlocks(preset: boolean) {
+    if (!textFitsMarkdownBlock(working.markdown)) {
+      setNotice('pageBlocks.markdownLimit');
+      return;
+    }
+    const blocks: PageBlockDocument = preset
+      ? landingBlocks(
+          working.title,
+          working.summary ?? '',
+          resolveLabel('pageBlocks.welcome', lang).text,
+        )
+      : {
+          version: 1,
+          blocks: working.markdown.trim()
+            ? [createBlock('markdown', { markdown: working.markdown })]
+            : [],
+        };
+    setWorking((draft) => ({
+      ...draft,
+      page_template: preset ? 'landing' : draft.page_template,
+      body_format: 'blocks',
+      markdown: '',
+      page_blocks: blocks,
+    }));
+    setNotice('config.unsaved');
+  }
   async function save(navigateAfterSave = true): Promise<Draft | undefined> {
     const payload = structuredClone(working);
-    if (payload.kind !== 'article' && !payload.collection_key) {
+    const requiresCollection = payload.kind === 'lesson' || payload.kind === 'doc';
+    if (requiresCollection && !payload.collection_key) {
       setNotice('editor.pathRequired');
       return;
     }
@@ -331,7 +378,7 @@ export function EditorPage({ csrf }: { csrf: string }) {
     if (
       base &&
       payload.kind !== base.kind &&
-      payload.kind !== 'article' &&
+      requiresCollection &&
       payload.expected_collection_version === undefined
     ) {
       throw new AuthError('invalid_fields', [
@@ -566,6 +613,7 @@ export function EditorPage({ csrf }: { csrf: string }) {
           data-tone={
             notice === 'editor.pathRequired' ||
             notice.startsWith('request.') ||
+            notice.startsWith('pageBlocks.') ||
             notice === 'owner.failed' ||
             notice === 'config.conflict' ||
             notice === 'owner.reviewRequired' ||
@@ -669,47 +717,68 @@ export function EditorPage({ csrf }: { csrf: string }) {
                     aria-labelledby="tab-write"
                     hidden={tab !== 'write'}
                   >
-                    <div className="vb-panes editor-panes" data-split={split}>
-                      <div>
-                        <div>
-                          <MarkdownToolbar
-                            onEdit={format}
-                            target={target}
-                            labels={toolbar}
-                            label={t('editor.formatting')}
-                            onUpload={() => setTab('media')}
-                            split={split}
-                            onToggleSplit={() => setSplit((v) => !v)}
-                          />
-                        </div>
-                        <textarea
-                          ref={target}
-                          className="vb-md owner-markdown editor-markdown"
-                          aria-label={t('owner.markdown')}
-                          lang={lang}
-                          dir="auto"
-                          value={working.markdown}
-                          onSelect={(e) => {
-                            selection.current = {
-                              start: e.currentTarget.selectionStart,
-                              end: e.currentTarget.selectionEnd,
-                            };
-                          }}
-                          onChange={(e) => change('markdown', e.target.value)}
-                        />
+                    {standalone && !blockMode && (
+                      <div className="block-editor-actions block-editor-start">
+                        <Button type="button" onClick={() => useBlocks(false)}>
+                          {t(working.markdown.trim() ? 'pageBlocks.convert' : 'pageBlocks.start')}
+                        </Button>
+                        {!base && !working.markdown.trim() && (
+                          <Button type="button" variant="quiet" onClick={() => useBlocks(true)}>
+                            {t('pageBlocks.landingPreset')}
+                          </Button>
+                        )}
                       </div>
-                      {split && (
-                        <I18nProvider locale={lang} syncDocument={false}>
-                          <div className="vb-pane-preview editor-reading-pane">
-                            <MarkdownReader
-                              markdown={working.markdown}
-                              media={media}
-                              presentations={working.media_presentations}
+                    )}
+                    {blockMode && working.page_blocks ? (
+                      <PageBlockEditor
+                        value={working.page_blocks}
+                        csrf={csrf}
+                        locale={lang}
+                        onChange={(blocks) => change('page_blocks', blocks)}
+                      />
+                    ) : (
+                      <div className="vb-panes editor-panes" data-split={split}>
+                        <div>
+                          <div>
+                            <MarkdownToolbar
+                              onEdit={format}
+                              target={target}
+                              labels={toolbar}
+                              label={t('editor.formatting')}
+                              onUpload={() => setTab('media')}
+                              split={split}
+                              onToggleSplit={() => setSplit((v) => !v)}
                             />
                           </div>
-                        </I18nProvider>
-                      )}
-                    </div>
+                          <textarea
+                            ref={target}
+                            className="vb-md owner-markdown editor-markdown"
+                            aria-label={t('owner.markdown')}
+                            lang={lang}
+                            dir="auto"
+                            value={working.markdown}
+                            onSelect={(e) => {
+                              selection.current = {
+                                start: e.currentTarget.selectionStart,
+                                end: e.currentTarget.selectionEnd,
+                              };
+                            }}
+                            onChange={(e) => change('markdown', e.target.value)}
+                          />
+                        </div>
+                        {split && (
+                          <I18nProvider locale={lang} syncDocument={false}>
+                            <div className="vb-pane-preview editor-reading-pane">
+                              <MarkdownReader
+                                markdown={working.markdown}
+                                media={media}
+                                presentations={working.media_presentations}
+                              />
+                            </div>
+                          </I18nProvider>
+                        )}
+                      </div>
+                    )}
                   </section>
                   <section
                     id="panel-preview"
@@ -717,26 +786,44 @@ export function EditorPage({ csrf }: { csrf: string }) {
                     aria-labelledby="tab-preview"
                     hidden={tab !== 'preview'}
                   >
-                    <I18nProvider locale={lang} syncDocument={false}>
-                      <div
-                        className={standalone ? 'public-reader public-reader-page' : undefined}
-                        data-page-template={
-                          standalone ? (working.page_template ?? 'standard') : undefined
-                        }
-                      >
-                        {standalone && (working.title || working.summary) && (
-                          <header className="vb-art-head" dir="auto">
-                            {working.title && <h2 className="vb-title">{working.title}</h2>}
-                            {working.summary && <p className="vb-lead">{working.summary}</p>}
-                          </header>
+                    {standalone ? (
+                      <div className="block-preview-actions">
+                        {base && !dirty ? (
+                          <Button
+                            href={`/${locale}/admin/page-preview/${encodeURIComponent(base.key)}/${lang}/${base.revision.revision_id}`}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {t('pageBlocks.openPreview')}
+                          </Button>
+                        ) : (
+                          <>
+                            <p className="vb-help">{t('pageBlocks.saveToPreview')}</p>
+                            <Button
+                              type="button"
+                              disabled={busy || !key || !working.title}
+                              onClick={() =>
+                                void run(async () => {
+                                  await save();
+                                })
+                              }
+                            >
+                              {t('owner.save')}
+                            </Button>
+                          </>
                         )}
-                        <MarkdownReader
-                          markdown={working.markdown}
-                          media={media}
-                          presentations={working.media_presentations}
-                        />
                       </div>
-                    </I18nProvider>
+                    ) : (
+                      <I18nProvider locale={lang} syncDocument={false}>
+                        <div>
+                          <MarkdownReader
+                            markdown={working.markdown}
+                            media={media}
+                            presentations={working.media_presentations}
+                          />
+                        </div>
+                      </I18nProvider>
+                    )}
                   </section>
                   <section
                     id="panel-media"
@@ -753,16 +840,20 @@ export function EditorPage({ csrf }: { csrf: string }) {
                     {selected && (
                       <div className="owner-panel">
                         <h3>{selected.filename}</h3>
-                        <Field label={t('owner.mediaText')}>
-                          <input
-                            value={alt}
-                            maxLength={300}
-                            onChange={(e) => setAlt(e.target.value)}
-                          />
-                        </Field>
-                        <Button disabled={!alt.trim()} onClick={insert}>
-                          {t('owner.insert')}
-                        </Button>
+                        {!blockMode && (
+                          <>
+                            <Field label={t('owner.mediaText')}>
+                              <input
+                                value={alt}
+                                maxLength={300}
+                                onChange={(e) => setAlt(e.target.value)}
+                              />
+                            </Field>
+                            <Button disabled={!alt.trim()} onClick={insert}>
+                              {t('owner.insert')}
+                            </Button>
+                          </>
+                        )}
                         {selected.kind === 'image' && (
                           <Button onClick={() => change('cover_media_id', selected.id)}>
                             {t('owner.cover')}
@@ -771,7 +862,13 @@ export function EditorPage({ csrf }: { csrf: string }) {
                       </div>
                     )}
                     {media
-                      .filter((m) => m.kind === 'video' && working.markdown.includes(m.url))
+                      .filter(
+                        (m) =>
+                          m.kind === 'video' &&
+                          (blockMode
+                            ? JSON.stringify(working.page_blocks)?.includes(m.url)
+                            : working.markdown.includes(m.url)),
+                      )
                       .map((m) => (
                         <fieldset key={m.id}>
                           <legend>{m.filename}</legend>
@@ -980,6 +1077,8 @@ export function EditorPage({ csrf }: { csrf: string }) {
                               ...w,
                               kind,
                               page_template: kind === 'page' ? 'standard' : undefined,
+                              body_format: kind === 'page' ? w.body_format : undefined,
+                              page_blocks: kind === 'page' ? w.page_blocks : undefined,
                               category_key: kind === 'page' ? undefined : w.category_key,
                               tag_keys: kind === 'page' ? [] : w.tag_keys,
                               position:

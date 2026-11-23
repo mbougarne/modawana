@@ -138,8 +138,6 @@ func TestPageBlockSchemaBoundsAndValidation(t *testing.T) {
 		"missing properties":       wrap(strings.Replace(heading, `,"properties":{"level":2,"text":"Welcome"}`, "", 1)),
 		"duplicate field":          wrap(strings.Replace(heading, `"level":2`, `"level":2,"level":3`, 1)),
 		"unknown property":         wrap(strings.Replace(heading, `"text":"Welcome"`, `"text":"Welcome","markup":"<p>"`, 1)),
-		"unknown type":             wrap(strings.Replace(heading, "core.heading", "extension.heading", 1)),
-		"unknown block version":    wrap(strings.Replace(heading, `"version":1`, `"version":2`, 1)),
 		"unknown document version": []byte(`{"version":2,"blocks":[]}`),
 		"null blocks":              []byte(`{"version":1,"blocks":null}`),
 		"unsafe link":              wrap(`{"id":"go","type":"core.button","version":1,"properties":{"label":"Open","href":"javascript:example"}}`),
@@ -171,5 +169,24 @@ func TestPageBlockSchemaBoundsAndValidation(t *testing.T) {
 	in.Kind = "page"
 	if _, err := draftBlockReferences(in); !errors.Is(err, ErrInvalid) {
 		t.Fatal("save accepted both body formats", err)
+	}
+}
+
+func TestUnknownBlockIsPreservedButRequiresSupportToPublish(t *testing.T) {
+	s, owner := fixture(t)
+	in := input()
+	in.Kind, in.BodyFormat, in.Markdown = "page", BlockBodyFormat, ""
+	in.PageBlocks = json.RawMessage(`{"version":1,"blocks":[{"id":"future","type":"extension.banner","version":3,"properties":{"body":"Private extension payload"}}]}`)
+	saved, err := s.Save(t.Context(), owner, "future", "en", "", in)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := s.Historical(t.Context(), "future", "en", saved.RevisionID)
+	if err != nil || !bytes.Equal(got.PageBlocks, in.PageBlocks) {
+		t.Fatal("unknown block was lost", err)
+	}
+	action := Action{ExpectedVersion: &saved.Version, RevisionID: saved.RevisionID}
+	if _, err := s.ChangePublication(t.Context(), owner, "future", "en", "", "publish", action); !errors.Is(err, ErrInvalid) {
+		t.Fatal("unavailable block dependency did not block publication", err)
 	}
 }

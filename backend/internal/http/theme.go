@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -117,8 +118,16 @@ func (s *Server) addThemeIsland(head *headData, name string) bool {
 	if !ok || len(scripts) == 0 {
 		return false
 	}
-	head.Scripts = append(head.Scripts, scripts...)
-	head.Styles = append(append([]string{}, head.Styles...), styles...)
+	for _, script := range scripts {
+		if !slices.Contains(head.Scripts, script) {
+			head.Scripts = append(head.Scripts, script)
+		}
+	}
+	for _, style := range styles {
+		if !slices.Contains(head.Styles, style) {
+			head.Styles = append(append([]string{}, head.Styles...), style)
+		}
+	}
 	return true
 }
 
@@ -166,7 +175,13 @@ func (s *Server) themeReader(ctx context.Context, c *content.PublicContent, sett
 			Locked: themeLocked(c.Learning, label),
 		}, nil
 	}
-	body, err := s.themeMarkdown(c, locale, head, label)
+	var body template.HTML
+	var err error
+	if c.Kind == "page" && c.BodyFormat == content.BlockBodyFormat {
+		body, err = s.themePageBlocks(ctx, c, head, label)
+	} else {
+		body, err = s.themeMarkdown(c, locale, head, label)
+	}
 	if err != nil {
 		return nil, err
 	}

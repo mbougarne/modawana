@@ -201,6 +201,16 @@
       "companion": "docs/architecture.ar.md"
     },
     {
+      "path": "docs/cms-platform-architecture.ar.md",
+      "coverage": "ar",
+      "companion": "docs/cms-platform-architecture.md"
+    },
+    {
+      "path": "docs/cms-platform-architecture.md",
+      "coverage": "en",
+      "companion": "docs/cms-platform-architecture.ar.md"
+    },
+    {
       "path": "docs/decisions/0001-wasm-plugin-host.ar.md",
       "coverage": "ar",
       "companion": "docs/decisions/0001-wasm-plugin-host.md"

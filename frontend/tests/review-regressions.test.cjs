@@ -263,3 +263,105 @@ test('first save retains its success notice through the new-to-existing editor r
     global.fetch = previousFetch;
   }
 });
+
+test('standalone page builder converts Markdown, reorders with the keyboard and saves an exact preview link', async () => {
+  const originalFetch = global.fetch;
+  let saved;
+  const draft = () => ({
+    key: 'contact',
+    kind: 'page',
+    source_locale: 'ar',
+    locale: 'ar',
+    slug_locked: true,
+    version: saved ? 3 : 2,
+    published_revision_id: 'published-markdown',
+    revision: {
+      title: 'تواصل معنا',
+      slug: 'contact',
+      summary: 'مقدمة',
+      markdown: '# مرحباً',
+      page_template: 'landing',
+      ...(saved || {}),
+      revision_id: saved ? 'saved-blocks' : 'published-markdown',
+      media: [],
+      media_presentations: [],
+      tag_keys: [],
+    },
+  });
+  global.fetch = async (url, options) => {
+    if (url === '/api/v1/content/contact/ar') {
+      if (options.method === 'PUT') {
+        saved = JSON.parse(options.body);
+        return response({ revision_id: 'saved-blocks', version: 3 });
+      }
+      return response(draft());
+    }
+    return response({ items: [], next_cursor: '' });
+  };
+  const router = createMemoryRouter(
+    [
+      {
+        path: '/en/admin/editor/:key/:contentLocale',
+        element: React.createElement(EditorPage, { csrf: 'test' }),
+      },
+    ],
+    { initialEntries: ['/en/admin/editor/contact/ar'] },
+  );
+  const m = await mount(React.createElement(RouterProvider, { router }));
+  const button = (label, scope = m.el) =>
+    [...scope.querySelectorAll('button')].find((item) => item.textContent.trim() === label);
+  try {
+    await act(async () => button('Convert Markdown to blocks').click());
+    const editor = m.el.querySelector('.block-editor');
+    assert.equal(editor.dir, 'rtl');
+    const original = editor.querySelector('.block-editor-card');
+    const originalText = original.querySelector('textarea');
+    assert.equal(originalText.value, '# مرحباً');
+    assert.equal(originalText.lang, 'ar');
+
+    const types = editor.querySelector('select');
+    await act(async () => {
+      types.value = 'heading';
+      types.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+    });
+    await act(async () => button('Add block', editor).click());
+    const added = [...editor.querySelectorAll('.block-editor-card')][1];
+    assert.ok(added);
+    assert.equal(document.activeElement, added);
+    await act(async () => {
+      const field = added.querySelector('input');
+      Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value').set.call(
+        field,
+        'عنوان إضافي',
+      );
+      field.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+    });
+    await act(async () => {
+      added.focus();
+      added.dispatchEvent(
+        new dom.window.KeyboardEvent('keydown', {
+          key: 'ArrowUp',
+          altKey: true,
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+    });
+    assert.equal(editor.querySelector('.block-editor-card').id, added.id);
+    assert.equal(document.activeElement.id, added.id);
+
+    await act(async () => button(DEFAULT_LABELS['owner.save'].en).click());
+    assert.equal(saved.expected_version, 2);
+    assert.equal(saved.body_format, 'blocks');
+    assert.equal(saved.markdown, '');
+    assert.equal(saved.page_template, 'landing');
+    assert.equal(saved.page_blocks.blocks[0].id, added.id.replace('page-block-', ''));
+    assert.equal(saved.page_blocks.blocks[1].properties.markdown, '# مرحباً');
+    const preview = m.el.querySelector('#panel-preview a');
+    assert.equal(preview.getAttribute('href'), '/en/admin/page-preview/contact/ar/saved-blocks');
+    assert.ok(m.el.querySelector('a[href="/ar/pages/contact"]'));
+  } finally {
+    await m.cleanup();
+    global.fetch = originalFetch;
+  }
+});

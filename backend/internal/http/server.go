@@ -226,6 +226,11 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 		}
 	}
 	private := len(parts) >= 2 && parts[1] == "admin"
+	pagePreview := private && len(parts) == 6 && parts[2] == "page-preview" && pageLocale(parts[0]) && pageLocale(parts[4])
+	if pagePreview {
+		w.Header().Set("X-Robots-Tag", "noindex, nofollow")
+		w.Header().Set("Referrer-Policy", "no-referrer")
+	}
 	if private {
 		guard, ok := s.options.Auth.(interface{ Authorized(*http.Request) bool })
 		if !ok || !guard.Authorized(r) {
@@ -263,7 +268,7 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 	if len(parts) > 0 && pageLocale(parts[0]) {
 		locale = parts[0]
 	}
-	if public || preview {
+	if public || preview || pagePreview {
 		var ok bool
 		r, ok = s.withPublicLocales(w, r)
 		if !ok {
@@ -322,6 +327,25 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 		}
 		page = localizePublicPage(r.Context(), page)
 	}
+	if pagePreview {
+		locale = parts[4]
+		domain, ok := s.options.Domain.(*Domain)
+		if !ok || domain.Content == nil || domain.Auth == nil {
+			writeError(w, NotFound)
+			return
+		}
+		if _, err := domain.Auth.OwnerRequest(r); err != nil {
+			domainError(w, err)
+			return
+		}
+		var err error
+		page, err = domain.Content.PreviewPage(ctx, parts[3], locale, parts[5])
+		if err != nil {
+			domainError(w, err)
+			return
+		}
+		status = 200
+	}
 	if locale == "ar" {
 		dir = "rtl"
 	}
@@ -329,7 +353,7 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 		writeError(w, Unavailable)
 		return
 	}
-	if status >= 400 || private || login {
+	if (status >= 400 || private || login) && !pagePreview {
 		w.Header().Set("X-Robots-Tag", "noindex")
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -346,7 +370,7 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 		}
 		settings = out
 		brandCSS = template.CSS(out.Palette.CSS())
-		if !public && !preview {
+		if !public && !preview && !pagePreview {
 			encoded, e := json.Marshal(out)
 			if e != nil {
 				writeError(w, InternalError)
@@ -377,13 +401,13 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 		head.Feed = s.options.Config.BaseURL + feedPath(locale)
 	}
 
-	if public || preview || status >= 400 {
+	if public || preview || pagePreview || status >= 400 {
 		if preview {
 			settings.Site.PublicTheme = previewTheme.ID
 			settings.Theme = previewTheme
 		}
 		lockedLesson := status == 403 && page.Kind == "lesson" && page.Content != nil && page.Content.Locked
-		head.NoIndex = status >= 400 || preview
+		head.NoIndex = status >= 400 || preview || pagePreview
 		var body []byte
 		var ok bool
 		if status == 200 || lockedLesson {
