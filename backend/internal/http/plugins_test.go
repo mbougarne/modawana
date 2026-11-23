@@ -18,6 +18,7 @@ import (
 
 	"github.com/mbougarne/modawana/backend/internal/auth"
 	"github.com/mbougarne/modawana/backend/internal/config"
+	"github.com/mbougarne/modawana/backend/internal/dashboard"
 	"github.com/mbougarne/modawana/backend/internal/db"
 	"github.com/mbougarne/modawana/backend/internal/extension"
 	"github.com/mbougarne/modawana/backend/internal/outbox"
@@ -98,7 +99,7 @@ func TestPluginRoutesOwnerBoundaryAndLifecycle(t *testing.T) {
 	}
 	defer runtime.Close(context.Background())
 	plugins := &plugin.Service{DB: d, Dir: filepath.Join(root, "plugins"), Host: host, Runtime: runtime}
-	handler := New(Options{Config: cfg, Auth: a, Domain: &Domain{Auth: a, Extensions: host, Plugins: plugins, Deliveries: &outbox.Worker{DB: d}}})
+	handler := New(Options{Config: cfg, Auth: a, Domain: &Domain{Auth: a, Extensions: host, Plugins: plugins, Deliveries: &outbox.Worker{DB: d}, Dashboard: &dashboard.Service{DB: d}}})
 	request := func(method, path, body string, cookie, withCSRF bool) *httptest.ResponseRecorder {
 		t.Helper()
 		r := httptest.NewRequest(method, "https://example.test"+path, bytes.NewBufferString(body))
@@ -150,6 +151,22 @@ func TestPluginRoutesOwnerBoundaryAndLifecycle(t *testing.T) {
 	}
 	if w := request("POST", retryPath, "", true, true); w.Code != 409 {
 		t.Fatal("retry for nonexistent job", w.Code)
+	}
+	const dashboardPath = "/api/v1/dashboard-layout"
+	if w := request("GET", dashboardPath, "", false, false); w.Code != 401 {
+		t.Fatal("dashboard layout without session", w.Code)
+	}
+	const layout = `{"scope":"personal","expected_version":0,"layout":{"home":"dashboard","appearance":{"theme":"slate"}}}`
+	if w := request("PUT", dashboardPath, layout, true, false); w.Code != 403 {
+		t.Fatal("dashboard layout without CSRF", w.Code)
+	}
+	if w := request("PUT", dashboardPath, layout, true, true); w.Code != 200 {
+		t.Fatal("dashboard layout save", w.Code, w.Body.String())
+	}
+	if w := request("GET", dashboardPath, "", true, false); w.Code != 200 ||
+		!strings.Contains(w.Body.String(), `"home":"dashboard"`) ||
+		w.Header().Get("Cache-Control") != "no-store" {
+		t.Fatal("private dashboard layout", w.Code, w.Body.String())
 	}
 	if w := request("GET", "/api/v1/plugins", "", false, false); w.Code != 401 {
 		t.Fatal("list without session", w.Code)

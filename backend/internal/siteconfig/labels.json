@@ -7044,6 +7044,342 @@
       "ar": "محتوى جديد"
     }
   },
+  "owner.dashboard": {
+    "section": "owner",
+    "description": "Interface text: owner.dashboard",
+    "placeholders": [],
+    "values": {
+      "en": "Dashboard",
+      "fr": "Tableau de bord",
+      "ar": "لوحة الإدارة"
+    }
+  },
+  "owner.layout": {
+    "section": "owner",
+    "description": "Interface text: owner.layout",
+    "placeholders": [],
+    "values": {
+      "en": "Dashboard layout",
+      "fr": "Disposition du tableau de bord",
+      "ar": "تخطيط لوحة الإدارة"
+    }
+  },
+  "ownerLayout.help": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.help",
+    "placeholders": [],
+    "values": {
+      "en": "Arrange navigation and dashboard widgets. A personal layout overrides the site default.",
+      "fr": "Organisez la navigation et les widgets. Une disposition personnelle remplace celle du site.",
+      "ar": "رتّب التنقّل وعناصر لوحة الإدارة. يتقدّم التخطيط الشخصيّ على تخطيط الموقع الافتراضي."
+    }
+  },
+  "ownerLayout.scope": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.scope",
+    "placeholders": [],
+    "values": {
+      "en": "Layout scope",
+      "fr": "Portée de la disposition",
+      "ar": "نطاق التخطيط"
+    }
+  },
+  "ownerLayout.site": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.site",
+    "placeholders": [],
+    "values": {
+      "en": "Site default",
+      "fr": "Par défaut pour le site",
+      "ar": "التخطيط الافتراضي للموقع"
+    }
+  },
+  "ownerLayout.personal": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.personal",
+    "placeholders": [],
+    "values": {
+      "en": "My layout",
+      "fr": "Ma disposition",
+      "ar": "تخطيطي الشخصي"
+    }
+  },
+  "ownerLayout.home": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.home",
+    "placeholders": [],
+    "values": {
+      "en": "Start screen",
+      "fr": "Écran de démarrage",
+      "ar": "شاشة البدء"
+    }
+  },
+  "ownerLayout.density": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.density",
+    "placeholders": [],
+    "values": {
+      "en": "Spacing",
+      "fr": "Espacement",
+      "ar": "التباعد"
+    }
+  },
+  "ownerLayout.comfortable": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.comfortable",
+    "placeholders": [],
+    "values": {
+      "en": "Comfortable",
+      "fr": "Confortable",
+      "ar": "واسع"
+    }
+  },
+  "ownerLayout.compact": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.compact",
+    "placeholders": [],
+    "values": {
+      "en": "Compact",
+      "fr": "Compact",
+      "ar": "مضغوط"
+    }
+  },
+  "ownerLayout.presets": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.presets",
+    "placeholders": [],
+    "values": {
+      "en": "Appearance presets",
+      "fr": "Préréglages d’apparence",
+      "ar": "إعدادات المظهر المسبقة"
+    }
+  },
+  "ownerLayout.presetName": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.presetName",
+    "placeholders": [],
+    "values": {
+      "en": "Preset name",
+      "fr": "Nom du préréglage",
+      "ar": "اسم الإعداد المسبق"
+    }
+  },
+  "ownerLayout.savePreset": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.savePreset",
+    "placeholders": [],
+    "values": {
+      "en": "Add preset",
+      "fr": "Ajouter un préréglage",
+      "ar": "إضافة إعداد مسبق"
+    }
+  },
+  "ownerLayout.removePreset": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.removePreset",
+    "placeholders": [
+      "name"
+    ],
+    "values": {
+      "en": "Remove {name}",
+      "fr": "Retirer {name}",
+      "ar": "إزالة {name}"
+    }
+  },
+  "ownerLayout.navigation": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.navigation",
+    "placeholders": [],
+    "values": {
+      "en": "Navigation",
+      "fr": "Navigation",
+      "ar": "التنقّل"
+    }
+  },
+  "ownerLayout.widgets": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.widgets",
+    "placeholders": [],
+    "values": {
+      "en": "Widgets",
+      "fr": "Widgets",
+      "ar": "عناصر لوحة الإدارة"
+    }
+  },
+  "ownerLayout.rename": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.rename",
+    "placeholders": [],
+    "values": {
+      "en": "Display name",
+      "fr": "Nom affiché",
+      "ar": "اسم العرض"
+    }
+  },
+  "ownerLayout.group": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.group",
+    "placeholders": [],
+    "values": {
+      "en": "Group",
+      "fr": "Groupe",
+      "ar": "المجموعة"
+    }
+  },
+  "ownerLayout.group.content": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.group.content",
+    "placeholders": [],
+    "values": {
+      "en": "Content",
+      "fr": "Contenu",
+      "ar": "المحتوى"
+    }
+  },
+  "ownerLayout.group.site": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.group.site",
+    "placeholders": [],
+    "values": {
+      "en": "Site",
+      "fr": "Site",
+      "ar": "الموقع"
+    }
+  },
+  "ownerLayout.group.operations": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.group.operations",
+    "placeholders": [],
+    "values": {
+      "en": "Operations",
+      "fr": "Opérations",
+      "ar": "العمليات"
+    }
+  },
+  "ownerLayout.widget.content": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.widget.content",
+    "placeholders": [],
+    "values": {
+      "en": "Content shortcuts",
+      "fr": "Raccourcis de contenu",
+      "ar": "اختصارات المحتوى"
+    }
+  },
+  "ownerLayout.widget.site": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.widget.site",
+    "placeholders": [],
+    "values": {
+      "en": "Site shortcuts",
+      "fr": "Raccourcis du site",
+      "ar": "اختصارات الموقع"
+    }
+  },
+  "ownerLayout.hide": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.hide",
+    "placeholders": [],
+    "values": {
+      "en": "Hide",
+      "fr": "Masquer",
+      "ar": "إخفاء"
+    }
+  },
+  "ownerLayout.default": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.default",
+    "placeholders": [],
+    "values": {
+      "en": "Default",
+      "fr": "Par défaut",
+      "ar": "افتراضي"
+    }
+  },
+  "ownerLayout.moveUp": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.moveUp",
+    "placeholders": [],
+    "values": {
+      "en": "Move up",
+      "fr": "Monter",
+      "ar": "نقل لأعلى"
+    }
+  },
+  "ownerLayout.moveDown": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.moveDown",
+    "placeholders": [],
+    "values": {
+      "en": "Move down",
+      "fr": "Descendre",
+      "ar": "نقل لأسفل"
+    }
+  },
+  "ownerLayout.up": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.up",
+    "placeholders": [
+      "name"
+    ],
+    "values": {
+      "en": "Move {name} up",
+      "fr": "Monter {name}",
+      "ar": "نقل {name} لأعلى"
+    }
+  },
+  "ownerLayout.down": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.down",
+    "placeholders": [
+      "name"
+    ],
+    "values": {
+      "en": "Move {name} down",
+      "fr": "Descendre {name}",
+      "ar": "نقل {name} لأسفل"
+    }
+  },
+  "ownerLayout.save": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.save",
+    "placeholders": [],
+    "values": {
+      "en": "Save layout",
+      "fr": "Enregistrer la disposition",
+      "ar": "حفظ التخطيط"
+    }
+  },
+  "ownerLayout.reset": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.reset",
+    "placeholders": [],
+    "values": {
+      "en": "Reset layout",
+      "fr": "Réinitialiser la disposition",
+      "ar": "إعادة ضبط التخطيط"
+    }
+  },
+  "ownerLayout.saved": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.saved",
+    "placeholders": [],
+    "values": {
+      "en": "Layout saved.",
+      "fr": "Disposition enregistrée.",
+      "ar": "حُفظ التخطيط."
+    }
+  },
+  "ownerLayout.failed": {
+    "section": "ownerLayout",
+    "description": "Interface text: ownerLayout.failed",
+    "placeholders": [],
+    "values": {
+      "en": "Could not save the layout.",
+      "fr": "Impossible d’enregistrer la disposition.",
+      "ar": "تعذّر حفظ التخطيط."
+    }
+  },
   "owner.newPage": {
     "section": "owner",
     "description": "Interface text: owner.newPage",

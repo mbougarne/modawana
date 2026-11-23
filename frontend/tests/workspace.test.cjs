@@ -24,6 +24,7 @@ const { I18nProvider } = require('../.test-output/ui/src/i18n/I18nProvider');
 const { ThemeProvider } = require('../.test-output/ui/src/theme/ThemeProvider');
 const { DEFAULT_LABELS } = require('../.test-output/ui/src/i18n/labels');
 const pages = [
+  'dashboard',
   'posts',
   'pages',
   'collections',
@@ -35,6 +36,7 @@ const pages = [
   'security',
   'transfer',
   'plugins',
+  'layout',
 ];
 async function mount(current = 'posts', locale = 'en', extra = {}, children) {
   const el = document.createElement('div');
@@ -100,6 +102,69 @@ test('Every owner page has the same navigation and tools, with one active destin
     } finally {
       await m.cleanup();
     }
+  }
+});
+
+test('Personal Arabic layout groups and renames registered links while retaining protected controls', async () => {
+  const fetch = global.fetch;
+  global.fetch = async (url) => {
+    if (url === '/api/v1/dashboard-layout') {
+      return Response.json({
+        site: { version: 1, layout: { appearance: { theme: 'classic' } } },
+        personal: {
+          version: 1,
+          layout: {
+            appearance: { theme: 'slate', density: 'compact' },
+            navigation: [
+              { id: 'media', rename: { ar: 'الملفات' }, group: 'content' },
+              { id: 'extension:example.notes', group: 'content' },
+              { id: 'posts', hidden: true },
+              { id: 'extension:missing.notes', rename: { en: 'Unavailable' } },
+            ],
+          },
+        },
+        registry: { navigation: [], widgets: [] },
+      });
+    }
+    if (url === '/api/v1/extension-contributions') {
+      return Response.json({
+        items: [
+          {
+            kind: 'admin_navigation',
+            extension: 'example',
+            key: 'notes',
+            version: 1,
+            label: { en: 'Notes', ar: 'الملاحظات' },
+            target: 'overview',
+          },
+        ],
+      });
+    }
+    return new Response('', { status: 404 });
+  };
+  const m = await mount('media', 'ar');
+  try {
+    const workspace = m.el.querySelector('.owner-workspace');
+    assert.equal(workspace.dir, 'rtl');
+    assert.equal(workspace.dataset.adminTheme, 'slate');
+    assert.equal(workspace.dataset.dashboardDensity, 'compact');
+    const nav = workspace.querySelector('.owner-navigation');
+    assert.equal(nav.querySelector('[href="/ar/admin/posts"]'), null);
+    assert.ok(!nav.textContent.includes('Unavailable'));
+    assert.ok(nav.querySelector('[href="/ar/admin/profile"]'));
+    assert.ok(nav.querySelector('[href="/ar/admin/security"]'));
+    assert.ok(nav.querySelector('[href="/ar/admin/layout"]'));
+    const links = [...nav.querySelectorAll('[role="group"] a')];
+    assert.deepEqual(
+      links.map((link) => link.textContent),
+      ['الملفات', 'الملاحظات'],
+    );
+    links[1].focus();
+    assert.equal(document.activeElement, links[1]);
+    assert.equal(links[1].hash, '#extension-example');
+  } finally {
+    await m.cleanup();
+    global.fetch = fetch;
   }
 });
 

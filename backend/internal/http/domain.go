@@ -14,6 +14,7 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/access"
 	"github.com/mbougarne/modawana/backend/internal/auth"
 	"github.com/mbougarne/modawana/backend/internal/content"
+	"github.com/mbougarne/modawana/backend/internal/dashboard"
 	"github.com/mbougarne/modawana/backend/internal/db"
 	"github.com/mbougarne/modawana/backend/internal/extension"
 	"github.com/mbougarne/modawana/backend/internal/media"
@@ -35,6 +36,7 @@ type Domain struct {
 	Plugins    *plugin.Service
 	Deliveries *outbox.Worker
 	Webhooks   *webhook.Inbox
+	Dashboard  *dashboard.Service
 
 	builtinOnce sync.Once
 }
@@ -107,6 +109,9 @@ func domainError(w http.ResponseWriter, e error) {
 	}
 }
 func (d *Domain) Handle(w http.ResponseWriter, r *http.Request) bool {
+	if d.Dashboard != nil && d.dashboardRoutes(w, r) {
+		return true
+	}
 	if d.Webhooks != nil && d.webhookRoutes(w, r) {
 		return true
 	}

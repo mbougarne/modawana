@@ -1,5 +1,5 @@
 import { Logo } from '@ui';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ownerReturnTarget } from './navigation';
 import { usePublicConfiguration } from '../configuration/PublicConfiguration';
 import { siteBrand } from '../../pages/admin/settings/siteBrand';
@@ -27,6 +27,8 @@ import {
   type CreationJSON,
   type RequestJSON,
 } from './webauthn';
+import { useResource } from '../../pages/public/api';
+import { appliedLayout, dashboardURL, type DashboardState } from '../owner/DashboardLayout';
 import styles from './auth.module.css';
 
 type Mode = 'passkey' | 'password' | 'otp' | 'recovery' | 'grant' | 'enroll';
@@ -59,6 +61,21 @@ export function AuthPage() {
   const heading = useRef<HTMLHeadingElement>(null);
   const controller = useRef<AbortController | null>(null);
   const owner = state.state === 'owner';
+  const adminRoot = useLocation().pathname.replace(/\/$/, '') === `/${locale}/admin`;
+  const landing = useResource<DashboardState>(owner && adminRoot ? dashboardURL : undefined);
+  const home = appliedLayout(landing.data)?.home;
+  useEffect(() => {
+    if (
+      adminRoot &&
+      home &&
+      (home === 'dashboard' ||
+        landing.data?.registry.navigation.some(
+          (entry) => entry.id === home && !home.startsWith('extension:'),
+        ))
+    ) {
+      navigate(`/${locale}/admin/${home}`, { replace: true });
+    }
+  }, [adminRoot, home, landing.data, locale, navigate]);
   function error(e: unknown) {
     setIssues(e instanceof AuthError ? e.fields : []);
     if (e instanceof AuthError) {

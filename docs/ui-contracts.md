@@ -27,3 +27,22 @@ The visual check requires Playwright Chromium (`cd frontend && npx playwright in
 Use **Themes → Admin appearance** in Slate or **Settings → Admin appearance** in Classic to select a dashboard theme. Slate groups public-theme selection and pack management under **Themes** and public header links, footer links and the existing navigation icon settings under **Menus**. **Settings** still provides revision history for the full site settings. Slate applies its own light and dark palettes to the dashboard, including lists, forms and the editor. On desktop, Slate pins a full-height sidebar to the start edge and keeps quick actions in a top bar. On smaller screens, the navigation becomes a scrollable row above the content. Its compact form styling preserves the existing image picker. Modawana saves the choice in the current browser and applies it immediately. Both themes follow the light or dark appearance preference.
 
 Admin navigation switches screens without a document reload. The editor and configuration pages confirm before leaving when they contain unsaved changes.
+
+### Dashboard layout preferences
+
+Use **Dashboard layout** to rename, group, hide, and reorder optional screen
+links, choose a start screen, arrange dashboard widgets, and save named
+appearance presets. Reordering uses keyboard-operable buttons with the item
+name in their accessible label. Display names use the current interface
+language and can be set independently in English, Arabic, and French.
+
+The site default and personal layout have independent revisions. A saved
+personal layout takes precedence as a whole. Resetting it returns to the site
+default, or to the built-in layout when a site layout is absent. Classic and
+Slate browser selections continue to apply until a personal layout is saved
+or reset. Account, security, dashboard, and layout controls stay available.
+
+Only registered screens and widgets can appear. Extensions contribute through
+the existing owner-approved catalog. Layout properties affect presentation
+and the start page. Route and API authorization stays with the underlying Go
+handlers.

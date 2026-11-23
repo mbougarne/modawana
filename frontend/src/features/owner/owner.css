@@ -1067,3 +1067,17 @@
   max-block-size: 6rem;
   object-fit: contain;
 }
+
+.workspace-nav-group {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-1);
+}
+.workspace-nav-group > span {
+  padding-inline: var(--space-2);
+  font-weight: 600;
+}
+.owner-workspace[data-dashboard-density='compact'] .owner-panel {
+  padding-block: var(--space-3);
+}

@@ -50,7 +50,16 @@ function LocaleRoot({
   preview?: boolean;
   config?: ConfigKind | 'themes' | 'menus';
   owner?:
-    'posts' | 'pages' | 'editor' | 'media' | 'collections' | 'taxonomy' | 'transfer' | 'plugins';
+    | 'posts'
+    | 'pages'
+    | 'editor'
+    | 'media'
+    | 'collections'
+    | 'taxonomy'
+    | 'transfer'
+    | 'plugins'
+    | 'dashboard'
+    | 'layout';
 }) {
   const { locale } = useParams();
   const { data } = usePublicConfiguration();
@@ -87,6 +96,8 @@ const router = createBrowserRouter(
       <Route path="/:locale/admin" element={<LocaleRoot auth />} />
       <Route path="/:locale/admin/collections" element={<LocaleRoot owner="collections" />} />
       <Route path="/:locale/admin/taxonomy" element={<LocaleRoot owner="taxonomy" />} />
+      <Route path="/:locale/admin/dashboard" element={<LocaleRoot owner="dashboard" />} />
+      <Route path="/:locale/admin/layout" element={<LocaleRoot owner="layout" />} />
       <Route path="/:locale/admin/posts" element={<LocaleRoot owner="posts" />} />
       <Route path="/:locale/admin/pages" element={<LocaleRoot owner="pages" />} />
       <Route path="/:locale/admin/new" element={<LocaleRoot owner="editor" />} />

@@ -4,33 +4,47 @@ import { useI18n } from '../../../../ui/src/i18n/I18nProvider';
 const themes = ['classic', 'slate'] as const;
 type AdminTheme = (typeof themes)[number];
 
-const storageKey = 'modawana.adminTheme';
+const ownerThemeStorageKey = 'modawana.adminTheme';
 
 export const OwnerAppearanceContext = createContext<{
   theme: AdminTheme;
   selectTheme: (theme: AdminTheme) => void;
+  clearTheme: () => void;
 } | null>(null);
 
-export function useOwnerAppearance() {
-  const [theme, setTheme] = useState<AdminTheme>(() => {
+export function useOwnerAppearance(preferred?: AdminTheme) {
+  const [override, setTheme] = useState<AdminTheme | undefined>(() => {
     try {
-      const stored = localStorage.getItem(storageKey);
-      return stored === 'slate' || stored === 'sidebar' ? 'slate' : 'classic';
+      const stored = localStorage.getItem(ownerThemeStorageKey);
+      return stored === 'slate' || stored === 'sidebar'
+        ? 'slate'
+        : stored === 'classic'
+          ? 'classic'
+          : undefined;
     } catch {
-      return 'classic';
+      return undefined;
     }
   });
 
   function selectTheme(next: AdminTheme) {
     setTheme(next);
     try {
-      localStorage.setItem(storageKey, next);
+      localStorage.setItem(ownerThemeStorageKey, next);
     } catch {
       // A browser that blocks storage can still apply the choice on this page.
     }
   }
 
-  return { theme, selectTheme };
+  function clearTheme() {
+    setTheme(undefined);
+    try {
+      localStorage.removeItem(ownerThemeStorageKey);
+    } catch {
+      // An unavailable browser preference does not affect the saved layout.
+    }
+  }
+
+  return { theme: override ?? preferred ?? 'classic', selectTheme, clearTheme };
 }
 
 export function useOwnerAppearanceContext() {
