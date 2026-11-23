@@ -1,3 +1,4 @@
+import { dirOf } from '../../../../ui/src/i18n/locales';
 import { useOwnerLeaveGuard } from '../owner/useOwnerLeaveGuard';
 import { FieldIssues, ValidationIssues } from './ValidationIssues';
 import { redirectOwnerToLogin } from '../auth/navigation';
@@ -320,7 +321,7 @@ export function ConfigPage({ page }: { page: ConfigKind | 'themes' | 'menus' }) 
                     {[...preview.required_reviews, ...preview.stale_reviews].map((r) => (
                       <li key={r.path + r.locale}>
                         <bdi>{r.path}</bdi> · {t('language.' + r.locale)}
-                        <p lang={r.locale} dir={r.locale === 'ar' ? 'rtl' : 'ltr'}>
+                        <p lang={r.locale} dir={dirOf(r.locale)}>
                           {typeof r.value === 'string' ? r.value : JSON.stringify(r.value)}
                         </p>
                       </li>

@@ -7,10 +7,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/mbougarne/modawana/backend/internal/content"
 	"os"
 	"path/filepath"
 	"regexp"
+
+	"github.com/mbougarne/modawana/backend/internal/content"
+	"github.com/mbougarne/modawana/backend/internal/locale"
 )
 
 type Delivery struct {
@@ -83,7 +85,7 @@ func saveDelivery(path string, state DeliveryState) error {
 }
 func Deliver(ctx context.Context, client *Client, notion NotionDelivery, dir string, in Delivery) (DeliveryState, error) {
 	var state DeliveryState
-	if !deliveryKey.MatchString(in.Key) || !sourceKey.MatchString(in.SourceRevision) || !pageID.MatchString(in.NotionParent) || (in.Locale != "en" && in.Locale != "ar" && in.Locale != "fr") || in.Draft.ExpectedVersion == nil {
+	if !deliveryKey.MatchString(in.Key) || !sourceKey.MatchString(in.SourceRevision) || !pageID.MatchString(in.NotionParent) || !locale.Valid(in.Locale) || in.Draft.ExpectedVersion == nil {
 		return state, errors.New("invalid delivery manifest")
 	}
 	if in.AutoPublish && (in.Locale != in.Draft.SourceLocale || in.Draft.Kind != "lesson" || in.Draft.CollectionKey == "") {

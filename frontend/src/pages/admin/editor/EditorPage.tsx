@@ -1,3 +1,5 @@
+import { SEOFields } from './SEOFields';
+import { isLocale, localeCodes } from '../../../../../ui/src/i18n/locales';
 import { useOwnerLeaveGuard } from '../../../features/owner/useOwnerLeaveGuard';
 import { TaxonomyCreate } from '../../../features/owner/TaxonomyCreate';
 import { titleSlugChange } from '../../../features/content/slug';
@@ -64,6 +66,7 @@ function fromDraft(d: Draft): DraftInput {
     category_key: d.revision.category_key,
     tag_keys: d.revision.tag_keys,
     cover_media_id: d.revision.cover_media_id,
+    seo: d.revision.seo,
     media_presentations: d.revision.media_presentations,
   };
 }
@@ -208,7 +211,7 @@ export function EditorPage({ csrf }: { csrf: string }) {
             e instanceof AuthError &&
             e.code === 'not_found' &&
             source &&
-            ['en', 'ar', 'fr'].includes(source) &&
+            isLocale(source) &&
             source !== lang
           ) {
             const d = await call<Draft>(`/content/${params.key}/${source}`);
@@ -1190,6 +1193,9 @@ export function EditorPage({ csrf }: { csrf: string }) {
                         </section>
                       </>
                     )}
+                    {working.kind !== 'lesson' && (
+                      <SEOFields draft={working} onChange={(seo) => change('seo', seo)} />
+                    )}
                     <Field label={t('owner.coverID')}>
                       <input
                         value={working.cover_media_id || ''}
@@ -1241,7 +1247,7 @@ export function EditorPage({ csrf }: { csrf: string }) {
                     )}
                     {base && (
                       <nav aria-label={t('public.translations')}>
-                        {(['en', 'ar', 'fr'] as const).map((l) => (
+                        {localeCodes.map((l) => (
                           <a
                             key={l}
                             href={`/${locale}/admin/editor/${key}/${l}?source=${base.source_locale}`}

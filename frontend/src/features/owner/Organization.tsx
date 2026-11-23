@@ -1,3 +1,4 @@
+import { localeCodes } from '../../../../ui/src/i18n/locales';
 import { titleSlugChange } from '../content/slug';
 import { CollectionContents, type SelectedMember } from './CollectionContents';
 import { useRef, useState } from 'react';
@@ -136,7 +137,7 @@ export function Organization({ csrf, page }: { csrf: string; page: 'collections'
                 }
               }}
             >
-              {['en', 'ar', 'fr'].map((l) => (
+              {localeCodes.map((l) => (
                 <option key={l} value={l}>
                   {t('language.' + l)}
                 </option>

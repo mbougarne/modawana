@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"github.com/mbougarne/modawana/backend/internal/bundle"
+	"github.com/mbougarne/modawana/backend/internal/config"
 	"github.com/mbougarne/modawana/backend/internal/content"
 	"github.com/mbougarne/modawana/backend/internal/db"
 	"github.com/mbougarne/modawana/backend/internal/media"
@@ -106,7 +107,7 @@ func (s *Service) Export(ctx context.Context, out io.Writer) error {
 			r.Input.Markdown = ""
 			r.Input.PageBlocks = nil
 		}
-		for _, locale := range []string{"en", "ar", "fr"} {
+		for _, locale := range config.SupportedLocales() {
 			terms, e := cs.Taxonomy(ctx, locale, true)
 			if e != nil {
 				return e

@@ -1742,7 +1742,8 @@
                                 "enum": [
                                   "en",
                                   "ar",
-                                  "fr"
+                                  "fr",
+                                  "es"
                                 ]
                               }
                             },
@@ -1892,7 +1893,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           }
         }
@@ -2071,7 +2073,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           }
         }
@@ -2126,7 +2129,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           }
         },
@@ -2225,7 +2229,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           }
         }
@@ -2316,7 +2321,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           }
         }
@@ -2407,7 +2413,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           }
         }
@@ -2498,7 +2505,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           }
         }
@@ -2580,7 +2588,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           }
         },
@@ -2679,7 +2688,8 @@
               "enum": [
                 "en",
                 "ar",
-                "fr"
+                "fr",
+                "es"
               ]
             }
           },
@@ -2772,7 +2782,8 @@
               "enum": [
                 "en",
                 "ar",
-                "fr"
+                "fr",
+                "es"
               ]
             }
           },
@@ -2882,7 +2893,8 @@
               "enum": [
                 "en",
                 "ar",
-                "fr"
+                "fr",
+                "es"
               ]
             }
           }
@@ -2936,7 +2948,8 @@
               "enum": [
                 "en",
                 "ar",
-                "fr"
+                "fr",
+                "es"
               ]
             }
           }
@@ -3028,7 +3041,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           }
         }
@@ -3122,7 +3136,8 @@
               "enum": [
                 "en",
                 "ar",
-                "fr"
+                "fr",
+                "es"
               ],
               "default": "en"
             },
@@ -3251,7 +3266,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           }
         }
@@ -3435,7 +3451,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           }
         },
@@ -4640,7 +4657,8 @@
               "enum": [
                 "en",
                 "ar",
-                "fr"
+                "fr",
+                "es"
               ]
             }
           }
@@ -4696,7 +4714,8 @@
               "enum": [
                 "en",
                 "ar",
-                "fr"
+                "fr",
+                "es"
               ]
             }
           }
@@ -4764,7 +4783,8 @@
               "enum": [
                 "en",
                 "ar",
-                "fr"
+                "fr",
+                "es"
               ]
             }
           },
@@ -4839,7 +4859,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           }
         }
@@ -4922,7 +4943,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           }
         }
@@ -5014,7 +5036,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           }
         }
@@ -5262,7 +5285,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           }
         }
@@ -5312,7 +5336,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           }
         }
@@ -5395,7 +5420,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           }
         }
@@ -5830,7 +5856,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           }
         }
@@ -5938,7 +5965,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           }
         }
@@ -6311,7 +6339,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           }
         }
@@ -6352,7 +6381,8 @@
               "enum": [
                 "en",
                 "ar",
-                "fr"
+                "fr",
+                "es"
               ]
             }
           },
@@ -6425,7 +6455,8 @@
               "enum": [
                 "en",
                 "ar",
-                "fr"
+                "fr",
+                "es"
               ]
             }
           },
@@ -6624,7 +6655,8 @@
               "enum": [
                 "en",
                 "ar",
-                "fr"
+                "fr",
+                "es"
               ]
             }
           },
@@ -6649,6 +6681,440 @@
           }
         }
       ]
+    },
+    "/api/v1/owner/forms": {
+      "get": {
+        "summary": "List current owner form definitions",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LeadForm"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Owner session required"
+          },
+          "403": {
+            "description": "Owner write protection failed"
+          }
+        }
+      },
+      "put": {
+        "summary": "Save the next immutable form version",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadForm"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Owner session required"
+          },
+          "403": {
+            "description": "Owner write protection failed"
+          },
+          "409": {
+            "description": "Form version changed"
+          },
+          "422": {
+            "description": "Invalid form"
+          }
+        },
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeadForm"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/owner/leads": {
+      "get": {
+        "summary": "Read a page of unexpired leads",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/LeadRecord"
+                      }
+                    },
+                    "next": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Owner session required"
+          },
+          "403": {
+            "description": "Owner write protection failed"
+          }
+        },
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/owner/leads/export": {
+      "get": {
+        "summary": "Download unexpired leads",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lead CSV",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Owner session required"
+          },
+          "403": {
+            "description": "Owner write protection failed"
+          }
+        }
+      }
+    },
+    "/api/v1/owner/leads/{id}": {
+      "patch": {
+        "summary": "Update lead status and tags",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "saved": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "saved"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Owner session required"
+          },
+          "403": {
+            "description": "Owner write protection failed"
+          },
+          "404": {
+            "description": "Lead unavailable"
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "new",
+                      "contacted",
+                      "closed"
+                    ]
+                  },
+                  "tags": {
+                    "type": "array",
+                    "maxItems": 10,
+                    "items": {
+                      "type": "string",
+                      "maxLength": 32
+                    }
+                  }
+                },
+                "required": [
+                  "status",
+                  "tags"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove a lead from the inbox",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "saved": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "saved"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Owner session required"
+          },
+          "403": {
+            "description": "Owner write protection failed"
+          },
+          "404": {
+            "description": "Lead unavailable"
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{32}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/public/lead-submit": {
+      "post": {
+        "summary": "Submit a lead to the exact currently published form block",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Minimal acknowledgement",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "accepted": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "accepted"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Same-origin submission required"
+          },
+          "404": {
+            "description": "Published form binding unavailable"
+          },
+          "409": {
+            "description": "Idempotency key was used with different fields"
+          },
+          "413": {
+            "description": "Body too large"
+          },
+          "422": {
+            "description": "Invalid fields or consent"
+          },
+          "429": {
+            "description": "Submission rate exceeded"
+          }
+        },
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "form": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9_-]{0,63}$"
+                  },
+                  "version": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "locale": {
+                    "type": "string",
+                    "enum": [
+                      "en",
+                      "ar",
+                      "fr",
+                      "es"
+                    ]
+                  },
+                  "page": {
+                    "type": "string"
+                  },
+                  "revision": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{32}$"
+                  },
+                  "block": {
+                    "type": "string"
+                  },
+                  "retry": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{32}$"
+                  },
+                  "consent": {
+                    "type": "string",
+                    "enum": [
+                      "yes"
+                    ]
+                  },
+                  "website": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "form",
+                  "version",
+                  "locale",
+                  "page",
+                  "revision",
+                  "block",
+                  "retry"
+                ],
+                "patternProperties": {
+                  "^f_[a-z][a-z0-9_-]{0,63}$": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -6684,7 +7150,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           },
           "locales": {
@@ -6694,7 +7161,8 @@
               "enum": [
                 "en",
                 "ar",
-                "fr"
+                "fr",
+                "es"
               ]
             },
             "uniqueItems": true,
@@ -7126,7 +7594,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           },
           "slug": {
@@ -7203,6 +7672,9 @@
           },
           "page_blocks": {
             "$ref": "#/components/schemas/PageBlockDocument"
+          },
+          "seo": {
+            "$ref": "#/components/schemas/RevisionSEO"
           }
         },
         "required": [
@@ -7359,6 +7831,9 @@
           },
           "page_blocks": {
             "$ref": "#/components/schemas/PageBlockDocument"
+          },
+          "seo": {
+            "$ref": "#/components/schemas/RevisionSEO"
           }
         },
         "required": [
@@ -7395,14 +7870,16 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           },
           "locale": {
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           },
           "version": {
@@ -7456,7 +7933,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           },
           "slug": {
@@ -7529,7 +8007,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           },
           "slug": {
@@ -7621,7 +8100,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           },
           "slug": {
@@ -7759,7 +8239,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           },
           "label": {
@@ -7922,7 +8403,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           },
           "slug": {
@@ -8079,7 +8561,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           },
           "slug": {
@@ -8299,10 +8782,42 @@
               "enum": [
                 "en",
                 "ar",
-                "fr"
+                "fr",
+                "es"
               ]
             },
             "description": "Languages visible on the public site. Omit to enable all supported languages. / لغات الموقع العام الظاهرة. عند غياب الحقل تظهر جميع اللغات المدعومة."
+          },
+          "public_default_locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "ar",
+              "fr",
+              "es"
+            ]
+          },
+          "redirects": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "from": {
+                  "type": "string",
+                  "maxLength": 512
+                },
+                "to": {
+                  "type": "string",
+                  "maxLength": 512
+                }
+              },
+              "required": [
+                "from",
+                "to"
+              ]
+            }
           }
         },
         "required": [
@@ -9170,7 +9685,8 @@
                   "enum": [
                     "en",
                     "ar",
-                    "fr"
+                    "fr",
+                    "es"
                   ]
                 },
                 "fallback": {
@@ -9495,7 +10011,8 @@
               "required": [
                 "en",
                 "ar",
-                "fr"
+                "fr",
+                "es"
               ]
             },
             "placeholders": {
@@ -9544,7 +10061,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           },
           "url": {
@@ -9566,21 +10084,50 @@
             "type": "object",
             "description": "Canonical head metadata, included only on success. / بيانات رأس الصفحة الأساسية، وتُدرج في الاستجابات الناجحة فقط.",
             "additionalProperties": false,
-            "required": ["title", "description", "social"],
+            "required": [
+              "title",
+              "description",
+              "social"
+            ],
             "properties": {
-              "title": { "type": "string" },
-              "description": { "type": "string" },
+              "title": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
               "social": {
                 "type": "object",
                 "additionalProperties": false,
-                "required": ["image", "alt", "type", "site_name", "width", "height"],
+                "required": [
+                  "image",
+                  "alt",
+                  "type",
+                  "site_name",
+                  "width",
+                  "height"
+                ],
                 "properties": {
-                  "image": { "type": "string" },
-                  "alt": { "type": "string" },
-                  "type": { "type": "string" },
-                  "site_name": { "type": "string" },
-                  "width": { "type": "integer", "minimum": 0 },
-                  "height": { "type": "integer", "minimum": 0 }
+                  "image": {
+                    "type": "string"
+                  },
+                  "alt": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "site_name": {
+                    "type": "string"
+                  },
+                  "width": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "height": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
                 }
               }
             }
@@ -9784,7 +10331,8 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           },
           "passMark": {
@@ -9967,14 +10515,16 @@
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           },
           "locale": {
             "enum": [
               "en",
               "ar",
-              "fr"
+              "fr",
+              "es"
             ]
           },
           "title": {
@@ -10250,7 +10800,8 @@
                   "enum": [
                     "en",
                     "ar",
-                    "fr"
+                    "fr",
+                    "es"
                   ]
                 },
                 "expected_version": {
@@ -10395,6 +10946,189 @@
           "members"
         ],
         "additionalProperties": false
+      },
+      "RevisionSEO": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 320
+          },
+          "social_image_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "no_index": {
+            "type": "boolean"
+          },
+          "schema": {
+            "type": "string",
+            "enum": [
+              "",
+              "none",
+              "web_page",
+              "article",
+              "product"
+            ]
+          },
+          "product": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "sku": {
+                "type": "string",
+                "maxLength": 80
+              },
+              "brand": {
+                "type": "string",
+                "maxLength": 100
+              }
+            },
+            "required": [
+              "sku"
+            ]
+          }
+        }
+      },
+      "LeadForm": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]{0,63}$"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "consent": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "retention_days": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 365
+          },
+          "fields": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 12,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_-]{0,63}$"
+                },
+                "label": {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "text",
+                    "email",
+                    "textarea"
+                  ]
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "key",
+                "label",
+                "kind",
+                "required"
+              ]
+            }
+          }
+        },
+        "required": [
+          "key",
+          "version",
+          "enabled",
+          "title",
+          "retention_days",
+          "fields"
+        ]
+      },
+      "LeadRecord": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "form_key": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]{0,63}$"
+          },
+          "form_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "ar",
+              "fr",
+              "es"
+            ]
+          },
+          "page_key": {
+            "type": "string"
+          },
+          "values": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "consent": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "new",
+              "contacted",
+              "closed"
+            ]
+          },
+          "tags": {
+            "type": "array",
+            "maxItems": 10,
+            "items": {
+              "type": "string",
+              "maxLength": 32
+            }
+          },
+          "created_at": {
+            "type": "integer"
+          },
+          "notified_at": {
+            "type": "integer"
+          }
+        }
       }
     },
     "securitySchemes": {

@@ -68,11 +68,14 @@ test('Labels shows translation columns, explicit English fallback, edited marker
   const m = await mount(initial);
   try {
     await input(m.el.querySelector('input[type="search"]'), 'nav.articles');
-    assert.equal(m.el.querySelectorAll('[role="columnheader"]').length, 4);
+    assert.equal(m.el.querySelectorAll('[role="columnheader"]').length, 5);
     assert.equal(m.el.querySelectorAll('[role="row"]:not(.vb-lhead)').length, 1);
     const french = byLabel(m.el, 'nav.articles · Français');
     assert.equal(french.dataset.missing, 'true');
     assert.equal(french.placeholder, 'Notes');
+    const spanish = byLabel(m.el, 'nav.articles · Español');
+    assert.equal(spanish.lang, 'es');
+    assert.equal(spanish.placeholder, 'Notes');
     assert.equal(byLabel(m.el, 'nav.articles · العربية').dir, 'rtl');
     await input(byLabel(m.el, 'nav.articles · English'), 'Journal');
     assert.equal(m.value()['nav.articles'].en, 'Journal');

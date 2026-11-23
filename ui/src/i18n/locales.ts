@@ -1,17 +1,25 @@
+import { LOCALES } from './locales.generated';
 import type { FallbackPurpose, Locale, Localized } from '../types';
-
-export const LOCALES: { code: Locale; name: string; dir: 'ltr' | 'rtl'; intl: string }[] = [
-  { code: 'en', name: 'English', dir: 'ltr', intl: 'en-GB' },
-  { code: 'fr', name: 'Français', dir: 'ltr', intl: 'fr-FR' },
-  // Moroccan Arabic month names (أكتوبر، شتنبر، غشت…) with Western digits.
-  { code: 'ar', name: 'العربية', dir: 'rtl', intl: 'ar-MA' },
-];
 
 export const DEFAULT_LOCALE: Locale = 'en';
 
-export const dirOf = (l: Locale) => (l === 'ar' ? 'rtl' : 'ltr') as 'ltr' | 'rtl';
+export const localeCodes = LOCALES.map(({ code }) => code);
 
-export const intlOf = (l: Locale) => LOCALES.find((x) => x.code === l)?.intl ?? 'en-GB';
+export const interfaceLocaleCodes = [...LOCALES]
+  .sort((a, b) => a.interfaceOrder - b.interfaceOrder)
+  .map(({ code }) => code);
+
+export const publicLocaleDefaults = LOCALES.filter(({ defaultVisible }) => defaultVisible).map(
+  ({ code }) => code,
+);
+
+export const isLocale = (value: unknown): value is Locale =>
+  LOCALES.some(({ code }) => code === value);
+
+export const dirOf = (locale: Locale) => LOCALES.find(({ code }) => code === locale)?.dir ?? 'ltr';
+
+export const intlOf = (locale: Locale) =>
+  LOCALES.find(({ code }) => code === locale)?.intl ?? 'en-GB';
 
 /** Fallback is explicit and limited to profile/interface-label strings. */
 export function pickLocale(
@@ -48,3 +56,5 @@ export function formatDate(
     parsed,
   );
 }
+
+export { LOCALES };

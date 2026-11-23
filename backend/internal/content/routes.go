@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"github.com/mbougarne/modawana/backend/internal/config"
 	"net/url"
 	"strings"
 
@@ -100,7 +101,7 @@ func (s *Service) ResolvePage(ctx context.Context, path string) (PageRoute, erro
 			out.Kind = parts[1]
 			suffix = "/" + parts[1]
 		}
-		for _, l := range []string{"en", "ar", "fr"} {
+		for _, l := range config.SupportedLocales() {
 			out.Alternatives = append(out.Alternatives, Alternative{Locale: l, URL: "/" + l + suffix})
 		}
 		return out, nil

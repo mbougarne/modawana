@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+
+	locales "github.com/mbougarne/modawana/backend/internal/locale"
 )
 
 //go:embed labels.json
@@ -64,7 +66,7 @@ func validateLabels(labels Labels) error {
 			values[locale] = raw(value)
 		}
 		base, core := Registry[key]
-		if len(key) > 160 || (!core && !customKey.MatchString(key)) || len(values) > 3 || values == nil {
+		if len(key) > 160 || (!core && !customKey.MatchString(key)) || len(values) > len(locales.Codes()) || values == nil {
 			return ErrInvalid
 		}
 		en := values["en"]
@@ -103,7 +105,7 @@ func validateLabels(labels Labels) error {
 			}
 		}
 		for locale, b := range values {
-			if locale != "en" && locale != "ar" && locale != "fr" {
+			if !locales.Valid(locale) {
 				return ErrInvalid
 			}
 			if locale != "en" && string(b) == `""` {

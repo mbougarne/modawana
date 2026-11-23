@@ -22,6 +22,7 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/dashboard"
 	"github.com/mbougarne/modawana/backend/internal/db"
 	"github.com/mbougarne/modawana/backend/internal/extension"
+	"github.com/mbougarne/modawana/backend/internal/forms"
 	httpserver "github.com/mbougarne/modawana/backend/internal/http"
 	"github.com/mbougarne/modawana/backend/internal/media"
 	"github.com/mbougarne/modawana/backend/internal/outbox"
@@ -48,6 +49,9 @@ func (m *maintenanceJobs) Register(r *extension.Registrar) error {
 		// policy keeps out of logs; record a stable reason instead.
 		if _, err := operations.Cleanup(ctx, m.db, m.files); err != nil {
 			return errors.New("maintenance batch failed")
+		}
+		if err := (&forms.Service{DB: m.db}).Prune(ctx); err != nil {
+			return errors.New("lead retention cleanup failed")
 		}
 		return nil
 	}})
@@ -182,13 +186,20 @@ func run() int {
 	defer runtime.Close(context.Background())
 	runtime.SetKeySource(cfg.ReadAuthKey)
 	plugins := &plugin.Service{DB: database, Dir: filepath.Join(cfg.DataRoot, "plugins"), Host: host, Runtime: runtime, Logger: logger, Maintenance: func() bool { return operations.Maintenance(cfg.DataRoot) }}
-	deliveries := &outbox.Worker{DB: database, Handle: plugins.PrepareEvent, Paused: plugins.Maintenance, Logger: logger}
+	leadForms := &forms.Service{DB: database}
+	deliveries := &outbox.Worker{DB: database, Paused: plugins.Maintenance, Logger: logger,
+		Handle: func(ctx context.Context, job outbox.Delivery) (outbox.Effect, error) {
+			if job.PluginID == "" && job.Event.Name == outbox.LeadCaptured {
+				return forms.PrepareNotification(ctx, job)
+			}
+			return plugins.PrepareEvent(ctx, job)
+		}}
 	webhooks, err := webhook.Open(ctx, database, cfg.DataRoot, os.Getenv("BLOG_WEBHOOK_CONNECTIONS"))
 	if err != nil {
 		logger.Error("webhook connection configuration rejected")
 		return 1
 	}
-	domain := &httpserver.Domain{Learning: identities, SiteConfig: settings, Content: contents, Auth: authentication, Media: media.New(database, files, policy), Extensions: host, Plugins: plugins, Deliveries: deliveries, Webhooks: webhooks, Dashboard: &dashboard.Service{DB: database}}
+	domain := &httpserver.Domain{Forms: leadForms, Learning: identities, SiteConfig: settings, Content: contents, Auth: authentication, Media: media.New(database, files, policy), Extensions: host, Plugins: plugins, Deliveries: deliveries, Webhooks: webhooks, Dashboard: &dashboard.Service{DB: database}}
 	publishing, err := publisher.Extensions(cfg.BaseURL, os.Getenv, plugins.Maintenance)
 	if err != nil {
 		logger.Error("publisher extension configuration rejected", "reason", err.Error())

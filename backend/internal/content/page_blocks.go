@@ -9,6 +9,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/mbougarne/modawana/backend/internal/bundle"
+	"github.com/mbougarne/modawana/backend/internal/forms"
 	"github.com/mbougarne/modawana/backend/internal/media"
 	"github.com/mbougarne/modawana/backend/internal/render"
 )
@@ -37,6 +38,7 @@ type pageBlock struct {
 }
 
 type blockReferences struct {
+	forms           map[string]forms.Reference
 	media           map[string]bool
 	images          map[string]bool
 	extensionBlocks []pageBlock
@@ -198,6 +200,17 @@ func (w *blockValidation) walk(blocks []pageBlock, depth int) error {
 			w.refs.extensionBlocks = append(w.refs.extensionBlocks, *b)
 			continue
 		}
+		if b.Type == "core.form" {
+			var form forms.Reference
+			if bundle.Decode(props, &form) != nil || !form.Valid() {
+				return ErrInvalid
+			}
+			if w.refs.forms == nil {
+				w.refs.forms = map[string]forms.Reference{}
+			}
+			w.refs.forms[b.ID] = form
+			continue
+		}
 		updated, err := w.properties(b.Type, props, depth)
 		if err != nil {
 			return err
@@ -212,7 +225,7 @@ func (w *blockValidation) walk(blocks []pageBlock, depth int) error {
 
 func knownPageBlock(kind string) bool {
 	switch kind {
-	case "core.markdown", "core.heading", "core.image", "core.button", "core.columns", "core.hero", "core.call_to_action", "core.content_list":
+	case "core.form", "core.markdown", "core.heading", "core.image", "core.button", "core.columns", "core.hero", "core.call_to_action", "core.content_list":
 		return true
 	}
 	return false

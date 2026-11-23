@@ -11,6 +11,7 @@ import (
 // SyndicatedPage contains only published metadata for an anonymous reader.
 type SyndicatedPage struct {
 	ID, URL, CollectionURL, Title, Summary, Published string
+	NoIndex                                           bool
 }
 
 type syndicationCandidate struct {
@@ -75,7 +76,7 @@ func (s *Service) SyndicatedPages(ctx context.Context, locale string, limit int,
 }
 
 func syndicationCandidates(ctx context.Context, tx *sql.Tx, locale string, after syndicationCandidate, includePages bool) ([]syndicationCandidate, error) {
-	statement := `SELECT v.id,i.key,i.kind,v.locale,v.slug,r.title,r.summary,v.last_published_at
+	statement := `SELECT v.id,i.key,i.kind,v.locale,v.slug,r.title,r.summary,v.last_published_at,coalesce(json_extract(r.seo, '$.no_index'),0)
 		FROM content_versions v JOIN content_items i ON i.id=v.item_id JOIN revisions r ON r.id=v.published_revision_id
 		WHERE v.published_revision_id IS NOT NULL`
 	var args []any
@@ -99,7 +100,7 @@ func syndicationCandidates(ctx context.Context, tx *sql.Tx, locale string, after
 	batch := make([]syndicationCandidate, 0, syndicationBatch)
 	for rows.Next() {
 		var row syndicationCandidate
-		if err := rows.Scan(&row.ID, &row.key, &row.kind, &row.locale, &row.slug, &row.Title, &row.Summary, &row.Published); err != nil {
+		if err := rows.Scan(&row.ID, &row.key, &row.kind, &row.locale, &row.slug, &row.Title, &row.Summary, &row.Published, &row.NoIndex); err != nil {
 			return nil, err
 		}
 		batch = append(batch, row)

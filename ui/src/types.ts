@@ -1,5 +1,7 @@
+import type { LOCALES } from './i18n/locales.generated';
+
 // Presentation contracts; Go remains authoritative for validation and access.
-export type Locale = 'en' | 'fr' | 'ar';
+export type Locale = (typeof LOCALES)[number]['code'];
 
 export type Localized<T = string> = Partial<Record<Locale, T>> & { en: T };
 

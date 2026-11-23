@@ -6,6 +6,7 @@ import (
 	"slices"
 
 	"github.com/mbougarne/modawana/backend/internal/config"
+	"github.com/mbougarne/modawana/backend/internal/locale"
 )
 
 func validPublicLocales(locales []string) bool {
@@ -27,7 +28,16 @@ func validPublicLocales(locales []string) bool {
 
 // VisibleLocales returns the published languages in default selection order.
 func (s *Service) VisibleLocales(ctx context.Context) ([]string, error) {
-	doc, err := s.Get(ctx, "site")
+	return visibleLocalesIn(ctx, s.DB)
+}
+
+func LocaleVisibleIn(ctx context.Context, q query, code string) (bool, error) {
+	locales, err := visibleLocalesIn(ctx, q)
+	return slices.Contains(locales, code), err
+}
+
+func visibleLocalesIn(ctx context.Context, q query) ([]string, error) {
+	doc, err := get(ctx, q, "site")
 	if err != nil {
 		return nil, err
 	}
@@ -35,18 +45,26 @@ func (s *Service) VisibleLocales(ctx context.Context) ([]string, error) {
 	if err := json.Unmarshal(doc.Snapshot, &settings); err != nil {
 		return nil, err
 	}
-	if !validPublicLocales(settings.PublicLocales) {
+	if !settings.validPublicLanguageSettings() {
 		return nil, ErrInvalid
 	}
 	return settings.visibleLocales(), nil
 }
 
 func (s Site) visibleLocales() []string {
-	locales := config.SupportedLocales()
-	if s.PublicLocales == nil {
-		return locales
+	visible := locale.PublicDefaults()
+	if s.PublicLocales != nil {
+		visible = slices.DeleteFunc(locale.Codes(), func(code string) bool {
+			return !slices.Contains(s.PublicLocales, code)
+		})
 	}
-	return slices.DeleteFunc(locales, func(locale string) bool {
-		return !slices.Contains(s.PublicLocales, locale)
-	})
+	if index := slices.Index(visible, s.PublicDefaultLocale); index > 0 {
+		visible = slices.Insert(slices.Delete(visible, index, index+1), 0, s.PublicDefaultLocale)
+	}
+	return visible
+}
+
+func (s Site) validPublicLanguageSettings() bool {
+	return validPublicLocales(s.PublicLocales) &&
+		(s.PublicDefaultLocale == "" || slices.Contains(s.visibleLocales(), s.PublicDefaultLocale))
 }

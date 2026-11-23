@@ -115,10 +115,12 @@ func prepare(ctx context.Context, handler Handler, delivery Delivery) (effect Ef
 
 // A subscription, enabled install, and contract all have to match. Deliveries
 // survive removal for diagnostics, but a new install cannot inherit them.
-const eligibleFrom = `FROM plugin_installs p JOIN outbox_subscriptions s ON s.plugin_id=p.id
-	JOIN outbox_events e ON e.name=s.name AND e.contract_version=s.contract_version
-	WHERE p.id=d.plugin_id AND p.enabled=1 AND e.id=d.event_id
-	  AND (e.staff_actor_id IS NULL OR EXISTS (SELECT 1 FROM staff_members m
+const eligibleFrom = `FROM outbox_events e LEFT JOIN plugin_installs p ON p.id=d.plugin_id
+	WHERE e.id=d.event_id AND (
+	  (d.plugin_id='' AND d.plugin_slug='forms' AND e.name='lead.captured' AND e.contract_version=1)
+	  OR (p.enabled=1 AND EXISTS (SELECT 1 FROM outbox_subscriptions s WHERE s.plugin_id=p.id
+	    AND e.name=s.name AND e.contract_version=s.contract_version))
+	) AND (e.staff_actor_id IS NULL OR EXISTS (SELECT 1 FROM staff_members m
 	    WHERE m.id=e.staff_actor_id AND m.revoked_at IS NULL AND m.role='owner'))`
 
 func (w *Worker) claim(ctx context.Context) (attempt, error) {
@@ -153,9 +155,9 @@ func (w *Worker) claim(ctx context.Context) (attempt, error) {
 		return a, err
 	}
 	var payload string
-	err = tx.QueryRowContext(ctx, `SELECT d.id,d.plugin_id,d.plugin_slug,d.attempts,p.version,
+	err = tx.QueryRowContext(ctx, `SELECT d.id,d.plugin_id,d.plugin_slug,d.attempts,coalesce(p.version,0),
 		e.id,e.name,e.contract_version,e.source_id,e.source_version,e.payload
-		FROM outbox_deliveries d JOIN outbox_events e ON e.id=d.event_id JOIN plugin_installs p ON p.id=d.plugin_id
+		FROM outbox_deliveries d JOIN outbox_events e ON e.id=d.event_id LEFT JOIN plugin_installs p ON p.id=d.plugin_id
 		WHERE `+due+`
 		ORDER BY CASE WHEN d.state='pending' THEN d.available_at ELSE d.lease_until END,d.id LIMIT 1`,
 		maxAttempts, now.UnixMilli(), now.UnixMilli()).Scan(
@@ -193,7 +195,7 @@ func (w *Worker) complete(ctx context.Context, a attempt, effect Effect) (failur
 	result, err := tx.ExecContext(ctx, `UPDATE outbox_deliveries AS d SET state='succeeded',last_error='',
 		lease_until=0,lease_token='',updated_at=?
 		WHERE d.id=? AND d.lease_token=? AND d.lease_until>? AND d.state='running'
-		AND EXISTS (SELECT 1 `+eligibleFrom+` AND p.version=?)`, now, a.delivery.ID, a.token, now, a.approval)
+		AND EXISTS (SELECT 1 `+eligibleFrom+` AND coalesce(p.version,0)=?)`, now, a.delivery.ID, a.token, now, a.approval)
 	if err != nil {
 		return nil, err
 	}

@@ -1,4 +1,587 @@
 {
+  "owner.forms": {
+    "section": "owner",
+    "description": "Interface text: owner.forms",
+    "placeholders": [],
+    "values": {
+      "en": "Forms and leads",
+      "fr": "Formulaires et contacts",
+      "ar": "النماذج والعملاء المحتملون"
+    }
+  },
+  "pageBlocks.form": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.form",
+    "placeholders": [],
+    "values": {
+      "en": "Lead form",
+      "fr": "Formulaire de contact",
+      "ar": "نموذج جمع بيانات التواصل"
+    }
+  },
+  "forms.manageHelp": {
+    "section": "forms",
+    "description": "Interface text: forms.manageHelp",
+    "placeholders": [],
+    "values": {
+      "en": "Create a form, enable it, then add its current version to a page. Updating the form requires republishing affected pages.",
+      "fr": "Créez et activez un formulaire, puis ajoutez sa version actuelle à une page. Après une modification, republiez les pages concernées.",
+      "ar": "أنشئ نموذجاً وفعّله ثم أضف نسخته الحالية إلى صفحة. أعد نشر الصفحات المعنية بعد تحديث النموذج."
+    }
+  },
+  "forms.definition": {
+    "section": "forms",
+    "description": "Interface text: forms.definition",
+    "placeholders": [],
+    "values": {
+      "en": "Form version",
+      "fr": "Version du formulaire",
+      "ar": "نسخة النموذج"
+    }
+  },
+  "forms.newForm": {
+    "section": "forms",
+    "description": "Interface text: forms.newForm",
+    "placeholders": [],
+    "values": {
+      "en": "New form",
+      "fr": "Nouveau formulaire",
+      "ar": "نموذج جديد"
+    }
+  },
+  "forms.key": {
+    "section": "forms",
+    "description": "Interface text: forms.key",
+    "placeholders": [],
+    "values": {
+      "en": "Identifier",
+      "fr": "Identifiant",
+      "ar": "المعرّف"
+    }
+  },
+  "forms.title": {
+    "section": "forms",
+    "description": "Interface text: forms.title",
+    "placeholders": [],
+    "values": {
+      "en": "Form title",
+      "fr": "Titre du formulaire",
+      "ar": "عنوان النموذج"
+    }
+  },
+  "forms.retention": {
+    "section": "forms",
+    "description": "Interface text: forms.retention",
+    "placeholders": [],
+    "values": {
+      "en": "Retention in days",
+      "fr": "Conservation en jours",
+      "ar": "مدة الاحتفاظ بالأيام"
+    }
+  },
+  "forms.consent": {
+    "section": "forms",
+    "description": "Interface text: forms.consent",
+    "placeholders": [],
+    "values": {
+      "en": "Required consent text (optional)",
+      "fr": "Texte du consentement obligatoire (facultatif)",
+      "ar": "نص الموافقة المطلوبة (اختياري)"
+    }
+  },
+  "forms.enabled": {
+    "section": "forms",
+    "description": "Interface text: forms.enabled",
+    "placeholders": [],
+    "values": {
+      "en": "Accept submissions when published",
+      "fr": "Accepter les réponses après publication",
+      "ar": "استقبال الردود بعد النشر"
+    }
+  },
+  "forms.field": {
+    "section": "forms",
+    "description": "Interface text: forms.field",
+    "placeholders": [],
+    "values": {
+      "en": "Form field",
+      "fr": "Champ du formulaire",
+      "ar": "حقل النموذج"
+    }
+  },
+  "forms.label": {
+    "section": "forms",
+    "description": "Interface text: forms.label",
+    "placeholders": [],
+    "values": {
+      "en": "Field label",
+      "fr": "Libellé du champ",
+      "ar": "تسمية الحقل"
+    }
+  },
+  "forms.kind": {
+    "section": "forms",
+    "description": "Interface text: forms.kind",
+    "placeholders": [],
+    "values": {
+      "en": "Field type",
+      "fr": "Type de champ",
+      "ar": "نوع الحقل"
+    }
+  },
+  "forms.text": {
+    "section": "forms",
+    "description": "Interface text: forms.text",
+    "placeholders": [],
+    "values": {
+      "en": "Short text",
+      "fr": "Texte court",
+      "ar": "نص قصير"
+    }
+  },
+  "forms.email": {
+    "section": "forms",
+    "description": "Interface text: forms.email",
+    "placeholders": [],
+    "values": {
+      "en": "Email",
+      "fr": "Adresse électronique",
+      "ar": "البريد الإلكتروني"
+    }
+  },
+  "forms.textarea": {
+    "section": "forms",
+    "description": "Interface text: forms.textarea",
+    "placeholders": [],
+    "values": {
+      "en": "Long text",
+      "fr": "Texte long",
+      "ar": "نص طويل"
+    }
+  },
+  "forms.required": {
+    "section": "forms",
+    "description": "Interface text: forms.required",
+    "placeholders": [],
+    "values": {
+      "en": "Required",
+      "fr": "Obligatoire",
+      "ar": "مطلوب"
+    }
+  },
+  "forms.addField": {
+    "section": "forms",
+    "description": "Interface text: forms.addField",
+    "placeholders": [],
+    "values": {
+      "en": "Add field",
+      "fr": "Ajouter un champ",
+      "ar": "إضافة حقل"
+    }
+  },
+  "forms.save": {
+    "section": "forms",
+    "description": "Interface text: forms.save",
+    "placeholders": [],
+    "values": {
+      "en": "Save",
+      "fr": "Enregistrer",
+      "ar": "حفظ"
+    }
+  },
+  "forms.saved": {
+    "section": "forms",
+    "description": "Interface text: forms.saved",
+    "placeholders": [],
+    "values": {
+      "en": "Saved",
+      "fr": "Enregistré",
+      "ar": "تم الحفظ"
+    }
+  },
+  "forms.retry": {
+    "section": "forms",
+    "description": "Interface text: forms.retry",
+    "placeholders": [],
+    "values": {
+      "en": "Retry",
+      "fr": "Réessayer",
+      "ar": "إعادة المحاولة"
+    }
+  },
+  "forms.inbox": {
+    "section": "forms",
+    "description": "Interface text: forms.inbox",
+    "placeholders": [],
+    "values": {
+      "en": "Lead inbox",
+      "fr": "Boîte de réception des contacts",
+      "ar": "صندوق بيانات التواصل"
+    }
+  },
+  "forms.export": {
+    "section": "forms",
+    "description": "Interface text: forms.export",
+    "placeholders": [],
+    "values": {
+      "en": "Download CSV",
+      "fr": "Télécharger le CSV",
+      "ar": "تنزيل ملف CSV"
+    }
+  },
+  "forms.empty": {
+    "section": "forms",
+    "description": "Interface text: forms.empty",
+    "placeholders": [],
+    "values": {
+      "en": "No leads yet",
+      "fr": "Aucun contact pour le moment",
+      "ar": "لا توجد بيانات تواصل بعد"
+    }
+  },
+  "forms.first": {
+    "section": "forms",
+    "description": "Interface text: forms.first",
+    "placeholders": [],
+    "values": {
+      "en": "Newest leads",
+      "fr": "Contacts les plus récents",
+      "ar": "أحدث بيانات التواصل"
+    }
+  },
+  "forms.next": {
+    "section": "forms",
+    "description": "Interface text: forms.next",
+    "placeholders": [],
+    "values": {
+      "en": "Older leads",
+      "fr": "Contacts précédents",
+      "ar": "بيانات التواصل الأقدم"
+    }
+  },
+  "forms.newLead": {
+    "section": "forms",
+    "description": "Interface text: forms.newLead",
+    "placeholders": [],
+    "values": {
+      "en": "New submission",
+      "fr": "Nouvelle réponse",
+      "ar": "رد جديد"
+    }
+  },
+  "forms.status": {
+    "section": "forms",
+    "description": "Interface text: forms.status",
+    "placeholders": [],
+    "values": {
+      "en": "Status",
+      "fr": "État",
+      "ar": "الحالة"
+    }
+  },
+  "forms.tags": {
+    "section": "forms",
+    "description": "Interface text: forms.tags",
+    "placeholders": [],
+    "values": {
+      "en": "Tags separated by commas",
+      "fr": "Étiquettes séparées par des virgules",
+      "ar": "وسوم مفصولة بفواصل"
+    }
+  },
+  "forms.new": {
+    "section": "forms",
+    "description": "Interface text: forms.new",
+    "placeholders": [],
+    "values": {
+      "en": "New",
+      "fr": "Nouveau",
+      "ar": "جديد"
+    }
+  },
+  "forms.contacted": {
+    "section": "forms",
+    "description": "Interface text: forms.contacted",
+    "placeholders": [],
+    "values": {
+      "en": "Contacted",
+      "fr": "Contacté",
+      "ar": "تم التواصل"
+    }
+  },
+  "forms.closed": {
+    "section": "forms",
+    "description": "Interface text: forms.closed",
+    "placeholders": [],
+    "values": {
+      "en": "Closed",
+      "fr": "Fermé",
+      "ar": "مغلق"
+    }
+  },
+  "forms.delete": {
+    "section": "forms",
+    "description": "Interface text: forms.delete",
+    "placeholders": [],
+    "values": {
+      "en": "Delete lead",
+      "fr": "Supprimer le contact",
+      "ar": "حذف بيانات التواصل"
+    }
+  },
+  "forms.deleteConfirm": {
+    "section": "forms",
+    "description": "Interface text: forms.deleteConfirm",
+    "placeholders": [],
+    "values": {
+      "en": "Permanently delete this lead?",
+      "fr": "Supprimer définitivement ce contact ?",
+      "ar": "هل تريد حذف بيانات التواصل هذه نهائياً؟"
+    }
+  },
+  "forms.stale": {
+    "section": "forms",
+    "description": "Interface text: forms.stale",
+    "placeholders": [],
+    "values": {
+      "en": "Choose the current enabled form version",
+      "fr": "Choisissez la version active du formulaire",
+      "ar": "اختر النسخة المفعّلة الحالية للنموذج"
+    }
+  },
+  "forms.send": {
+    "section": "forms",
+    "description": "Interface text: forms.send",
+    "placeholders": [],
+    "values": {
+      "en": "Send",
+      "fr": "Envoyer",
+      "ar": "إرسال",
+      "es": "Enviar"
+    }
+  },
+  "forms.accepted": {
+    "section": "forms",
+    "description": "Interface text: forms.accepted",
+    "placeholders": [],
+    "values": {
+      "en": "Your submission was received.",
+      "fr": "Votre réponse a été reçue.",
+      "ar": "تم استلام ردّك.",
+      "es": "Recibimos tu respuesta."
+    }
+  },
+  "forms.failed": {
+    "section": "forms",
+    "description": "Interface text: forms.failed",
+    "placeholders": [],
+    "values": {
+      "en": "The request failed. Check your input or try again.",
+      "fr": "La demande a échoué. Vérifiez les données ou réessayez.",
+      "ar": "تعذّر تنفيذ الطلب. تحقق من البيانات أو أعد المحاولة.",
+      "es": "La solicitud falló. Revisa los datos o inténtalo de nuevo."
+    }
+  },
+  "seo.heading": {
+    "section": "seo",
+    "description": "Interface text: seo.heading",
+    "placeholders": [],
+    "values": {
+      "en": "Search and sharing",
+      "fr": "Recherche et partage",
+      "ar": "البحث والمشاركة"
+    }
+  },
+  "seo.title": {
+    "section": "seo",
+    "description": "Interface text: seo.title",
+    "placeholders": [],
+    "values": {
+      "en": "Search title",
+      "fr": "Titre de recherche",
+      "ar": "عنوان نتائج البحث"
+    }
+  },
+  "seo.description": {
+    "section": "seo",
+    "description": "Interface text: seo.description",
+    "placeholders": [],
+    "values": {
+      "en": "Search description",
+      "fr": "Description de recherche",
+      "ar": "وصف نتائج البحث"
+    }
+  },
+  "seo.image": {
+    "section": "seo",
+    "description": "Interface text: seo.image",
+    "placeholders": [],
+    "values": {
+      "en": "Social image media ID",
+      "fr": "Identifiant de l’image de partage",
+      "ar": "معرّف صورة المشاركة"
+    }
+  },
+  "seo.schema": {
+    "section": "seo",
+    "description": "Interface text: seo.schema",
+    "placeholders": [],
+    "values": {
+      "en": "Structured data",
+      "fr": "Données structurées",
+      "ar": "البيانات المنظّمة"
+    }
+  },
+  "seo.none": {
+    "section": "seo",
+    "description": "Interface text: seo.none",
+    "placeholders": [],
+    "values": {
+      "en": "None",
+      "fr": "Aucune",
+      "ar": "بدون"
+    }
+  },
+  "seo.product": {
+    "section": "seo",
+    "description": "Interface text: seo.product",
+    "placeholders": [],
+    "values": {
+      "en": "Product",
+      "fr": "Produit",
+      "ar": "منتج"
+    }
+  },
+  "seo.sku": {
+    "section": "seo",
+    "description": "Interface text: seo.sku",
+    "placeholders": [],
+    "values": {
+      "en": "Product SKU",
+      "fr": "Référence du produit",
+      "ar": "رمز المنتج"
+    }
+  },
+  "seo.brand": {
+    "section": "seo",
+    "description": "Interface text: seo.brand",
+    "placeholders": [],
+    "values": {
+      "en": "Product brand",
+      "fr": "Marque du produit",
+      "ar": "العلامة التجارية للمنتج"
+    }
+  },
+  "seo.webPage": {
+    "section": "seo",
+    "description": "Interface text: seo.webPage",
+    "placeholders": [],
+    "values": {
+      "en": "Web page",
+      "fr": "Page web",
+      "ar": "صفحة ويب"
+    }
+  },
+  "seo.noIndex": {
+    "section": "seo",
+    "description": "Interface text: seo.noIndex",
+    "placeholders": [],
+    "values": {
+      "en": "Ask search engines not to index this revision",
+      "fr": "Demander aux moteurs de ne pas indexer cette révision",
+      "ar": "اطلب من محركات البحث عدم فهرسة هذه المراجعة"
+    }
+  },
+  "seo.preview": {
+    "section": "seo",
+    "description": "Interface text: seo.preview",
+    "placeholders": [],
+    "values": {
+      "en": "Search snippet preview",
+      "fr": "Aperçu du résultat de recherche",
+      "ar": "معاينة مقتطف نتائج البحث"
+    }
+  },
+  "seo.redirects": {
+    "section": "seo",
+    "description": "Interface text: seo.redirects",
+    "placeholders": [],
+    "values": {
+      "en": "Public redirects",
+      "fr": "Redirections publiques",
+      "ar": "عمليات إعادة التوجيه العامة"
+    }
+  },
+  "seo.redirectHelp": {
+    "section": "seo",
+    "description": "Interface text: seo.redirectHelp",
+    "placeholders": [],
+    "values": {
+      "en": "Use local paths that begin with the language code. Redirects only lead to a public page and cannot chain.",
+      "fr": "Utilisez des chemins locaux commençant par le code de langue. La cible doit être une page publique et les chaînes sont interdites.",
+      "ar": "استخدم مسارات محلية تبدأ برمز اللغة. يجب أن تؤدي إعادة التوجيه إلى صفحة عامة مباشرةً."
+    }
+  },
+  "seo.from": {
+    "section": "seo",
+    "description": "Interface text: seo.from",
+    "placeholders": [],
+    "values": {
+      "en": "Old path",
+      "fr": "Ancien chemin",
+      "ar": "المسار السابق"
+    }
+  },
+  "seo.to": {
+    "section": "seo",
+    "description": "Interface text: seo.to",
+    "placeholders": [],
+    "values": {
+      "en": "Destination path",
+      "fr": "Chemin de destination",
+      "ar": "مسار الوجهة"
+    }
+  },
+  "seo.addRedirect": {
+    "section": "seo",
+    "description": "Interface text: seo.addRedirect",
+    "placeholders": [],
+    "values": {
+      "en": "Add redirect",
+      "fr": "Ajouter une redirection",
+      "ar": "إضافة إعادة توجيه"
+    }
+  },
+  "validation.form_stale": {
+    "section": "validation",
+    "description": "Interface text: validation.form_stale",
+    "placeholders": [],
+    "values": {
+      "en": "Select a current enabled form before publishing.",
+      "fr": "Sélectionnez un formulaire actif avant de publier.",
+      "ar": "اختر نموذجاً مفعّلاً حالياً قبل النشر."
+    }
+  },
+  "validation.redirects": {
+    "section": "validation",
+    "description": "Interface text: validation.redirects",
+    "placeholders": [],
+    "values": {
+      "en": "Check public paths, duplicate sources and collisions.",
+      "fr": "Vérifiez les chemins publics, les doublons et les conflits.",
+      "ar": "تحقّق من المسارات العامة والتكرار والتعارضات."
+    }
+  },
+  "validation.seo_metadata": {
+    "section": "validation",
+    "description": "Interface text: validation.seo_metadata",
+    "placeholders": [],
+    "values": {
+      "en": "Check the search metadata and image.",
+      "fr": "Vérifiez les métadonnées et l’image.",
+      "ar": "تحقّق من البيانات الوصفية وصورة المشاركة."
+    }
+  },
   "notion.title": {
     "section": "notion",
     "description": "Interface text: notion.title",
@@ -6882,6 +7465,27 @@
       "en": "Français",
       "fr": "Français",
       "ar": "Français"
+    }
+  },
+  "language.es": {
+    "section": "language",
+    "description": "Interface text: language.es",
+    "placeholders": [],
+    "values": {
+      "en": "Español",
+      "fr": "Español",
+      "ar": "Español",
+      "es": "Español"
+    }
+  },
+  "config.choosePublicDefault": {
+    "section": "config",
+    "description": "Interface text: config.choosePublicDefault",
+    "placeholders": [],
+    "values": {
+      "en": "Default public language",
+      "fr": "Langue publique par défaut",
+      "ar": "اللغة العامة الافتراضية"
     }
   },
   "language.ar": {

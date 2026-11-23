@@ -6,10 +6,12 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+
+	"github.com/mbougarne/modawana/backend/internal/locale"
 )
 
 func pageLocale(value string) bool {
-	return value == "en" || value == "ar" || value == "fr"
+	return locale.Valid(value)
 }
 
 // Only explicit HTML requests are browser-page navigation. API requests, including

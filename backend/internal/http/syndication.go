@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mbougarne/modawana/backend/internal/config"
 	"github.com/mbougarne/modawana/backend/internal/content"
 	"github.com/mbougarne/modawana/backend/internal/db"
 	"github.com/mbougarne/modawana/backend/internal/siteconfig"
@@ -174,7 +175,7 @@ func (s *Server) serveSitemap(w http.ResponseWriter, r *http.Request, source syn
 	defer cancel()
 	locales := publicLocales(ctx)
 	sources := locales
-	if len(locales) == len(s.options.Config.Public().Locales) {
+	if len(locales) == len(config.SupportedLocales()) {
 		sources = []string{""} // Preserve the combined published-date order when all languages are public.
 	}
 	var pages []content.SyndicatedPage
@@ -188,6 +189,11 @@ func (s *Server) serveSitemap(w http.ResponseWriter, r *http.Request, source syn
 	}
 	doc := sitemapDocument{}
 	seen := map[string]bool{}
+	for _, page := range pages {
+		if page.NoIndex {
+			seen[page.URL] = true
+		}
+	}
 	add := func(path, modified string) {
 		location := origin + path
 		if !seen[path] && len(location) < sitemapURLLength {
@@ -201,6 +207,9 @@ func (s *Server) serveSitemap(w http.ResponseWriter, r *http.Request, source syn
 		}
 	}
 	for _, page := range pages {
+		if page.NoIndex {
+			continue
+		}
 		if page.CollectionURL != "" {
 			add(page.CollectionURL, "")
 		}

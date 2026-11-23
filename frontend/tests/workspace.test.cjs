@@ -36,6 +36,7 @@ const pages = [
   'security',
   'transfer',
   'plugins',
+  'forms',
   'layout',
 ];
 async function mount(current = 'posts', locale = 'en', extra = {}, children) {
@@ -179,11 +180,16 @@ test('Arabic workspace language menu preserves the editor content locale, focuse
     const menu = m.el.querySelector('#config-language-menu');
     assert.deepEqual(
       [...menu.querySelectorAll('a')].map((a) => a.pathname),
-      ['/en/admin/editor/example/en', '/fr/admin/editor/example/en', '/ar/admin/editor/example/en'],
+      [
+        '/en/admin/editor/example/en',
+        '/fr/admin/editor/example/en',
+        '/ar/admin/editor/example/en',
+        '/es/admin/editor/example/en',
+      ],
     );
     assert.deepEqual(
       [...menu.querySelectorAll('a')].map((a) => a.search),
-      ['?source=en', '?source=en', '?source=en'],
+      ['?source=en', '?source=en', '?source=en', '?source=en'],
     );
     assert.equal(menu.querySelector('a'), document.activeElement);
     await act(async () =>

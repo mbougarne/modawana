@@ -1,3 +1,4 @@
+import { isLocale } from '../../../ui/src/i18n/locales';
 import { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { I18nProvider, type LabelOverrides, type Locale } from '@ui';
@@ -10,7 +11,7 @@ import { ResourceState } from '../pages/public/ResourceState';
 import { observeReadingProgress } from './readingNavigation';
 
 const locale = document.documentElement.lang;
-if (locale === 'en' || locale === 'ar' || locale === 'fr') {
+if (isLocale(locale)) {
   mountLearning(locale);
 }
 

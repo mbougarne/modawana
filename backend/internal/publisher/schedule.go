@@ -15,6 +15,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/mbougarne/modawana/backend/internal/content"
+	"github.com/mbougarne/modawana/backend/internal/locale"
 )
 
 // Schedule runs only after an explicit cutover. Times and dates are UTC; there
@@ -117,7 +118,7 @@ func (j LessonJob) due(now time.Time) (int, bool, error) {
 		}
 		days[day] = true
 	}
-	if !days[int(start.Weekday())] || !deliveryKey.MatchString(j.ID) || len(j.ID) > 60 || !deliveryKey.MatchString(j.Collection) || !pageID.MatchString(j.NotionParent) || j.Locale != "en" && j.Locale != "ar" && j.Locale != "fr" || j.MaxOutput < 1024 || j.MaxOutput > 16384 || len(j.Prompt) == 0 || len(j.Prompt)+len(j.Context) > 32000 {
+	if !days[int(start.Weekday())] || !deliveryKey.MatchString(j.ID) || len(j.ID) > 60 || !deliveryKey.MatchString(j.Collection) || !pageID.MatchString(j.NotionParent) || !locale.Valid(j.Locale) || j.MaxOutput < 1024 || j.MaxOutput > 16384 || len(j.Prompt) == 0 || len(j.Prompt)+len(j.Context) > 32000 {
 		return 0, false, errors.New("invalid schedule job or continuity context")
 	}
 	if j.Model != "gpt-5.4-mini" && j.Model != "gpt-5.4" {

@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"github.com/mbougarne/modawana/backend/internal/auth"
+	"github.com/mbougarne/modawana/backend/internal/config"
 	"github.com/mbougarne/modawana/backend/internal/extension"
 	"io"
 	"mime"
@@ -270,7 +271,7 @@ func (p publisherTools) Register(r *extension.Registrar) error {
 		return map[string]any{"type": "string", "description": description}
 	}
 	identity := func() map[string]any {
-		return map[string]any{"key": map[string]any{"type": "string", "pattern": mcpKey.String()}, "locale": map[string]any{"type": "string", "enum": []string{"en", "ar", "fr"}}}
+		return map[string]any{"key": map[string]any{"type": "string", "pattern": mcpKey.String()}, "locale": map[string]any{"type": "string", "enum": config.SupportedLocales()}}
 	}
 	call := func(name string) extension.ToolFunc {
 		return func(ctx context.Context, raw json.RawMessage) ([]byte, error) {
@@ -317,7 +318,7 @@ func (d *Domain) publisherToolCall(ctx context.Context, name string, raw json.Ra
 	}
 	method, path, ct := "GET", "/api/v1/publisher/content/"+in.Key+"/"+in.Locale, "application/json"
 	var body []byte
-	if name != "upload_media" && (!mcpKey.MatchString(in.Key) || in.Locale != "en" && in.Locale != "ar" && in.Locale != "fr") {
+	if name != "upload_media" && (!mcpKey.MatchString(in.Key) || !pageLocale(in.Locale)) {
 		return nil, io.ErrUnexpectedEOF
 	}
 	if name != "get_draft" && (len(in.Idempotency) == 0 || len(in.Idempotency) > 160 || strings.ContainsAny(in.Idempotency, "\r\n")) {
@@ -380,7 +381,7 @@ func mcpDraftSchema() map[string]any {
 	return map[string]any{"type": "object", "description": "Existing publisher DraftInput. expected_version=0 creates content. Lessons/docs require an allowed collection and position. Quiz edits require quiz scope. Reviews and gate changes remain owner-only.", "properties": map[string]any{
 		"expected_version": integer, "expected_collection_version": integer,
 		"kind":          map[string]any{"type": "string", "enum": []string{"article", "lesson", "doc"}},
-		"source_locale": map[string]any{"type": "string", "enum": []string{"en", "ar", "fr"}},
+		"source_locale": map[string]any{"type": "string", "enum": config.SupportedLocales()},
 		"slug":          text, "title": map[string]any{"type": "string", "minLength": 1, "maxLength": 200}, "summary": map[string]any{"type": "string", "maxLength": 500}, "markdown": text,
 		"source_revision_id": text, "category_key": text, "tag_keys": stringsList, "cover_media_id": text,
 		"media_presentations": map[string]any{"type": "array", "items": presentation}, "collection_key": text, "position": integer, "quiz": quiz,

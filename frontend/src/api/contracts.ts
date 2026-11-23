@@ -30,7 +30,7 @@ export interface APIErrorEnvelope {
 export interface RuntimeConfiguration {
   api_version: 'v1';
   default_locale: 'en';
-  locales: ('en' | 'ar' | 'fr')[];
+  locales: import('@ui/types').Locale[];
 }
 
 export interface HealthResponse {

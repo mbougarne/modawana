@@ -1,3 +1,4 @@
+import { dirOf } from '../../../../ui/src/i18n/locales';
 import { OwnerFrame } from '../owner/OwnerFrame';
 import { OwnerPageHeading } from '../owner/OwnerWorkspace';
 import { useEffect, useState } from 'react';
@@ -42,7 +43,7 @@ export function PreviewPage() {
             <p role="alert">{t('reader.mediaUnavailable')}</p>
           ) : draft ? (
             <I18nProvider locale={draft.locale} syncDocument={false}>
-              <div lang={draft.locale} dir={draft.locale === 'ar' ? 'rtl' : 'ltr'}>
+              <div lang={draft.locale} dir={dirOf(draft.locale)}>
                 <OwnerPageHeading title={draft.revision.title} />
                 <MarkdownReader
                   markdown={draft.revision.markdown}

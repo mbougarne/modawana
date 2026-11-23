@@ -1,3 +1,4 @@
+import { isLocale } from '../../../../ui/src/i18n/locales';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { BrandStyle } from '../../../../ui/src/theme/ThemeProvider';
 import { DEFAULT_PRIMARY, DEFAULT_SECONDARY } from '../../../../ui/src/theme/brand';
@@ -24,11 +25,7 @@ export function PublicConfigurationProvider({ children }: { children: ReactNode 
   const [data, setData] = useState(initial);
   async function refresh() {
     const l = location.pathname.split('/')[1];
-    setData(
-      await call<PublicConfiguration>(
-        '/public/site?locale=' + (['en', 'ar', 'fr'].includes(l) ? l : 'en'),
-      ),
-    );
+    setData(await call<PublicConfiguration>('/public/site?locale=' + (isLocale(l) ? l : 'en')));
   }
   useEffect(() => {
     if (!data) {

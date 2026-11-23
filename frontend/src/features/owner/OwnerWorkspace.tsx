@@ -40,6 +40,7 @@ const pages = [
   ['security', 'lock'],
   ['transfer', 'upload'],
   ['plugins', 'plug'],
+  ['forms', 'page'],
   ['layout', 'settings'],
 ] as const satisfies readonly (readonly [string, IconName])[];
 
@@ -191,7 +192,7 @@ export function OwnerWorkspace({
   const [failed, setFailed] = useState(false);
   const path =
     (languagePath ??
-      (location.pathname.replace(/^\/(en|ar|fr)(?=\/|$)/, '') || '/admin/' + current)) +
+      (location.pathname.replace(/^\/[^/]+(?=\/admin(?:\/|$))/, '') || '/admin/' + current)) +
     location.search;
   const { data: configuration } = usePublicConfiguration();
   const catalog = useResource<{ items: RegisteredContribution[] }>(

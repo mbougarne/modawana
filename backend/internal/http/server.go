@@ -18,6 +18,7 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/config"
 	"github.com/mbougarne/modawana/backend/internal/content"
 	"github.com/mbougarne/modawana/backend/internal/extension"
+	locales "github.com/mbougarne/modawana/backend/internal/locale"
 	"github.com/mbougarne/modawana/backend/internal/siteconfig"
 	"github.com/mbougarne/modawana/backend/internal/theme"
 )
@@ -244,21 +245,14 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 		}
 	}
 	locale := "en"
-	dir := "ltr"
-	status := http.StatusOK
-	switch r.URL.Path {
-	case "/", "/en", "/en/login", "/en/admin", "/en/admin/security":
-	case "/ar", "/ar/login", "/ar/admin", "/ar/admin/security":
-		locale = "ar"
-	case "/fr", "/fr/login", "/fr/admin", "/fr/admin/security":
-		locale = "fr"
-	default:
-		status = 404
+	status := http.StatusNotFound
+	if r.URL.Path == "/" || (pageLocale(parts[0]) && (r.URL.Path == "/"+parts[0] || r.URL.Path == "/"+parts[0]+"/login" || r.URL.Path == "/"+parts[0]+"/admin" || r.URL.Path == "/"+parts[0]+"/admin/security")) {
+		status = http.StatusOK
 	}
-	if private && len(parts) == 5 && (parts[2] == "preview" || parts[2] == "editor") && (parts[0] == "en" || parts[0] == "ar" || parts[0] == "fr") {
+	if private && len(parts) == 5 && (parts[2] == "preview" || parts[2] == "editor") && pageLocale(parts[0]) {
 		locale, status = parts[0], 200
 	}
-	if private && len(parts) == 3 && (parts[2] == "oauth" || parts[2] == "settings" || parts[2] == "themes" || parts[2] == "menus" || parts[2] == "profile" || parts[2] == "labels" || parts[2] == "posts" || parts[2] == "pages" || parts[2] == "new" || parts[2] == "collections" || parts[2] == "taxonomy" || parts[2] == "media" || parts[2] == "transfer" || parts[2] == "plugins" || parts[2] == "dashboard" || parts[2] == "layout") && pageLocale(parts[0]) {
+	if private && len(parts) == 3 && (parts[2] == "oauth" || parts[2] == "settings" || parts[2] == "themes" || parts[2] == "menus" || parts[2] == "profile" || parts[2] == "labels" || parts[2] == "posts" || parts[2] == "pages" || parts[2] == "new" || parts[2] == "collections" || parts[2] == "taxonomy" || parts[2] == "media" || parts[2] == "transfer" || parts[2] == "plugins" || parts[2] == "dashboard" || parts[2] == "layout" || parts[2] == "forms") && pageLocale(parts[0]) {
 		locale, status = parts[0], 200
 	}
 	if staffUI {
@@ -327,6 +321,14 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 			var err error
 			ctx = s.readerContext(r)
 			page, err = resolver.ResolvePage(ctx, path)
+			if public && errors.Is(err, sql.ErrNoRows) {
+				var destination content.PageRoute
+				destination, err = s.resolveEditorialRedirect(ctx, resolver, path)
+				if err == nil {
+					http.Redirect(w, r, destination.URL, http.StatusTemporaryRedirect)
+					return
+				}
+			}
 			switch {
 			case err == nil:
 				status = 200
@@ -370,9 +372,7 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 		}
 		status = 200
 	}
-	if locale == "ar" {
-		dir = "rtl"
-	}
+	dir := locales.Direction(locale)
 	if s.options.Assets == nil {
 		writeError(w, Unavailable)
 		return
@@ -431,7 +431,12 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 			settings.Theme = previewTheme
 		}
 		lockedLesson := status == 403 && page.Kind == "lesson" && page.Content != nil && page.Content.Locked
-		head.NoIndex = status >= 400 || preview || pagePreview
+		head.NoIndex = status >= 400 || preview || pagePreview ||
+			(page.Content != nil && page.Content.SEO != nil && page.Content.SEO.NoIndex)
+		if head.NoIndex && !pagePreview {
+			w.Header().Set("X-Robots-Tag", "noindex")
+		}
+		head.Structured = structuredMetadata(page.Content, head)
 		var body []byte
 		var ok bool
 		if status == 200 || lockedLesson {
@@ -447,7 +452,7 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 			}
 			head.Title = pageLabel(settings, key, locale)
 			head.Description, head.Canonical, head.Feed, head.Alternatives, head.Social = "", "", "", nil, socialMetadata{}
-			head.NoIndex = true
+			head.Structured, head.NoIndex = "", true
 			w.Header().Set("X-Robots-Tag", "noindex")
 			body, ok = s.renderThemed(ctx, r, content.PageRoute{Kind: "error", Locale: locale}, settings, head)
 			if !ok {
@@ -475,16 +480,16 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 
 // headData feeds the owner shell and server-rendered public document heads.
 type headData struct {
-	Locale, Direction, Nonce      string
-	Scripts, Styles               []string
-	BrandCSS, ExtraCSS, ThemeCSS  template.CSS
-	Boot, ReaderLabels            template.JS
-	NoIndex                       bool
-	Favicon                       string
-	Title, Description, Canonical string
-	Feed                          string
-	Alternatives                  []content.Alternative
-	Social                        socialMetadata
+	Locale, Direction, Nonce       string
+	Scripts, Styles                []string
+	BrandCSS, ExtraCSS, ThemeCSS   template.CSS
+	Boot, ReaderLabels, Structured template.JS
+	NoIndex                        bool
+	Favicon                        string
+	Title, Description, Canonical  string
+	Feed                           string
+	Alternatives                   []content.Alternative
+	Social                         socialMetadata
 }
 
 func (s *Server) serveAsset(w http.ResponseWriter, r *http.Request) {
@@ -506,7 +511,7 @@ func (s *Server) serveAsset(w http.ResponseWriter, r *http.Request) {
 // headSource is the single source of the document head: the shell and the
 // theme renderer both execute it, so metadata cannot drift between the SPA
 // and server-rendered pages.
-const headSource = `<meta charset="utf-8"><meta name="csp-nonce" content="{{.Nonce}}"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{.Title}}</title>{{if .NoIndex}}<meta name="robots" content="noindex">{{end}}<meta name="description" content="{{.Description}}"><meta property="og:title" content="{{.Title}}"><meta property="og:description" content="{{.Description}}">{{if .Social.Image}}<meta property="og:type" content="{{.Social.Type}}"><meta property="og:site_name" content="{{.Social.SiteName}}"><meta property="og:image" content="{{.Social.Image}}"><meta property="og:image:alt" content="{{.Social.Alt}}">{{if .Social.Width}}<meta property="og:image:width" content="{{.Social.Width}}"><meta property="og:image:height" content="{{.Social.Height}}">{{end}}<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{{.Title}}"><meta name="twitter:description" content="{{.Description}}"><meta name="twitter:image" content="{{.Social.Image}}"><meta name="twitter:image:alt" content="{{.Social.Alt}}">{{end}}{{if .Canonical}}<link rel="canonical" href="{{.Canonical}}"><meta property="og:url" content="{{.Canonical}}">{{end}}{{if .Feed}}<link rel="alternate" type="application/rss+xml" title="RSS" href="{{.Feed}}">{{end}}{{range .Alternatives}}<link rel="alternate" hreflang="{{.Locale}}" href="{{.URL}}">{{end}}<script nonce="{{.Nonce}}">try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>{{range .Styles}}<link rel="stylesheet" href="{{.}}">{{end}}{{if .BrandCSS}}<style id="initial-brand" nonce="{{.Nonce}}">{{.BrandCSS}}</style>{{end}}{{if .ExtraCSS}}<style nonce="{{.Nonce}}">{{.ExtraCSS}}</style>{{end}}{{if .ThemeCSS}}<style id="builtin-theme" nonce="{{.Nonce}}">{{.ThemeCSS}}</style>{{end}}{{if .Favicon}}<link rel="icon" href="{{.Favicon}}">{{end}}{{if .Boot}}<script id="public-configuration" type="application/json" nonce="{{.Nonce}}">{{.Boot}}</script>{{end}}{{if .ReaderLabels}}<script id="reader-labels" type="application/json" nonce="{{.Nonce}}">{{.ReaderLabels}}</script>{{end}}{{range .Scripts}}<script defer src="{{.}}" nonce="{{$.Nonce}}"></script>{{end}}`
+const headSource = `<meta charset="utf-8"><meta name="csp-nonce" content="{{.Nonce}}"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{.Title}}</title>{{if .NoIndex}}<meta name="robots" content="noindex">{{end}}<meta name="description" content="{{.Description}}"><meta property="og:title" content="{{.Title}}"><meta property="og:description" content="{{.Description}}">{{if .Social.Image}}<meta property="og:type" content="{{.Social.Type}}"><meta property="og:site_name" content="{{.Social.SiteName}}"><meta property="og:image" content="{{.Social.Image}}"><meta property="og:image:alt" content="{{.Social.Alt}}">{{if .Social.Width}}<meta property="og:image:width" content="{{.Social.Width}}"><meta property="og:image:height" content="{{.Social.Height}}">{{end}}<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="{{.Title}}"><meta name="twitter:description" content="{{.Description}}"><meta name="twitter:image" content="{{.Social.Image}}"><meta name="twitter:image:alt" content="{{.Social.Alt}}">{{end}}{{if .Canonical}}<link rel="canonical" href="{{.Canonical}}"><meta property="og:url" content="{{.Canonical}}">{{end}}{{if .Feed}}<link rel="alternate" type="application/rss+xml" title="RSS" href="{{.Feed}}">{{end}}{{range .Alternatives}}<link rel="alternate" hreflang="{{.Locale}}" href="{{.URL}}">{{end}}<script nonce="{{.Nonce}}">try{var t=localStorage.getItem('theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>{{range .Styles}}<link rel="stylesheet" href="{{.}}">{{end}}{{if .BrandCSS}}<style id="initial-brand" nonce="{{.Nonce}}">{{.BrandCSS}}</style>{{end}}{{if .ExtraCSS}}<style nonce="{{.Nonce}}">{{.ExtraCSS}}</style>{{end}}{{if .ThemeCSS}}<style id="builtin-theme" nonce="{{.Nonce}}">{{.ThemeCSS}}</style>{{end}}{{if .Favicon}}<link rel="icon" href="{{.Favicon}}">{{end}}{{if .Structured}}<script type="application/ld+json" nonce="{{.Nonce}}">{{.Structured}}</script>{{end}}{{if .Boot}}<script id="public-configuration" type="application/json" nonce="{{.Nonce}}">{{.Boot}}</script>{{end}}{{if .ReaderLabels}}<script id="reader-labels" type="application/json" nonce="{{.Nonce}}">{{.ReaderLabels}}</script>{{end}}{{range .Scripts}}<script defer src="{{.}}" nonce="{{$.Nonce}}"></script>{{end}}`
 
 var shell = template.Must(template.New("shell").Parse(`<!doctype html><html lang="{{.Locale}}" dir="{{.Direction}}"><head>` + headSource + `</head><body><div id="root"></div><noscript lang="en" dir="ltr">JavaScript is required. <span lang="ar" dir="rtl">يتطلب JavaScript.</span> <span lang="fr">JavaScript est nécessaire.</span></noscript></body></html>`))
 

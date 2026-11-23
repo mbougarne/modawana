@@ -1,3 +1,4 @@
+import { localeCodes } from '../../../../ui/src/i18n/locales';
 import { useState } from 'react';
 import { Button, Field } from '../../../../ui/src/components/primitives';
 import { useI18n } from '../../../../ui/src/i18n/I18nProvider';
@@ -100,7 +101,7 @@ export function CollectionContents({
               <summary>{t('collection.announcementOptions')}</summary>
               <p className="vb-help">{t('owner.announcementHelp')}</p>
               <bdi>{member.key}</bdi>
-              {(['en', 'ar', 'fr'] as const).map((language) => (
+              {localeCodes.map((language) => (
                 <Field
                   key={language}
                   label={t('owner.announcement') + ' · ' + t('language.' + language)}

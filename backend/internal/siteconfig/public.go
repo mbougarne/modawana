@@ -7,6 +7,7 @@ import (
 	"errors"
 	"slices"
 
+	locales "github.com/mbougarne/modawana/backend/internal/locale"
 	"github.com/mbougarne/modawana/backend/internal/theme"
 )
 
@@ -30,7 +31,7 @@ type Public struct {
 
 func (s *Service) Public(ctx context.Context, locale string) (Public, error) {
 	out := Public{Versions: map[string]int64{}, Effective: map[string]Effective{}}
-	if locale != "en" && locale != "ar" && locale != "fr" {
+	if !locales.Valid(locale) {
 		return out, ErrInvalid
 	}
 	tx, e := s.DB.BeginTx(ctx, nil)
@@ -51,6 +52,7 @@ func (s *Service) Public(ctx context.Context, locale string) (Public, error) {
 		return out, e
 	}
 	_ = json.Unmarshal(a.Snapshot, &out.Site)
+	out.Site.Redirects = nil
 	for selectedLocale := range out.Site.FrontPages {
 		key, _, err := FrontPage(ctx, tx, selectedLocale)
 		if err != nil {

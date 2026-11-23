@@ -120,7 +120,7 @@ func (d *Domain) saveStaffDraft(w http.ResponseWriter, r *http.Request, owner, k
 		}
 		in.Kind, in.SourceLocale, in.Slug = draft.Kind, draft.SourceLocale, rev.Slug
 		in.Summary, in.SourceRevisionID, in.PageTemplate = rev.Summary, rev.SourceID, rev.PageTemplate
-		in.CategoryKey, in.TagKeys, in.CoverMediaID, in.Presentations = rev.CategoryKey, rev.Tags, rev.CoverID, rev.Presentations
+		in.CategoryKey, in.TagKeys, in.CoverMediaID, in.Presentations, in.SEO = rev.CategoryKey, rev.Tags, rev.CoverID, rev.Presentations, rev.SEO
 		in.CollectionKey, in.Position = draft.CollectionKey, draft.Position
 	}
 	out, err := d.Content.Save(r.Context(), owner, key, locale, r.Header.Get("Idempotency-Key"), in)

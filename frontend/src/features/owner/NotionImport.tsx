@@ -1,3 +1,4 @@
+import { localeCodes } from '../../../../ui/src/i18n/locales';
 import { authenticatedTransfer } from '../auth/reauthenticate';
 import { useState } from 'react';
 import { FileDropInput } from '../../../../ui/src/components/FileDropInput';
@@ -104,7 +105,7 @@ export function NotionImport({ csrf }: { csrf: string }) {
               setContentLocale(event.target.value as Locale);
             }}
           >
-            {(['en', 'ar', 'fr'] as const).map((language) => (
+            {localeCodes.map((language) => (
               <option key={language} value={language}>
                 {t(`language.${language}`)}
               </option>

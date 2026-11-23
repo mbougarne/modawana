@@ -7,9 +7,11 @@ import (
 	"path"
 	"regexp"
 	"time"
+
+	locales "github.com/mbougarne/modawana/backend/internal/locale"
 )
 
-var temporaryKey = regexp.MustCompile(`^(?:content/[0-9a-f]{32}/(?:en|ar|fr)|uploads)/\.[0-9a-f]{32}\.tmp$`)
+var temporaryKey = regexp.MustCompile(`^(?:content/[0-9a-f]{32}/(?:` + locales.PathPattern() + `)|uploads)/\.[0-9a-f]{32}\.tmp$`)
 
 // CleanupOrphansLocked never removes metadata-backed files or recent writes.
 // Scanning and removal are bounded; immutable history is retained indefinitely.

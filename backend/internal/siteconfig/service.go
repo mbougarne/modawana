@@ -8,6 +8,7 @@ import (
 	"sort"
 
 	"github.com/mbougarne/modawana/backend/internal/db"
+	"github.com/mbougarne/modawana/backend/internal/locale"
 	"github.com/mbougarne/modawana/backend/internal/media"
 	"github.com/mbougarne/modawana/backend/internal/storage"
 	"github.com/mbougarne/modawana/backend/internal/theme"
@@ -115,7 +116,10 @@ func requirements(kind string, b json.RawMessage, prior map[string]Review) ([]Re
 	required := []Requirement{}
 	retained := []Review{}
 	for path, locales := range translations(kind, b) {
-		for _, l := range []string{"ar", "fr"} {
+		for _, l := range locale.Codes() {
+			if l == "en" {
+				continue
+			}
 			v := locales[l]
 			if len(v) == 0 || string(v) == `""` {
 				continue
@@ -174,6 +178,9 @@ func (s *Service) validateRefs(ctx context.Context, q query, kind string, b json
 			return e
 		}
 		if err := validateFrontPageReferences(ctx, q, site); err != nil {
+			return err
+		}
+		if err := validateRedirectSources(ctx, q, site.Redirects); err != nil {
 			return err
 		}
 		return validateMenuPageReferences(ctx, q, site)
