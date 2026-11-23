@@ -22,7 +22,7 @@ import (
 
 // HostAPIVersion is the newest host API this binary serves. Manifests
 // requiring a newer version are refused at install time.
-const HostAPIVersion = 4
+const HostAPIVersion = 5
 
 // manifestSchemaVersion is the manifest document schema this binary parses.
 const manifestSchemaVersion = 1
@@ -35,7 +35,7 @@ const maxRoutes = 16
 var ErrManifest = errors.New("invalid plugin manifest")
 
 // Capabilities accepted by this host.
-var supportedCapabilities = []string{"hooks", "routes", "storage", "settings", "jobs", "http_fetch", "secrets", "mcp_tools", "contributions"}
+var supportedCapabilities = []string{"hooks", "routes", "storage", "settings", "jobs", "http_fetch", "secrets", "mcp_tools", "contributions", "events"}
 
 var slugPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{0,63}$`)
 var hookNamePattern = regexp.MustCompile(`^[a-z0-9_]+(\.[a-z0-9_]+)+$`)
@@ -69,6 +69,7 @@ type Manifest struct {
 	Secrets        []NamedSecret            `json:"secrets,omitempty"`
 	Migrations     []Migration              `json:"migrations,omitempty"`
 	Contributions  []extension.Contribution `json:"contributions,omitempty"`
+	Events         []ManifestEvent          `json:"events,omitempty"`
 }
 
 // ManifestHook declares one hook subscription and its contract version.
@@ -150,7 +151,10 @@ func (m Manifest) validate(directory string) error {
 	if err := m.validateTools(); err != nil {
 		return err
 	}
-	return m.validateContributions()
+	if err := m.validateContributions(); err != nil {
+		return err
+	}
+	return m.validateEvents()
 }
 
 func (m Manifest) validateCapabilities() error {

@@ -302,3 +302,38 @@ Copy `build/plugins/editorial-notes/` into the server's plugin directory, approv
 and enable it. Add an **Editorial note** block on any standalone page, enter text,
 then save and preview it. The example also supplies an owner navigation link, a
 settings section, and a widget.
+
+### Durable publication events (API 5)
+
+To receive new publications, an approved and enabled plugin declares
+`"capabilities": ["events"]` and
+`"events": [{"name":"content.published","version":1}]` with host API 5.
+APIs 1–4 can continue to use their existing hook and job contracts. The event
+and a job for each enabled subscriber commit in the same SQLite transaction
+as the publication. This includes editor, bulk, and publisher API publication.
+Enabling a subscription starts delivery from subsequent publications.
+
+The Wasm stdin envelope contains `api`, `kind: "event"`, `operation_id`,
+`event`, and optional configured `settings`. The event holds `id`, `name`,
+`version`, `source_id` (content locale version ID), `source_version` (its
+committed optimistic version), and `data` with `content_id`, `locale`, and
+the exact published `revision_id`. The envelope contains IDs and metadata.
+
+Return `{}` to acknowledge the event. With the approved `storage` capability,
+the plugin can return `{"set":{"key":"receipt","value":"text"}}`. The host
+commits that update to the plugin's own key-value namespace together with the
+successful delivery. The event invocation runs after commit with read-only
+storage and no network or secret access. For a future provider adapter, use
+the same `operation_id` with provider-supported idempotency, or reconcile that
+operation before sending it again. Provider delivery is at least once.
+
+In **Plugins → Event deliveries**, an owner can inspect statuses, attempt counts,
+the next scheduled attempt, and sanitized failures. An attempt holds a
+one-minute lease. A stopped worker's outstanding job can be reclaimed after
+the lease expires, with the same operation ID. Five failed or interrupted
+attempts exhaust the budget. Retry renews that budget on the same job.
+A later publication can deliver before a job waiting in backoff.
+Disabling a subscription pauses its outstanding work. Reinstalling a removed
+plugin creates a new identity. Delivery history is retained in SQLite and
+included in coordinated backups. Ordinary interval jobs keep their existing
+scheduler.

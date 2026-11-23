@@ -20,6 +20,7 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/config"
 	"github.com/mbougarne/modawana/backend/internal/db"
 	"github.com/mbougarne/modawana/backend/internal/extension"
+	"github.com/mbougarne/modawana/backend/internal/outbox"
 	"github.com/mbougarne/modawana/backend/internal/plugin"
 )
 
@@ -97,7 +98,7 @@ func TestPluginRoutesOwnerBoundaryAndLifecycle(t *testing.T) {
 	}
 	defer runtime.Close(context.Background())
 	plugins := &plugin.Service{DB: d, Dir: filepath.Join(root, "plugins"), Host: host, Runtime: runtime}
-	handler := New(Options{Config: cfg, Auth: a, Domain: &Domain{Auth: a, Extensions: host, Plugins: plugins}})
+	handler := New(Options{Config: cfg, Auth: a, Domain: &Domain{Auth: a, Extensions: host, Plugins: plugins, Deliveries: &outbox.Worker{DB: d}}})
 	request := func(method, path, body string, cookie, withCSRF bool) *httptest.ResponseRecorder {
 		t.Helper()
 		r := httptest.NewRequest(method, "https://example.test"+path, bytes.NewBufferString(body))
@@ -135,6 +136,20 @@ func TestPluginRoutesOwnerBoundaryAndLifecycle(t *testing.T) {
 	if w := request("GET", "/api/v1/extension-contributions", "", true, false); w.Code != 200 ||
 		w.Header().Get("Cache-Control") != "no-store" || strings.TrimSpace(w.Body.String()) != `{"items":[]}` {
 		t.Fatal("extension catalog", w.Code, w.Body.String())
+	}
+	if w := request("GET", "/api/v1/plugin-deliveries", "", false, false); w.Code != 401 {
+		t.Fatal("deliveries without session", w.Code)
+	}
+	if w := request("GET", "/api/v1/plugin-deliveries", "", true, false); w.Code != 200 ||
+		w.Header().Get("Cache-Control") != "no-store" || strings.TrimSpace(w.Body.String()) != `{"items":[]}` {
+		t.Fatal("owner deliveries", w.Code, w.Body.String())
+	}
+	const retryPath = "/api/v1/plugin-deliveries/00000000000000000000000000000001/retry"
+	if w := request("POST", retryPath, "", true, false); w.Code != 403 {
+		t.Fatal("retry without CSRF/origin", w.Code)
+	}
+	if w := request("POST", retryPath, "", true, true); w.Code != 409 {
+		t.Fatal("retry for nonexistent job", w.Code)
 	}
 	if w := request("GET", "/api/v1/plugins", "", false, false); w.Code != 401 {
 		t.Fatal("list without session", w.Code)

@@ -12,6 +12,7 @@ type Labels = Partial<Record<'en' | 'ar' | 'fr', string>>;
 export type PluginManifest = {
   settings?: { name: string; label: Labels; type: 'string' | 'integer' | 'boolean' }[];
   secrets?: { name: string; label: Labels }[];
+  events?: { name: string; version: number }[];
   jobs?: { name: string; every_seconds: number }[];
   https_hosts?: string[];
   contributions?: Contribution[];

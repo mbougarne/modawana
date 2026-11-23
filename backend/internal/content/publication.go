@@ -5,12 +5,13 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"github.com/mbougarne/modawana/backend/internal/learning"
 	"time"
 
 	"github.com/mbougarne/modawana/backend/internal/access"
 	"github.com/mbougarne/modawana/backend/internal/db"
+	"github.com/mbougarne/modawana/backend/internal/learning"
 	"github.com/mbougarne/modawana/backend/internal/media"
+	"github.com/mbougarne/modawana/backend/internal/outbox"
 )
 
 // ChangePublication binds review/publication to an exact revision and version.
@@ -146,8 +147,9 @@ func (s *Service) changePublicationIn(ctx context.Context, tx *sql.Tx, owner, ke
 			return Result{}, e
 		}
 	}
+	now := time.Now()
 	if op == "publish" {
-		_, e = tx.ExecContext(ctx, "UPDATE content_versions SET published_revision_id=?,first_published_at=coalesce(first_published_at,?),last_published_at=?,version=version+1 WHERE id=?", rev.ID, db.UTC(time.Now()), db.UTC(time.Now()), v.ID)
+		_, e = tx.ExecContext(ctx, "UPDATE content_versions SET published_revision_id=?,first_published_at=coalesce(first_published_at,?),last_published_at=?,version=version+1 WHERE id=?", rev.ID, db.UTC(now), db.UTC(now), v.ID)
 	} else if op == "unpublish" {
 		_, e = tx.ExecContext(ctx, "UPDATE content_versions SET published_revision_id=NULL,version=version+1 WHERE id=?", v.ID)
 	} else {
@@ -170,6 +172,12 @@ func (s *Service) changePublicationIn(ctx context.Context, tx *sql.Tx, owner, ke
 			if e = s.PublicationHook(ctx, tx, v.Item, rev.ID, true); e != nil {
 				return Result{}, e
 			}
+		}
+	}
+	if op == "publish" && v.Published != rev.ID {
+		event := outbox.Publication{ContentID: v.Item, Locale: locale, RevisionID: rev.ID}
+		if err := outbox.RecordPublication(ctx, tx, v.ID, v.Number+1, event, now); err != nil {
+			return Result{}, err
 		}
 	}
 	return Result{RevisionID: rev.ID, Version: v.Number + 1}, nil

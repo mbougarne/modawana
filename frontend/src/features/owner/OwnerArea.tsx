@@ -25,7 +25,7 @@ export function OwnerArea({
         ) : page === 'transfer' ? (
           <Portability csrf={csrf} />
         ) : page === 'plugins' ? (
-          <Plugins />
+          <Plugins csrf={csrf} />
         ) : page === 'media' ? (
           <>
             <OwnerPageHeading title={t('owner.media')} description={t('workspace.mediaHelp')} />
