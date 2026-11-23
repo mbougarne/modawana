@@ -1,3 +1,4 @@
+import { dirOf } from '../../../../../ui/src/i18n/locales';
 import { AboutSelect } from './AboutSelect';
 import { usePublicConfiguration } from '../../../features/configuration/PublicConfiguration';
 import { useState, useId, type ReactNode } from 'react';
@@ -86,7 +87,7 @@ export function ProfilePreview({
   const x = Math.max(0, Math.min(100, p.banner_x));
   const y = Math.max(0, Math.min(100, p.banner_y));
   return (
-    <section className="config-profile-preview" lang={locale} dir={locale === 'ar' ? 'rtl' : 'ltr'}>
+    <section className="config-profile-preview" lang={locale} dir={dirOf(locale)}>
       {p.banner_enabled && p.banner_media_id && (
         <>
           <style

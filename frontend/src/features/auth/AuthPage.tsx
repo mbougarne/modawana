@@ -1,3 +1,4 @@
+import { interfaceLocaleCodes } from '../../../../ui/src/i18n/locales';
 import { Logo } from '@ui';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ownerReturnTarget } from './navigation';
@@ -780,7 +781,7 @@ export function AuthPage() {
       <header className={`vb-login-top ${styles.header}`}>
         {configuration && <Logo brand={siteBrand(configuration.site)} href={'/' + locale} />}
         <nav className={styles.nav} aria-label={t('nav.language')}>
-          {(['en', 'fr', 'ar'] as const).map((l) => (
+          {interfaceLocaleCodes.map((l) => (
             <a
               key={l}
               href={`/${l}/login`}

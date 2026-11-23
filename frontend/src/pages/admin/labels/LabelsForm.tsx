@@ -1,3 +1,4 @@
+import { dirOf, interfaceLocaleCodes } from '../../../../../ui/src/i18n/locales';
 import { useState } from 'react';
 import { Button, Field, TextInput } from '../../../../../ui/src/components/primitives';
 import { FileDropInput } from '../../../../../ui/src/components/FileDropInput';
@@ -11,7 +12,7 @@ import {
 } from '../../../../../ui/src/i18n/labels';
 import type { Locale } from '../../../api/content';
 
-const languages: Locale[] = ['en', 'fr', 'ar'];
+const languages = interfaceLocaleCodes;
 const pageSize = 30;
 
 export function LabelsForm({
@@ -31,7 +32,9 @@ export function LabelsForm({
   const [missing, setMissing] = useState(false);
   const [page, setPage] = useState(0);
   const [key, setKey] = useState('');
-  const [translations, setTranslations] = useState({ en: '', fr: '', ar: '' });
+  const [translations, setTranslations] = useState<
+    Partial<Record<Locale, string>> & { en: string }
+  >({ en: '' });
   const [error, setError] = useState(false);
   const base = DEFAULT_LABELS as Record<string, L>;
   const keys = [...new Set([...Object.keys(base), ...Object.keys(value)])].sort();
@@ -194,7 +197,7 @@ export function LabelsForm({
                       key={l}
                       className="labels-cell ds-ui"
                       lang={l}
-                      dir={l === 'ar' ? 'rtl' : 'ltr'}
+                      dir={dirOf(l)}
                       data-changed={changed}
                     >
                       <span className="lang">{t('language.' + l)}</span>
@@ -209,7 +212,7 @@ export function LabelsForm({
                               <Field key={form} label={t('plural.' + form)}>
                                 <TextInput
                                   lang={l}
-                                  dir={l === 'ar' ? 'rtl' : 'ltr'}
+                                  dir={dirOf(l)}
                                   maxLength={1000}
                                   value={
                                     typeof v === 'object' ? (v[form as keyof typeof v] ?? '') : ''
@@ -229,7 +232,7 @@ export function LabelsForm({
                           className="vb-input"
                           aria-label={`${k} · ${t('language.' + l)}`}
                           lang={l}
-                          dir={l === 'ar' ? 'rtl' : 'ltr'}
+                          dir={dirOf(l)}
                           data-missing={isMissing(k, l)}
                           data-changed={changed}
                           maxLength={1000}
@@ -242,7 +245,7 @@ export function LabelsForm({
                           className="vb-input"
                           aria-label={`${k} · ${t('language.' + l)}`}
                           lang={l}
-                          dir={l === 'ar' ? 'rtl' : 'ltr'}
+                          dir={dirOf(l)}
                           data-missing={isMissing(k, l)}
                           data-changed={changed}
                           maxLength={1000}
@@ -308,8 +311,8 @@ export function LabelsForm({
             <Field key={l} label={t('language.' + l)}>
               <TextInput
                 lang={l}
-                dir={l === 'ar' ? 'rtl' : 'ltr'}
-                value={translations[l]}
+                dir={dirOf(l)}
+                value={translations[l] ?? ''}
                 maxLength={1000}
                 onChange={(e) => setTranslations({ ...translations, [l]: e.target.value })}
               />

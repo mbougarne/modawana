@@ -1,3 +1,4 @@
+import { localeCodes } from '../../../../../ui/src/i18n/locales';
 import { Button, Icon, Label, useI18n, type IconName } from '@ui';
 import type { MenuItem, SiteSettings } from '../../../api/configuration';
 import { LocalizedField, Section, TextField } from '../../../features/configuration/controls';
@@ -21,7 +22,7 @@ export function MenuSettings({
     <>
       <Section name="config.frontPages">
         <p>{t('config.frontPagesHelp')}</p>
-        {(['en', 'ar', 'fr'] as const).map((locale) => (
+        {localeCodes.map((locale) => (
           <ReferencePicker
             key={locale}
             label={t('language.' + locale)}

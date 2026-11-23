@@ -11,6 +11,8 @@ import (
 	"strings"
 	"unicode"
 	"unicode/utf8"
+
+	locales "github.com/mbougarne/modawana/backend/internal/locale"
 )
 
 const MaxContributions = 16
@@ -63,7 +65,7 @@ func validLocalized(text LocalizedText, limit int) bool {
 		return false
 	}
 	for locale, value := range text {
-		if !slices.Contains([]string{"en", "fr", "ar"}, locale) ||
+		if !locales.Valid(locale) ||
 			strings.TrimSpace(value) == "" || !textWithin(value, limit) {
 			return false
 		}

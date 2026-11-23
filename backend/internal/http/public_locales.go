@@ -6,8 +6,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/mbougarne/modawana/backend/internal/config"
 	"github.com/mbougarne/modawana/backend/internal/content"
+	"github.com/mbougarne/modawana/backend/internal/locale"
 )
 
 type publicLocalesKey struct{}
@@ -28,7 +28,7 @@ func publicLocales(ctx context.Context) []string {
 	if locales, ok := ctx.Value(publicLocalesKey{}).([]string); ok {
 		return locales
 	}
-	return config.SupportedLocales()
+	return locale.PublicDefaults()
 }
 
 func visibleLocale(ctx context.Context, locale string) bool {

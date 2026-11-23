@@ -1,3 +1,6 @@
+import { formsURL, type LeadForm } from '../../../api/forms';
+import { useResource } from '../../public/api';
+import { dirOf } from '../../../../../ui/src/i18n/locales';
 import { useLayoutEffect, useRef, useState } from 'react';
 import { Button, Field, useI18n } from '@ui';
 import type { Locale, PageBlock, PageBlockDocument } from '../../../api/content';
@@ -19,6 +22,7 @@ import {
 
 type ListProps = {
   blocks: PageBlock[];
+  forms: LeadForm[];
   onChange: (blocks: PageBlock[]) => void;
   level: number;
   full: boolean;
@@ -40,6 +44,10 @@ export function PageBlockEditor({
 }) {
   const { t, locale: interfaceLocale } = useI18n();
   const [picker, setPicker] = useState('');
+  const formCatalog = useResource<LeadForm[]>(formsURL);
+  const forms = Array.isArray(formCatalog.data)
+    ? formCatalog.data.filter((form) => form.enabled)
+    : [];
   const nextFocus = useRef('');
   useLayoutEffect(() => {
     if (nextFocus.current) {
@@ -67,7 +75,7 @@ export function PageBlockEditor({
     setPicker('');
   }
   return (
-    <div className="block-editor" lang={interfaceLocale} dir={locale === 'ar' ? 'rtl' : 'ltr'}>
+    <div className="block-editor" lang={interfaceLocale} dir={dirOf(locale)}>
       {picker ? (
         <section aria-label={t('pageBlocks.chooseImage')}>
           <Button
@@ -84,6 +92,7 @@ export function PageBlockEditor({
       ) : (
         <BlockList
           blocks={value.blocks}
+          forms={forms}
           onChange={(blocks) => onChange({ ...value, blocks })}
           level={1}
           locale={locale}
@@ -98,7 +107,7 @@ export function PageBlockEditor({
   );
 }
 
-function BlockList({ blocks, onChange, level, full, locale, focus, pickImage }: ListProps) {
+function BlockList({ blocks, forms, onChange, level, full, locale, focus, pickImage }: ListProps) {
   const { t, locale: interfaceLocale } = useI18n();
   const { items } = useExtensionCatalog();
   const extensionBlocks = items.filter((item) => item.kind === 'builder_block');
@@ -184,6 +193,7 @@ function BlockList({ blocks, onChange, level, full, locale, focus, pickImage }: 
                         <legend>{t('pageBlocks.column', { n: column + 1 })}</legend>
                         <BlockList
                           blocks={col}
+                          forms={forms}
                           onChange={(next) =>
                             change(
                               'columns',
@@ -214,6 +224,41 @@ function BlockList({ blocks, onChange, level, full, locale, focus, pickImage }: 
                       )}
                     </div>
                   </div>
+                ) : currentKind === 'form' ? (
+                  <Field label={t('forms.definition')}>
+                    <select
+                      value={block.properties.form_key + ':' + block.properties.form_version}
+                      onChange={(event) => {
+                        const form = forms.find(
+                          (item) => item.key + ':' + item.version === event.target.value,
+                        );
+                        if (form) {
+                          update(index, {
+                            ...block,
+                            properties: { form_key: form.key, form_version: form.version },
+                          });
+                        }
+                      }}
+                    >
+                      {!forms.some(
+                        (item) =>
+                          item.key === block.properties.form_key &&
+                          item.version === block.properties.form_version,
+                      ) && (
+                        <option
+                          value={block.properties.form_key + ':' + block.properties.form_version}
+                          disabled
+                        >
+                          {t('forms.stale')}
+                        </option>
+                      )}
+                      {forms.map((item) => (
+                        <option value={item.key + ':' + item.version} key={item.key}>
+                          {item.title}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
                 ) : currentKind ? (
                   <BlockFields
                     block={block}
@@ -239,7 +284,10 @@ function BlockList({ blocks, onChange, level, full, locale, focus, pickImage }: 
             onChange={(event) => setKind(event.target.value)}
           >
             {blockKinds
-              .filter((type) => type !== 'columns' || level < 3)
+              .filter(
+                (type) =>
+                  (type !== 'columns' || level < 3) && (type !== 'form' || forms.length > 0),
+              )
               .map((type) => (
                 <option key={type} value={type}>
                   {t('pageBlocks.' + type)}
@@ -254,7 +302,7 @@ function BlockList({ blocks, onChange, level, full, locale, focus, pickImage }: 
         </Field>
         <Button
           type="button"
-          disabled={full}
+          disabled={full || (selectedCore === 'form' && !forms.length)}
           onClick={() => {
             const block = selected
               ? {
@@ -263,7 +311,12 @@ function BlockList({ blocks, onChange, level, full, locale, focus, pickImage }: 
                   version: selected.version,
                   properties: { text: '' },
                 }
-              : createBlock(selectedCore);
+              : createBlock(
+                  selectedCore,
+                  selectedCore === 'form' && forms[0]
+                    ? { form_key: forms[0].key, form_version: forms[0].version }
+                    : {},
+                );
             focus(block.id);
             onChange([...blocks, block]);
           }}

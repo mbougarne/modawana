@@ -17,6 +17,7 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/content"
 	"github.com/mbougarne/modawana/backend/internal/db"
 	"github.com/mbougarne/modawana/backend/internal/extension"
+	locales "github.com/mbougarne/modawana/backend/internal/locale"
 	"github.com/mbougarne/modawana/backend/internal/render"
 	"github.com/mbougarne/modawana/backend/internal/siteconfig"
 	"github.com/mbougarne/modawana/backend/internal/theme"
@@ -57,7 +58,8 @@ func (s *Server) renderThemed(ctx context.Context, r *http.Request, page content
 	}
 	appearance = appearance.ForView(viewKind)
 	head.ThemeCSS = template.CSS(appearance.CSS)
-	navigation := themeNavigation{locale: locale, frontKey: settings.Site.FrontPages[locale], section: current, path: page.URL, pages: settings.MenuPages, label: label}
+	navigation := themeNavigation{locale: locale, frontKey: settings.Site.FrontPages[locale], section: current, path: page.URL, pages: settings.MenuPages, label: label,
+		localizedLabel: func(key string) (string, string) { return localizedPageLabel(settings, key, locale) }}
 	view := theme.Page{
 		ThemeID: appearance.ID, Layout: appearance.Layout, BannerURL: appearance.BannerURL, Locale: locale, Direction: head.Direction, SkipLabel: label("foundation.skip"),
 		Brand: themeBrand(settings.Site, locale), Nav: navigation.headerLinks(settings.Site.HeaderMenu, false),
@@ -289,6 +291,7 @@ type themeNavigation struct {
 	locale, section, path string
 	pages                 map[string]siteconfig.MenuPage
 	label                 func(string) string
+	localizedLabel        func(string) (string, string)
 }
 
 func (n themeNavigation) headerLinks(menu *[]siteconfig.MenuItem, home bool) []theme.Link {
@@ -339,7 +342,16 @@ func (n themeNavigation) links(items []siteconfig.MenuItem) []theme.Link {
 			if section != "" {
 				destination += "/" + section
 			}
-			out = append(out, theme.Link{Label: n.label("slot." + item.Target), URL: destination, Current: !n.footer && n.section == section})
+			key := "slot." + item.Target
+			text, language := n.label(key), ""
+			if n.localizedLabel != nil {
+				var actual string
+				text, actual = n.localizedLabel(key)
+				if actual != n.locale {
+					language = actual
+				}
+			}
+			out = append(out, theme.Link{Label: text, Language: language, URL: destination, Current: !n.footer && n.section == section})
 		}
 		if len(out) > previous && len(item.Children) > 0 {
 			out[previous].Children = n.links(item.Children)
@@ -351,13 +363,10 @@ func (n themeNavigation) links(items []siteconfig.MenuItem) []theme.Link {
 // themeLanguages mirrors the SPA language menu without JavaScript: published
 // translations link to the alternative, and missing translations offer the
 // explicit home page in that site language, never silently falling back.
-func themeLanguages(page content.PageRoute, locale string, locales []string, label func(string) string) []theme.Language {
+func themeLanguages(page content.PageRoute, locale string, availableLocales []string, label func(string) string) []theme.Language {
 	out := []theme.Language{}
-	for _, l := range locales {
-		dir := "ltr"
-		if l == "ar" {
-			dir = "rtl"
-		}
+	for _, l := range availableLocales {
+		dir := locales.Direction(l)
 		entry := theme.Language{Code: l, Dir: dir, Current: l == locale}
 		found := false
 		for _, a := range page.Alternatives {
@@ -466,6 +475,7 @@ func interpolate(s string, vars map[string]string) string {
 func formatPublicDate(iso, locale string) string {
 	var months = map[string][12]string{
 		"en": {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"},
+		"es": {"ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sept", "oct", "nov", "dic"},
 		"fr": {"janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."},
 		"ar": {"يناير", "فبراير", "مارس", "أبريل", "ماي", "يونيو", "يوليوز", "غشت", "شتنبر", "أكتوبر", "نونبر", "دجنبر"},
 	}

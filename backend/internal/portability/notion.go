@@ -20,6 +20,7 @@ import (
 
 	"github.com/mbougarne/modawana/backend/internal/bundle"
 	"github.com/mbougarne/modawana/backend/internal/content"
+	"github.com/mbougarne/modawana/backend/internal/locale"
 	"github.com/mbougarne/modawana/backend/internal/media"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
@@ -120,7 +121,7 @@ func readNotionFile(f *zip.File, max int64) ([]byte, error) {
 }
 
 func openNotion(source string, options NotionOptions) (*notionArchive, error) {
-	if (options.Locale != "en" && options.Locale != "ar" && options.Locale != "fr") || (options.Kind != "article" && options.Kind != "learning") {
+	if !locale.Valid(options.Locale) || (options.Kind != "article" && options.Kind != "learning") {
 		return nil, bundle.ErrInvalid
 	}
 	z, e := zip.OpenReader(source)

@@ -82,6 +82,9 @@ func (s *Service) changePublicationIn(ctx context.Context, tx *sql.Tx, owner, ke
 		if err != nil {
 			return Result{}, typeIssue("page_blocks", "page_block_unavailable")
 		}
+		if err := validateFormPublication(ctx, tx, refs); err != nil {
+			return Result{}, err
+		}
 		for _, b := range refs.extensionBlocks {
 			if _, ok := s.Extensions.RenderBlock(b.Type, b.Version, b.Properties); !ok {
 				return Result{}, typeIssue("page_blocks", "page_block_unavailable")
@@ -200,6 +203,7 @@ type PublicMedia struct {
 	Height int    `json:"height"`
 }
 type PublicContent struct {
+	SEO            *SEO            `json:"-"`
 	Learning       *ReaderLearning `json:"learning,omitempty"`
 	ReadingMinutes int             `json:"reading_minutes,omitempty"`
 	PageTemplate   string          `json:"page_template,omitempty"`
@@ -350,6 +354,7 @@ func (s *Service) projectRevision(out *PublicContent, r Revision) {
 	out.BodyFormat, out.PageBlocks = r.BodyFormat, r.PageBlocks
 	out.Presentations = r.Presentations
 	out.CoverID = r.CoverID
+	out.SEO = r.SEO
 	out.CategoryKey = r.CategoryKey
 	out.Tags = r.Tags
 	for _, m := range r.Media {

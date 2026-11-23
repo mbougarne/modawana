@@ -2,6 +2,7 @@ package content
 
 import (
 	"context"
+
 	"github.com/mbougarne/modawana/backend/internal/db"
 )
 
@@ -58,7 +59,7 @@ func (s *Service) PortableRevisions(ctx context.Context) ([]PortableRevision, er
 		if e != nil {
 			return nil, e
 		}
-		in := DraftInput{Kind: r.kind, PageTemplate: v.PageTemplate, BodyFormat: v.BodyFormat, PageBlocks: v.PageBlocks, SourceLocale: r.source, Slug: v.Slug, Title: v.Title, Summary: v.Summary, Markdown: v.Markdown, SourceRevisionID: v.SourceID, CategoryKey: v.CategoryKey, TagKeys: v.Tags, CoverMediaID: v.CoverID, Presentations: v.Presentations, CollectionKey: r.collection, Position: r.position, Quiz: v.Quiz}
+		in := DraftInput{SEO: v.SEO, Kind: r.kind, PageTemplate: v.PageTemplate, BodyFormat: v.BodyFormat, PageBlocks: v.PageBlocks, SourceLocale: r.source, Slug: v.Slug, Title: v.Title, Summary: v.Summary, Markdown: v.Markdown, SourceRevisionID: v.SourceID, CategoryKey: v.CategoryKey, TagKeys: v.Tags, CoverMediaID: v.CoverID, Presentations: v.Presentations, CollectionKey: r.collection, Position: r.position, Quiz: v.Quiz}
 		entry := PortableRevision{ID: r.id, Key: r.key, Locale: r.locale, Current: r.current, Input: in}
 		entry.BodyPath = entry.ExpectedBodyPath()
 		out = append(out, entry)

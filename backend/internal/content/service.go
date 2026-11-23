@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"github.com/mbougarne/modawana/backend/internal/learning"
 	"net/url"
 	"regexp"
 	"sort"
@@ -19,6 +18,8 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/access"
 	"github.com/mbougarne/modawana/backend/internal/db"
 	"github.com/mbougarne/modawana/backend/internal/extension"
+	"github.com/mbougarne/modawana/backend/internal/learning"
+	"github.com/mbougarne/modawana/backend/internal/locale"
 	"github.com/mbougarne/modawana/backend/internal/media"
 	"github.com/mbougarne/modawana/backend/internal/storage"
 	"github.com/yuin/goldmark"
@@ -36,7 +37,7 @@ var retryPattern = regexp.MustCompile(`^[A-Za-z0-9._:-]{1,128}$`)
 
 const MaxBody = 1 << 20
 
-func localeOK(v string) bool { return v == "en" || v == "ar" || v == "fr" }
+func localeOK(v string) bool { return locale.Valid(v) }
 func strOK(v string, max int, empty bool) bool {
 	return utf8.ValidString(v) && !strings.ContainsRune(v, 0) && utf8.RuneCountInString(v) <= max && (empty || strings.TrimSpace(v) != "")
 }
@@ -60,6 +61,7 @@ type Presentation struct {
 	Transcript string `json:"transcript"`
 }
 type DraftInput struct {
+	SEO                       *SEO                 `json:"seo,omitempty"`
 	ExpectedCollectionVersion *int64               `json:"expected_collection_version,omitempty"`
 	Quiz                      *learning.Definition `json:"quiz,omitempty"`
 	ExpectedVersion           *int64               `json:"expected_version"`
@@ -153,6 +155,9 @@ func refs(in DraftInput, blocks blockReferences) ([]string, error) {
 	if in.ExpectedVersion == nil || *in.ExpectedVersion < 0 || !localeOK(in.SourceLocale) || !slugPattern.MatchString(in.Slug) || !strOK(in.Title, 200, false) || !strOK(in.Summary, 500, true) || !utf8.ValidString(in.Markdown) || len(in.Markdown) > MaxBody || strings.ContainsRune(in.Markdown, 0) || len(in.TagKeys) > 8 || len(in.Presentations) > 100 {
 		return nil, ErrInvalid
 	}
+	if !in.SEO.valid(in.Kind) {
+		return nil, typeIssue("seo", "seo_metadata")
+	}
 	if !validKind(in.Kind) {
 		return nil, ErrInvalid
 	}
@@ -184,6 +189,9 @@ func refs(in DraftInput, blocks blockReferences) ([]string, error) {
 			return nil, ErrInvalid
 		}
 		found[in.CoverMediaID] = true
+	}
+	if in.SEO != nil && in.SEO.SocialImageID != "" {
+		found[in.SEO.SocialImageID] = true
 	}
 	seen := map[string]bool{}
 	for _, p := range in.Presentations {
@@ -425,6 +433,9 @@ func (s *Service) save(ctx context.Context, owner, key, locale, retryKey, op str
 			}
 			formats[id] = m
 		}
+		if in.SEO != nil && in.SEO.SocialImageID != "" && formats[in.SEO.SocialImageID].Kind != "image" {
+			return typeIssue("seo.social_image_id", "seo_metadata")
+		}
 		if in.CoverMediaID != "" && formats[in.CoverMediaID].Kind != "image" {
 			return ErrInvalid
 		}
@@ -454,7 +465,11 @@ func (s *Service) save(ctx context.Context, owner, key, locale, retryKey, op str
 				created = prior.Add(time.Millisecond)
 			}
 		}
-		_, e = tx.ExecContext(ctx, `INSERT INTO revisions(id,version_id,title,summary,markdown_path,sha256,byte_size,created_by,source_revision_id,category_id,cover_media_id,slug,reading_minutes,created_at,page_template) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, revision, v.ID, in.Title, in.Summary, file.Key, file.SHA256, file.Size, owner, nullable(in.SourceRevisionID), nullable(category), nullable(in.CoverMediaID), in.Slug, readingMinutes(in.Markdown), db.UTC(created), in.PageTemplate)
+		seo, e := json.Marshal(in.SEO)
+		if e != nil {
+			return e
+		}
+		_, e = tx.ExecContext(ctx, `INSERT INTO revisions(id,version_id,title,summary,markdown_path,sha256,byte_size,created_by,source_revision_id,category_id,cover_media_id,slug,reading_minutes,created_at,page_template,seo) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, revision, v.ID, in.Title, in.Summary, file.Key, file.SHA256, file.Size, owner, nullable(in.SourceRevisionID), nullable(category), nullable(in.CoverMediaID), in.Slug, readingMinutes(in.Markdown), db.UTC(created), in.PageTemplate, string(seo))
 		if e != nil {
 			return e
 		}

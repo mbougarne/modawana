@@ -1,3 +1,4 @@
+import { RedirectSettings } from './RedirectSettings';
 import { BrandColourField } from '../../../../../ui/src/components/BrandColourField';
 import { useId, useState } from 'react';
 import { Logo, deriveBrand, brandChecks, useI18n, Label } from '@ui';
@@ -44,8 +45,12 @@ export function SettingsForm({
       <div className="config-edit-controls">
         <PublicLanguageSettings
           value={s.public_locales}
-          onChange={(locales) => change('public_locales', locales)}
+          defaultLocale={s.public_default_locale}
+          onChange={(public_locales, public_default_locale) =>
+            onChange({ ...s, public_locales, public_default_locale })
+          }
         />
+        <RedirectSettings rules={s.redirects} onChange={(rules) => change('redirects', rules)} />
         <Section name="config.identity">
           <label className="config-field">
             <Label name="config.logoMode" />

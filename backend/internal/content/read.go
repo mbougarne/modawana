@@ -5,14 +5,15 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+
 	"github.com/mbougarne/modawana/backend/internal/access"
 	"github.com/mbougarne/modawana/backend/internal/learning"
-
 	"github.com/mbougarne/modawana/backend/internal/media"
 	"github.com/mbougarne/modawana/backend/internal/storage"
 )
 
 type Revision struct {
+	SEO           *SEO                 `json:"seo,omitempty"`
 	StaffAuthor   string               `json:"staff_author,omitempty"`
 	Quiz          *learning.Definition `json:"quiz,omitempty"`
 	ID            string               `json:"revision_id"`
@@ -49,8 +50,12 @@ type Draft struct {
 func (s *Service) revision(ctx context.Context, q query, id, versionID string) (Revision, error) {
 	out := Revision{Tags: []string{}, Media: []media.Record{}, Presentations: []Presentation{}}
 	var file storage.File
-	e := q.QueryRowContext(ctx, `SELECT r.id,r.title,r.summary,CASE WHEN r.slug='' THEN v.slug ELSE r.slug END,coalesce(r.source_revision_id,''),coalesce(c.key,''),coalesce(r.cover_media_id,''),r.created_at,r.markdown_path,r.sha256,r.byte_size,r.page_template,coalesce((SELECT member_id FROM staff_revision_authorship a WHERE a.revision_id=r.id),'') FROM revisions r JOIN content_versions v ON v.id=r.version_id LEFT JOIN categories c ON c.id=r.category_id WHERE r.id=? AND r.version_id=?`, id, versionID).Scan(&out.ID, &out.Title, &out.Summary, &out.Slug, &out.SourceID, &out.CategoryKey, &out.CoverID, &out.Created, &file.Key, &file.SHA256, &file.Size, &out.PageTemplate, &out.StaffAuthor)
+	var seo []byte
+	e := q.QueryRowContext(ctx, `SELECT r.id,r.title,r.summary,CASE WHEN r.slug='' THEN v.slug ELSE r.slug END,coalesce(r.source_revision_id,''),coalesce(c.key,''),coalesce(r.cover_media_id,''),r.created_at,r.markdown_path,r.sha256,r.byte_size,r.page_template,r.seo,coalesce((SELECT member_id FROM staff_revision_authorship a WHERE a.revision_id=r.id),'') FROM revisions r JOIN content_versions v ON v.id=r.version_id LEFT JOIN categories c ON c.id=r.category_id WHERE r.id=? AND r.version_id=?`, id, versionID).Scan(&out.ID, &out.Title, &out.Summary, &out.Slug, &out.SourceID, &out.CategoryKey, &out.CoverID, &out.Created, &file.Key, &file.SHA256, &file.Size, &out.PageTemplate, &seo, &out.StaffAuthor)
 	if e != nil {
+		return out, e
+	}
+	if e = json.Unmarshal(seo, &out.SEO); e != nil {
 		return out, e
 	}
 	b, e := s.Files.Read(file)
@@ -225,7 +230,7 @@ func (s *Service) Restore(ctx context.Context, owner, key, locale, retryKey stri
 	if v.First != "" {
 		slug = v.Slug
 	}
-	in := DraftInput{Quiz: r.Quiz, ExpectedVersion: a.ExpectedVersion, Kind: v.Kind, PageTemplate: r.PageTemplate, BodyFormat: r.BodyFormat, PageBlocks: r.PageBlocks, SourceLocale: v.Source, Slug: slug, Title: r.Title, Summary: r.Summary, Markdown: r.Markdown, SourceRevisionID: r.SourceID, CategoryKey: r.CategoryKey, TagKeys: r.Tags, CoverMediaID: r.CoverID, Presentations: r.Presentations}
+	in := DraftInput{SEO: r.SEO, Quiz: r.Quiz, ExpectedVersion: a.ExpectedVersion, Kind: v.Kind, PageTemplate: r.PageTemplate, BodyFormat: r.BodyFormat, PageBlocks: r.PageBlocks, SourceLocale: v.Source, Slug: slug, Title: r.Title, Summary: r.Summary, Markdown: r.Markdown, SourceRevisionID: r.SourceID, CategoryKey: r.CategoryKey, TagKeys: r.Tags, CoverMediaID: r.CoverID, Presentations: r.Presentations}
 	// The exact historical revision participates in the operation key even if two
 	// revisions have identical bytes and metadata.
 	return s.save(ctx, owner, key, locale, retryKey, "restore:"+a.RevisionID, in)

@@ -175,6 +175,13 @@ func (s *Service) Import(ctx context.Context, owner, source string, authorize fu
 			if in.CoverMediaID, e = remap(in.CoverMediaID, mediaIDs); e != nil {
 				return result, e
 			}
+			if in.SEO != nil {
+				seo := *in.SEO
+				if seo.SocialImageID, e = remap(seo.SocialImageID, mediaIDs); e != nil {
+					return result, e
+				}
+				in.SEO = &seo
+			}
 			for i := range in.Presentations {
 				p := &in.Presentations[i]
 				if p.MediaID, e = remap(p.MediaID, mediaIDs); e != nil {

@@ -3,6 +3,8 @@ package siteconfig
 import (
 	"fmt"
 	"strings"
+
+	"github.com/mbougarne/modawana/backend/internal/locale"
 )
 
 // FieldIssue contains only schema paths and reason codes, never submitted values.
@@ -29,7 +31,7 @@ func profileIssues(p Profile) []FieldIssue {
 		issues = append(issues, FieldIssue{path, code})
 	}
 	local := func(path string, v Localized, max int) {
-		for _, lang := range []string{"en", "fr", "ar"} {
+		for _, lang := range locale.Codes() {
 			if !textOK(v[lang], max) {
 				add(path+"."+lang, "text")
 			}
@@ -39,7 +41,7 @@ func profileIssues(p Profile) []FieldIssue {
 			}
 		}
 		for lang := range v {
-			if lang != "en" && lang != "fr" && lang != "ar" {
+			if !locale.Valid(lang) {
 				add(path, "language")
 			}
 		}

@@ -15,7 +15,7 @@ import (
 )
 
 var ErrInvalid = errors.New("invalid dashboard layout")
-var screens = []string{"posts", "pages", "collections", "taxonomy", "media", "themes", "menus", "settings", "labels", "transfer", "plugins"}
+var screens = []string{"posts", "pages", "collections", "taxonomy", "media", "themes", "menus", "settings", "labels", "transfer", "plugins", "forms"}
 var groups = []string{"", "content", "site", "operations"}
 var builtinWidgets = []string{"content", "site"}
 var extensionID = regexp.MustCompile(`^extension:[a-z0-9][a-z0-9-]{0,63}\.[a-z][a-z0-9_-]{0,31}$`)

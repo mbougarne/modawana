@@ -55,3 +55,27 @@ func RecordPublication(ctx context.Context, tx *sql.Tx, sourceID string, sourceV
 		id, now, now, ContentPublished, ContentPublishedVersion)
 	return err
 }
+
+const LeadCaptured = "lead.captured"
+
+// RecordLead queues one private inbox notification without copying lead fields into the event.
+func RecordLead(ctx context.Context, tx *sql.Tx, lead string, at time.Time) error {
+	event, err := db.NewID()
+	if err != nil {
+		return err
+	}
+	job, err := db.NewID()
+	if err != nil {
+		return err
+	}
+	now := at.UnixMilli()
+	if _, err := tx.ExecContext(ctx, `INSERT INTO outbox_events
+		(id,name,contract_version,source_id,source_version,payload,created_at)
+		VALUES(?,?,1,?,1,'{}',?)`, event, LeadCaptured, lead, now); err != nil {
+		return err
+	}
+	_, err = tx.ExecContext(ctx, `INSERT INTO outbox_deliveries
+		(id,event_id,plugin_id,plugin_slug,available_at,updated_at)
+		VALUES(?,?,'','forms',?,?)`, job, event, now, now)
+	return err
+}

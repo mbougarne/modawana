@@ -1,3 +1,4 @@
+import { isLocale } from '../../../../ui/src/i18n/locales';
 import { createContext, useContext, useEffect, useRef, type RefObject } from 'react';
 import { useI18n } from '../../../../ui/src/i18n/I18nProvider';
 import type { FieldIssue } from '../auth/api';
@@ -18,6 +19,8 @@ const fields: Record<string, string> = {
   logo_mode: 'logoMode',
   public_theme: 'publicTheme',
   public_locales: 'publicLanguages',
+  public_default_locale: 'choosePublicDefault',
+  redirects: 'redirects',
   logo_media_id: 'logo',
   favicon_media_id: 'favicon',
   menu_icons: 'menuIcons',
@@ -82,7 +85,7 @@ export function ValidationIssues({
       labels.push(t('config.row', { n: Number(parts[1]) + 1 }));
     }
     const sub = parts[nested ? 2 : 1];
-    if (sub && !['en', 'ar', 'fr'].includes(sub)) {
+    if (sub && !isLocale(sub)) {
       const key =
         sub === 'label'
           ? root === 'now'
@@ -98,7 +101,7 @@ export function ValidationIssues({
       labels.push(sub === 'id' ? t('validation.rowIdentity') : t('config.' + key));
     }
     const lang = parts.at(-1);
-    if (lang && ['en', 'ar', 'fr'].includes(lang)) {
+    if (lang && isLocale(lang)) {
       labels.push(t('language.' + lang));
     }
     return labels.join(' · ');

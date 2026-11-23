@@ -1,4 +1,6 @@
-const adminPath = /^\/(en|ar|fr)\/admin(?:\/|$)/;
+import { localeCodes } from '../../../../ui/src/i18n/locales';
+
+const adminPath = new RegExp('^/(' + localeCodes.join('|') + ')/admin(?:/|$)');
 const returnOrigin = 'https://owner-return.invalid';
 
 export function isOwnerRequest(path: string): boolean {

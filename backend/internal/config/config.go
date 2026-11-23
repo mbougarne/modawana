@@ -11,6 +11,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/mbougarne/modawana/backend/internal/locale"
 )
 
 type Config struct {
@@ -33,9 +35,9 @@ type Public struct {
 	Locales       []string `json:"locales"`
 }
 
-func SupportedLocales() []string { return []string{"en", "ar", "fr"} }
+func SupportedLocales() []string { return locale.Codes() }
 
-func (c Config) Public() Public { return Public{"v1", "en", SupportedLocales()} }
+func (c Config) Public() Public { return Public{"v1", "en", locale.PublicDefaults()} }
 
 // Load accepts an environment lookup so tests never depend on operator secrets.
 func Load(get func(string) string, cwd string) (Config, error) {

@@ -14,6 +14,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/mbougarne/modawana/backend/internal/locale"
 	"github.com/mbougarne/modawana/backend/internal/theme"
 )
 
@@ -22,19 +23,21 @@ var ErrReview = errors.New("translation review required")
 
 type Localized map[string]string
 type Site struct {
-	PublicTheme   string            `json:"public_theme"`
-	LogoMode      string            `json:"logo_mode"`
-	Wordmark      string            `json:"wordmark"`
-	Monogram      string            `json:"monogram"`
-	LogoID        string            `json:"logo_media_id"`
-	FaviconID     string            `json:"favicon_media_id"`
-	Primary       string            `json:"primary"`
-	Secondary     string            `json:"secondary"`
-	MenuIcons     map[string]string `json:"menu_icons"`
-	HeaderMenu    *[]MenuItem       `json:"header_menu,omitempty"`
-	FooterMenu    *[]MenuItem       `json:"footer_menu,omitempty"`
-	FrontPages    Localized         `json:"front_pages,omitempty"`
-	PublicLocales []string          `json:"public_locales,omitempty"`
+	Redirects           []Redirect        `json:"redirects,omitempty"`
+	PublicTheme         string            `json:"public_theme"`
+	LogoMode            string            `json:"logo_mode"`
+	Wordmark            string            `json:"wordmark"`
+	Monogram            string            `json:"monogram"`
+	LogoID              string            `json:"logo_media_id"`
+	FaviconID           string            `json:"favicon_media_id"`
+	Primary             string            `json:"primary"`
+	Secondary           string            `json:"secondary"`
+	MenuIcons           map[string]string `json:"menu_icons"`
+	HeaderMenu          *[]MenuItem       `json:"header_menu,omitempty"`
+	FooterMenu          *[]MenuItem       `json:"footer_menu,omitempty"`
+	FrontPages          Localized         `json:"front_pages,omitempty"`
+	PublicDefaultLocale string            `json:"public_default_locale,omitempty"`
+	PublicLocales       []string          `json:"public_locales,omitempty"`
 }
 type MenuItem struct {
 	ID       string     `json:"id"`
@@ -149,7 +152,7 @@ func textOK(s string, n int) bool {
 }
 func localized(v Localized, n int) bool {
 	for l, s := range v {
-		if (l != "en" && l != "ar" && l != "fr") || !textOK(s, n) || (l != "en" && s != "" && strings.TrimSpace(v["en"]) == "") {
+		if !locale.Valid(l) || !textOK(s, n) || (l != "en" && s != "" && strings.TrimSpace(v["en"]) == "") {
 			return false
 		}
 	}

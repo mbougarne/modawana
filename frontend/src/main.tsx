@@ -1,3 +1,4 @@
+import { isLocale } from '../../ui/src/i18n/locales';
 import { lazy, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
@@ -37,7 +38,7 @@ const ConfigPage = lazy(() =>
 
 function LoginAlias() {
   const { locale } = useParams();
-  const chosen = locale === 'ar' || locale === 'fr' ? locale : 'en';
+  const chosen = isLocale(locale) ? locale : 'en';
   return <Navigate to={`/${chosen}/login`} replace />;
 }
 
@@ -63,12 +64,13 @@ function LocaleRoot({
     | 'taxonomy'
     | 'transfer'
     | 'plugins'
+    | 'forms'
     | 'dashboard'
     | 'layout';
 }) {
   const { locale } = useParams();
   const { data } = usePublicConfiguration();
-  const valid = locale === 'en' || locale === 'ar' || locale === 'fr';
+  const valid = isLocale(locale);
   const chosen: Locale = valid ? locale : 'en';
   return (
     <I18nProvider locale={chosen} overrides={data?.labels}>
@@ -114,6 +116,7 @@ const router = createBrowserRouter(
         element={<LocaleRoot owner="editor" />}
       />
       <Route path="/:locale/admin/transfer" element={<LocaleRoot owner="transfer" />} />
+      <Route path="/:locale/admin/forms" element={<LocaleRoot owner="forms" />} />
       <Route path="/:locale/admin/plugins" element={<LocaleRoot owner="plugins" />} />
       <Route path="/:locale/admin/media" element={<LocaleRoot owner="media" />} />
       <Route path="/:locale/admin/oauth" element={<LocaleRoot oauth />} />

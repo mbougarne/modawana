@@ -1,3 +1,4 @@
+import { interfaceLocaleCodes } from '../../../../ui/src/i18n/locales';
 import { useEffect, useRef, useState } from 'react';
 import { useI18n } from '../../../../ui/src/i18n/I18nProvider';
 
@@ -47,7 +48,7 @@ export function OwnerLanguageMenu({ path }: { path: string }) {
       </button>
       {open && (
         <div id="config-language-menu" ref={menu}>
-          {(['en', 'fr', 'ar'] as const).map((l) => (
+          {interfaceLocaleCodes.map((l) => (
             <a
               key={l}
               href={`/${l}${path}`}

@@ -1,3 +1,4 @@
+import { interfaceLocaleCodes } from '../../../../ui/src/i18n/locales';
 import { MonthPicker } from './MonthPicker';
 import { preparePortrait } from './portrait';
 import { useFieldIssue } from './ValidationIssues';
@@ -13,14 +14,13 @@ import {
 } from 'react';
 import { Button, Field, TextInput, useI18n, Label } from '@ui';
 import type { Localized } from '../../api/configuration';
-import type { Locale } from '../../api/content';
 import type { MediaRecord, MediaPage } from '../../api/contracts';
 import { FileDropInput } from '../../../../ui/src/components/FileDropInput';
 import { call } from '../auth/api';
 
 export const UploadActivity = createContext<(delta: number) => void>(() => {});
 
-export const languages: Locale[] = ['en', 'fr', 'ar'];
+export const languages = interfaceLocaleCodes;
 
 export function TextField({
   name,

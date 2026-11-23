@@ -1,0 +1,6 @@
+[
+  { "code": "en", "name": "English", "interfaceOrder": 0, "dir": "ltr", "intl": "en-GB", "defaultVisible": true },
+  { "code": "ar", "name": "العربية", "interfaceOrder": 2, "dir": "rtl", "intl": "ar-MA", "defaultVisible": true },
+  { "code": "fr", "name": "Français", "interfaceOrder": 1, "dir": "ltr", "intl": "fr-FR", "defaultVisible": true },
+  { "code": "es", "name": "Español", "interfaceOrder": 3, "dir": "ltr", "intl": "es-ES", "defaultVisible": false }
+]

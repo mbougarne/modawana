@@ -1,7 +1,8 @@
+import type { Locale } from '@ui/types';
 import type { QuizDefinition, ReaderLearningState } from './learning';
 import type { MediaRecord } from './contracts';
 
-export type Locale = 'en' | 'ar' | 'fr';
+export type { Locale } from '@ui/types';
 
 export type ContentKind = 'article' | 'lesson' | 'doc' | 'page';
 
@@ -27,7 +28,17 @@ export interface MediaPresentation {
   transcript: string;
 }
 
+export interface RevisionSEO {
+  title?: string;
+  description?: string;
+  social_image_id?: string;
+  no_index?: boolean;
+  schema?: '' | 'none' | 'web_page' | 'article' | 'product';
+  product?: { sku: string; brand?: string };
+}
+
 export interface DraftInput {
+  seo?: RevisionSEO;
   expected_collection_version?: number;
   quiz?: QuizDefinition;
   expected_version: number;
@@ -62,6 +73,7 @@ export interface RevisionAction {
 }
 
 export interface Revision {
+  seo?: RevisionSEO;
   quiz?: QuizDefinition;
   revision_id: string;
   title: string;

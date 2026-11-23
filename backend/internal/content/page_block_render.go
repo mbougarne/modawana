@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/mbougarne/modawana/backend/internal/extension"
+	"github.com/mbougarne/modawana/backend/internal/forms"
 )
 
 type PageBlockLink struct {
@@ -15,6 +16,7 @@ type PageBlockLink struct {
 }
 
 type PageBlockRenderOptions struct {
+	Form           func(string, forms.Reference) (template.HTML, error)
 	Media          []PublicMedia
 	Unavailable    string
 	Empty          string
@@ -38,6 +40,7 @@ var pageBlockHTML = template.Must(template.New("page-blocks").Parse(`
 {{define "blocks"}}{{range .}}
 <div class="page-block page-block-{{.Kind}}" data-block-id="{{.ID}}">
 {{if .Fallback}}<p class="public-notice">{{.Fallback}}</p>
+{{else if eq .Kind "form"}}{{.HTML}}
 {{else if eq .Kind "markdown"}}{{.HTML}}
 {{else if eq .Kind "heading"}}
 {{if eq .Level 2}}<h2 dir="auto">{{.Text}}</h2>{{else if eq .Level 3}}<h3 dir="auto">{{.Text}}</h3>{{else if eq .Level 4}}<h4 dir="auto">{{.Text}}</h4>{{else if eq .Level 5}}<h5 dir="auto">{{.Text}}</h5>{{else}}<h6 dir="auto">{{.Text}}</h6>{{end}}
@@ -105,6 +108,19 @@ func (r pageBlockRenderer) blocks(blocks []pageBlock) ([]renderedBlock, error) {
 func (r pageBlockRenderer) block(v *renderedBlock, props json.RawMessage) error {
 	// All property shapes were checked by parsePageBlocks above.
 	switch v.Kind {
+	case "form":
+		var ref forms.Reference
+		_ = json.Unmarshal(props, &ref)
+		if r.Form == nil {
+			v.Fallback = r.Unavailable
+			return nil
+		}
+		var err error
+		v.HTML, err = r.Form(v.ID, ref)
+		if v.HTML == "" {
+			v.Fallback = r.Unavailable
+		}
+		return err
 	case "markdown":
 		var p markdownBlock
 		_ = json.Unmarshal(props, &p)

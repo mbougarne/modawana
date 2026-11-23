@@ -157,3 +157,40 @@ if (search && results && liveStatus) {
 }
 
 export {};
+
+for (const form of document.querySelectorAll<HTMLFormElement>('form[data-lead-form]')) {
+  const status = form.querySelector<HTMLElement>('[role="status"]');
+  const fieldset = form.querySelector('fieldset');
+  if (!status || !fieldset || fieldset.disabled) {
+    continue;
+  }
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (fieldset.disabled) {
+      return;
+    }
+    const data = new URLSearchParams();
+    for (const [key, value] of new FormData(form)) {
+      if (typeof value === 'string') {
+        data.append(key, value);
+      }
+    }
+    fieldset.disabled = true;
+    try {
+      const response = await fetch(form.action, {
+        method: 'POST',
+        body: data,
+        credentials: 'same-origin',
+        redirect: 'error',
+      });
+      if (!response.ok) {
+        throw new Error('Submission failed');
+      }
+      form.reset();
+      status.textContent = form.dataset.accepted ?? '';
+    } catch {
+      status.textContent = form.dataset.failed ?? '';
+      fieldset.disabled = false;
+    }
+  });
+}

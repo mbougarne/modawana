@@ -9,6 +9,7 @@ const properties = {
   hero: { heading: '' },
   call_to_action: { heading: '', label: '', href: '' },
   content_list: { section: 'writing', limit: 6 },
+  form: { form_key: '', form_version: 0 },
 };
 
 export type BlockKind = keyof typeof properties;

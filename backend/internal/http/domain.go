@@ -3,7 +3,6 @@ package httpserver
 import (
 	"database/sql"
 	"errors"
-	"github.com/mbougarne/modawana/backend/internal/learning"
 	"io"
 	"mime"
 	"net/http"
@@ -17,6 +16,8 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/dashboard"
 	"github.com/mbougarne/modawana/backend/internal/db"
 	"github.com/mbougarne/modawana/backend/internal/extension"
+	"github.com/mbougarne/modawana/backend/internal/forms"
+	"github.com/mbougarne/modawana/backend/internal/learning"
 	"github.com/mbougarne/modawana/backend/internal/media"
 	"github.com/mbougarne/modawana/backend/internal/outbox"
 	"github.com/mbougarne/modawana/backend/internal/plugin"
@@ -27,6 +28,7 @@ import (
 var uploadHTTPGate = make(chan struct{}, 1)
 
 type Domain struct {
+	Forms      *forms.Service
 	Learning   *learning.IdentityService
 	SiteConfig *siteconfig.Service
 	Content    *content.Service
@@ -109,6 +111,9 @@ func domainError(w http.ResponseWriter, e error) {
 	}
 }
 func (d *Domain) Handle(w http.ResponseWriter, r *http.Request) bool {
+	if d.Forms != nil && d.formRoutes(w, r) {
+		return true
+	}
 	if d.Content != nil && d.staffContentRoutes(w, r) {
 		return true
 	}

@@ -115,6 +115,14 @@ func (s *Server) renderedMeta(ctx context.Context, page content.PageRoute, setti
 			out = sanitizeRenderedMeta(result, origin, fallback)
 		}
 	}
+	if page.Content != nil && page.Content.SEO != nil && page.Kind != "lesson" && !page.Content.Locked {
+		for _, image := range page.Content.Media {
+			if image.ID == page.Content.SEO.SocialImageID && image.Kind == "image" {
+				out.Image, out.Width, out.Height, out.Alt = origin+"/media/"+image.ID, image.Width, image.Height, title
+				break
+			}
+		}
+	}
 	return out
 }
 

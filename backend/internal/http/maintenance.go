@@ -3,6 +3,8 @@ package httpserver
 import (
 	"net/http"
 	"strings"
+
+	"github.com/mbougarne/modawana/backend/internal/locale"
 )
 
 func maintenanceAllowed(r *http.Request) bool {
@@ -19,7 +21,7 @@ func maintenanceAllowed(r *http.Request) bool {
 	if p == "/healthz" || strings.HasPrefix(p, "/assets/") {
 		return true
 	}
-	for _, locale := range []string{"en", "ar", "fr"} {
+	for _, locale := range locale.Codes() {
 		if p == "/"+locale+"/login" || p == "/"+locale+"/setup" || p == "/"+locale+"/admin/security" {
 			return true
 		}

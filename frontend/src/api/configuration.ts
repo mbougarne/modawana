@@ -27,6 +27,8 @@ export interface SiteSettings {
   header_menu?: MenuItem[];
   footer_menu?: MenuItem[];
   public_locales?: Locale[];
+  public_default_locale?: Locale;
+  redirects?: { from: string; to: string }[];
   front_pages?: Localized;
 }
 

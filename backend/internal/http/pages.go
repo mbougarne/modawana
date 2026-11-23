@@ -2,6 +2,7 @@ package httpserver
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -42,6 +43,15 @@ type publicMetadata struct {
 
 func pageMetadata(page content.PageRoute, settings siteconfig.Public, locale string, status int) publicMetadata {
 	out := publicMetadata{Title: page.Title, Description: page.Summary}
+	if page.Content != nil && page.Content.SEO != nil && !page.Content.Locked && page.Content.Kind != "lesson" {
+		seo := page.Content.SEO
+		if seo.Title != "" {
+			out.Title = seo.Title
+		}
+		if seo.Description != "" {
+			out.Description = seo.Description
+		}
+	}
 	if out.Title != "" {
 		return out
 	}
@@ -74,6 +84,12 @@ func (s *Server) publicPage(w http.ResponseWriter, r *http.Request, resolver pag
 		path = "/" + publicLocales(locales)[0]
 	}
 	page, err := resolver.ResolvePage(ctx, path)
+	if errors.Is(err, sql.ErrNoRows) {
+		page, err = s.resolveEditorialRedirect(ctx, resolver, path)
+	}
+	if page.Content != nil && page.Content.SEO != nil && page.Content.SEO.NoIndex {
+		w.Header().Set("X-Robots-Tag", "noindex")
+	}
 	page = localizePublicPage(locales, page)
 	if errors.Is(err, content.ErrLocked) {
 		w.Header().Set("X-Robots-Tag", "noindex")
@@ -132,16 +148,24 @@ func (d *Domain) pageRoutes(w http.ResponseWriter, r *http.Request) bool {
 }
 
 func pageLabel(settings siteconfig.Public, key, locale string) string {
+	text, _ := localizedPageLabel(settings, key, locale)
+	return text
+}
+
+func localizedPageLabel(settings siteconfig.Public, key, locale string) (string, string) {
 	values, defaults := settings.Labels[key], siteconfig.Registry[key].Values
 	local := values[locale]
 	if len(local) == 0 {
 		local = defaults[locale]
 	}
-	for _, raw := range []json.RawMessage{local, values["en"], defaults["en"]} {
+	for _, item := range []struct {
+		raw  json.RawMessage
+		lang string
+	}{{local, locale}, {values["en"], "en"}, {defaults["en"], "en"}} {
 		var text string
-		if json.Unmarshal(raw, &text) == nil && text != "" {
-			return text
+		if json.Unmarshal(item.raw, &text) == nil && text != "" {
+			return text, item.lang
 		}
 	}
-	return ""
+	return "", locale
 }

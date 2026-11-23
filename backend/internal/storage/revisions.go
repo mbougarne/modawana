@@ -17,6 +17,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/mbougarne/modawana/backend/internal/db"
+	locales "github.com/mbougarne/modawana/backend/internal/locale"
 )
 
 const MaxMarkdown = 2 << 20
@@ -24,7 +25,7 @@ const MaxMarkdown = 2 << 20
 var ErrStorage = errors.New("revision storage unavailable")
 var ErrIntegrity = errors.New("revision missing or corrupt")
 var idPattern = regexp.MustCompile(`^[0-9a-f]{32}$`)
-var keyPattern = regexp.MustCompile(`^content/[0-9a-f]{32}/(en|ar|fr)/[0-9a-f]{32}(?:\.blocks)?\.md$`)
+var keyPattern = regexp.MustCompile(`^content/[0-9a-f]{32}/(?:` + locales.PathPattern() + `)/[0-9a-f]{32}(?:\.blocks)?\.md$`)
 
 type File struct {
 	Key    string
@@ -117,7 +118,7 @@ func (s *Store) WritePageBlocksLocked(item, locale string, body []byte) (File, s
 
 func (s *Store) writeRevisionLocked(item, locale, extension string, body []byte) (File, string, error) {
 	var out File
-	if !idPattern.MatchString(item) || (locale != "en" && locale != "ar" && locale != "fr") || len(body) > MaxMarkdown || !utf8.Valid(body) {
+	if !idPattern.MatchString(item) || !locales.Valid(locale) || len(body) > MaxMarkdown || !utf8.Valid(body) {
 		return out, "", ErrStorage
 	}
 	revision, e := db.NewID()

@@ -1,3 +1,4 @@
+import { FormsPage } from './FormsPage';
 import { Portability } from './Portability';
 import { Plugins } from './Plugins';
 import { DashboardLayoutSettings, OwnerDashboard } from './DashboardScreens';
@@ -21,6 +22,7 @@ export function OwnerArea({
     | 'taxonomy'
     | 'transfer'
     | 'plugins'
+    | 'forms'
     | 'dashboard'
     | 'layout';
 }) {
@@ -38,6 +40,8 @@ export function OwnerArea({
           <OwnerDashboard />
         ) : page === 'layout' ? (
           <DashboardLayoutSettings csrf={csrf} />
+        ) : page === 'forms' ? (
+          <FormsPage csrf={csrf} />
         ) : page === 'plugins' ? (
           <Plugins csrf={csrf} />
         ) : page === 'media' ? (

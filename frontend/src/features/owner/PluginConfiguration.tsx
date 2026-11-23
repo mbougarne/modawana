@@ -7,7 +7,7 @@ import { authenticatedTransfer } from '../auth/reauthenticate';
 import type { Contribution } from './ExtensionCatalog';
 
 type SettingValue = string | number | boolean;
-type Labels = Partial<Record<'en' | 'ar' | 'fr', string>>;
+type Labels = Partial<Record<import('@ui/types').Locale, string>>;
 
 export type PluginManifest = {
   settings?: { name: string; label: Labels; type: 'string' | 'integer' | 'boolean' }[];

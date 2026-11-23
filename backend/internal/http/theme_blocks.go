@@ -6,6 +6,7 @@ import (
 
 	"github.com/mbougarne/modawana/backend/internal/access"
 	"github.com/mbougarne/modawana/backend/internal/content"
+	"github.com/mbougarne/modawana/backend/internal/forms"
 )
 
 func (s *Server) themePageBlocks(ctx context.Context, c *content.PublicContent, head *headData, label func(string) string) (template.HTML, error) {
@@ -13,7 +14,10 @@ func (s *Server) themePageBlocks(ctx context.Context, c *content.PublicContent, 
 	cache := map[string][]content.PageBlockLink{}
 	return content.RenderPageBlocks(c.PageBlocks, content.PageBlockRenderOptions{
 		ExtensionBlock: s.extensions().RenderBlock,
-		Media:          c.Media, Unavailable: label("pageBlocks.unavailable"), Empty: label("pageBlocks.emptyList"),
+		Form: func(id string, ref forms.Reference) (template.HTML, error) {
+			return s.themeLeadForm(ctx, c, head, label, id, ref)
+		},
+		Media: c.Media, Unavailable: label("pageBlocks.unavailable"), Empty: label("pageBlocks.emptyList"),
 		Markdown: func(markdown string) (template.HTML, error) {
 			projection := *c
 			projection.Markdown = markdown
