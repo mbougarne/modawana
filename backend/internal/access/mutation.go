@@ -7,8 +7,9 @@ import (
 
 type mutationKey struct{}
 type Mutation struct {
-	Actor string
-	Check func(*sql.Tx, string) error
+	Actor   string
+	StaffID string
+	Check   func(*sql.Tx, string) error
 }
 
 func WithMutation(ctx context.Context, m Mutation) context.Context {
@@ -27,4 +28,9 @@ func Actor(ctx context.Context, owner string) string {
 		return m.Actor
 	}
 	return owner
+}
+
+func StaffActor(ctx context.Context) string {
+	m, _ := ctx.Value(mutationKey{}).(Mutation)
+	return m.StaffID
 }

@@ -117,7 +117,9 @@ func prepare(ctx context.Context, handler Handler, delivery Delivery) (effect Ef
 // survive removal for diagnostics, but a new install cannot inherit them.
 const eligibleFrom = `FROM plugin_installs p JOIN outbox_subscriptions s ON s.plugin_id=p.id
 	JOIN outbox_events e ON e.name=s.name AND e.contract_version=s.contract_version
-	WHERE p.id=d.plugin_id AND p.enabled=1 AND e.id=d.event_id`
+	WHERE p.id=d.plugin_id AND p.enabled=1 AND e.id=d.event_id
+	  AND (e.staff_actor_id IS NULL OR EXISTS (SELECT 1 FROM staff_members m
+	    WHERE m.id=e.staff_actor_id AND m.revoked_at IS NULL AND m.role='owner'))`
 
 func (w *Worker) claim(ctx context.Context) (attempt, error) {
 	var a attempt

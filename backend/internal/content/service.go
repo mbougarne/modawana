@@ -458,6 +458,11 @@ func (s *Service) save(ctx context.Context, owner, key, locale, retryKey, op str
 		if e != nil {
 			return e
 		}
+		if staff := access.StaffActor(ctx); staff != "" {
+			if _, e = tx.ExecContext(ctx, "INSERT INTO staff_revision_authorship VALUES(?,?)", revision, staff); e != nil {
+				return e
+			}
+		}
 		if e = learning.Bind(ctx, tx, item, revision, locale, in.SourceLocale, in.SourceRevisionID, in.Kind, in.Quiz); e != nil {
 			return e
 		}

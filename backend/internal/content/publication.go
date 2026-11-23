@@ -57,6 +57,9 @@ func (s *Service) changePublicationIn(ctx context.Context, tx *sql.Tx, owner, ke
 	if e != nil {
 		return Result{}, e
 	}
+	if access.StaffActor(ctx) != "" && (v.Kind != "article" && v.Kind != "page") {
+		return Result{}, ErrInvalid
+	}
 	if v.Number != *a.ExpectedVersion {
 		return Result{}, db.ErrVersionConflict
 	}

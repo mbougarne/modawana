@@ -110,6 +110,12 @@ func (s *Service) checkWrite(r *http.Request, token string) bool {
 
 // Handle returns false for routes outside the authentication namespace.
 func (s *Service) Handle(w http.ResponseWriter, r *http.Request) bool {
+	if strings.HasPrefix(r.URL.Path, "/api/v1/auth/staff/") || strings.HasPrefix(r.URL.Path, "/api/v1/staff/management") {
+		r.Header.Set("X-Request-ID", w.Header().Get("X-Request-ID"))
+		if s.staffRoutes(w, r) {
+			return true
+		}
+	}
 	if s.oauthRoutes(w, r) {
 		return true
 	}

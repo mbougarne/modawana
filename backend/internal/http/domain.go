@@ -109,6 +109,9 @@ func domainError(w http.ResponseWriter, e error) {
 	}
 }
 func (d *Domain) Handle(w http.ResponseWriter, r *http.Request) bool {
+	if d.Content != nil && d.staffContentRoutes(w, r) {
+		return true
+	}
 	if d.Dashboard != nil && d.dashboardRoutes(w, r) {
 		return true
 	}

@@ -119,3 +119,10 @@ resource status. Signing keys stay outside the data root. See the
 Adds independent versioned rows for site defaults and each owner's personal
 layout. Existing browser appearance preferences remain available. See
 [dashboard layout preferences](../../docs/ui-contracts.md#dashboard-layout-preferences).
+
+## 0022 — Invited staff
+
+Adds independent staff invitations, passkeys, sessions, and revision authorship.
+Existing owner identity and recovery records are preserved. Staff publication
+events carry a grant that the delivery worker checks again.
+See [invited staff](../../docs/owner-security.md#invited-staff).

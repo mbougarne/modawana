@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/mbougarne/modawana/backend/internal/access"
 	"github.com/mbougarne/modawana/backend/internal/db"
 )
 
@@ -42,8 +43,8 @@ func RecordPublication(ctx context.Context, tx *sql.Tx, sourceID string, sourceV
 	}
 	now := at.UnixMilli()
 	if _, err = tx.ExecContext(ctx, `INSERT INTO outbox_events
-		(id,name,contract_version,source_id,source_version,payload,created_at)
-		VALUES(?,?,?,?,?,?,?)`, id, ContentPublished, ContentPublishedVersion, sourceID, sourceVersion, string(payload), now); err != nil {
+		(id,name,contract_version,source_id,source_version,payload,created_at,staff_actor_id)
+		VALUES(?,?,?,?,?,?,?,nullif(?,''))`, id, ContentPublished, ContentPublishedVersion, sourceID, sourceVersion, string(payload), now, access.StaffActor(ctx)); err != nil {
 		return err
 	}
 	_, err = tx.ExecContext(ctx, `INSERT INTO outbox_deliveries
