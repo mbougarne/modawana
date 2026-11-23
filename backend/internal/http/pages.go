@@ -64,7 +64,17 @@ func pageMetadata(page content.PageRoute, settings siteconfig.Public, locale str
 
 func (s *Server) publicPage(w http.ResponseWriter, r *http.Request, resolver pageResolver) {
 	ctx := s.readerContext(r)
-	page, err := resolver.ResolvePage(ctx, r.URL.Query().Get("path"))
+	path := r.URL.Query().Get("path")
+	locales := r.Context()
+	if hiddenLocale(locales, pathLocale(path)) {
+		writeError(w, NotFound)
+		return
+	}
+	if path == "/" && publicLocales(locales)[0] != "en" {
+		path = "/" + publicLocales(locales)[0]
+	}
+	page, err := resolver.ResolvePage(ctx, path)
+	page = localizePublicPage(locales, page)
 	if errors.Is(err, content.ErrLocked) {
 		w.Header().Set("X-Robots-Tag", "noindex")
 		writeJSON(w, http.StatusForbidden, page)
@@ -97,6 +107,10 @@ func (d *Domain) PublicCollections(ctx context.Context, locale, kind, cursor str
 func (d *Domain) pageRoutes(w http.ResponseWriter, r *http.Request) bool {
 	if r.URL.Path == "/api/v1/public/collections" && r.Method == "GET" {
 		q := r.URL.Query()
+		if hiddenLocale(r.Context(), q.Get("locale")) {
+			writeError(w, NotFound)
+			return true
+		}
 		limit := 20
 		if q.Has("limit") {
 			var e error

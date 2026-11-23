@@ -153,6 +153,15 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 	if s.options.Auth != nil && s.options.Auth.Handle(w, r) {
 		return
 	}
+	apiPath := r.URL.Path
+	if (strings.HasPrefix(apiPath, "/api/v1/public/") && apiPath != "/api/v1/public/site" && apiPath != "/api/v1/public/labels") ||
+		strings.HasPrefix(apiPath, "/api/v1/learning/content/") {
+		var ok bool
+		r, ok = s.withPublicLocales(w, r)
+		if !ok {
+			return
+		}
+	}
 	if r.URL.Path == "/api/v1/public/page" && r.Method == http.MethodGet {
 		if resolver, ok := s.options.Domain.(pageResolver); ok {
 			s.publicPage(w, r, resolver)
@@ -191,7 +200,10 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 		writeJSON(w, 200, map[string]string{"status": "ok"})
 		return
 	case "/api/v1/public/runtime":
-		writeJSON(w, 200, s.options.Config.Public())
+		runtime := s.options.Config.Public()
+		runtime.Locales = publicLocales(r.Context())
+		runtime.DefaultLocale = runtime.Locales[0]
+		writeJSON(w, 200, runtime)
 		return
 	}
 	if r.URL.Path == "/api" || strings.HasPrefix(r.URL.Path, "/api/") || r.URL.Path == "/media" || strings.HasPrefix(r.URL.Path, "/media/") {
@@ -251,9 +263,27 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 	if len(parts) > 0 && pageLocale(parts[0]) {
 		locale = parts[0]
 	}
-	var previewTheme theme.Appearance
 	if public || preview {
+		var ok bool
+		r, ok = s.withPublicLocales(w, r)
+		if !ok {
+			return
+		}
+		ctx = r.Context()
+	}
+	hidden := public && hiddenLocale(ctx, parts[0])
+	if hidden {
+		status = http.StatusNotFound
+	}
+	if public && (hidden || !pageLocale(parts[0])) {
+		locale = publicLocales(ctx)[0]
+	}
+	var previewTheme theme.Appearance
+	if (public && !hidden) || preview {
 		path := r.URL.Path
+		if path == "/" && locale != "en" {
+			path = "/" + locale
+		}
 		if preview {
 			w.Header().Set("X-Robots-Tag", "noindex")
 			id := r.URL.Query().Get("theme")
@@ -290,6 +320,7 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 		} else if public && status == 200 {
 			page = content.PageRoute{Kind: "home", Locale: locale, URL: "/" + locale}
 		}
+		page = localizePublicPage(r.Context(), page)
 	}
 	if locale == "ar" {
 		dir = "rtl"

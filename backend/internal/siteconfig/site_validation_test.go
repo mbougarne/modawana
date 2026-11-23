@@ -19,6 +19,7 @@ func TestSettingsValidationExplainsExactFields(t *testing.T) {
 		{"logo_mode", "logo_mode", func(s *Site) { s.LogoMode = "unknown" }},
 		{"logo_media_id", "logo_image", func(s *Site) { s.LogoMode = "image"; s.LogoID = "" }},
 		{"menu_icons.home", "icon", func(s *Site) { s.MenuIcons["home"] = "unknown" }},
+		{"public_locales", "public_locales", func(s *Site) { s.PublicLocales = []string{} }},
 	}
 	for _, tc := range cases {
 		t.Run(tc.path, func(t *testing.T) {
@@ -37,6 +38,19 @@ func TestSettingsValidationExplainsExactFields(t *testing.T) {
 			}
 			t.Fatalf("missing %s/%s: %+v", tc.path, tc.code, v.Fields)
 		})
+	}
+}
+
+func TestPublicLocalesRequireDistinctSupportedLanguages(t *testing.T) {
+	for _, invalid := range [][]string{{}, {"en", "en"}, {"en", "de"}, {"en", "ar", "fr", "en"}} {
+		if validPublicLocales(invalid) {
+			t.Errorf("accepted invalid locale list %v", invalid)
+		}
+	}
+	for _, valid := range [][]string{nil, {"fr"}, {"fr", "en"}, {"fr", "ar", "en"}} {
+		if !validPublicLocales(valid) {
+			t.Errorf("rejected valid locale list %v", valid)
+		}
 	}
 }
 

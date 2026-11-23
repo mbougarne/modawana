@@ -21,7 +21,7 @@ export function AboutSelect({
     setFailed(false);
     setItems([]);
     setCursor('');
-    call<DiscoveryPage>('/public/content?kind=doc&locale=' + locale + '&limit=50')
+    call<DiscoveryPage>('/owner/about-documents?locale=' + locale + '&limit=50')
       .then(
         (page) => {
           if (active) {
@@ -49,7 +49,7 @@ export function AboutSelect({
     setFailed(false);
     try {
       const page = await call<DiscoveryPage>(
-        '/public/content?kind=doc&locale=' +
+        '/owner/about-documents?locale=' +
           locale +
           '&limit=50&cursor=' +
           encodeURIComponent(cursor),

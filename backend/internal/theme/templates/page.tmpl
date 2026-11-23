@@ -17,12 +17,12 @@
 </nav>{{end}}
 <div class="vb-tools public-tools">
 <a class="vb-icon" href="{{.SearchURL}}" aria-label="{{.SearchLabel}}">{{template "public-icon" "search"}}</a>
-<details class="public-details">
+{{if gt (len .Languages) 1}}<details class="public-details">
 <summary class="vb-icon public-language" aria-label="{{.LanguageLabel}}" aria-controls="language-menu">{{.LanguageShort}}</summary>
 <div class="public-menu" id="language-menu"><nav aria-label="{{.LanguageLabel}}">
 {{- range .Languages}}<a href="{{.URL}}" lang="{{.Code}}" dir="{{.Dir}}"{{if .Current}} aria-current="page"{{end}}>{{.Label}}</a>{{end -}}
 </nav></div>
-</details>
+</details>{{end}}
 {{if .ThemeLabel}}<button type="button" class="vb-icon" aria-label="{{.ThemeLabel}}" data-theme-toggle hidden>{{template "public-icon" "moon"}}</button>{{end}}
 {{if .MenuNav}}<details class="public-details">
 <summary class="vb-icon vb-menu" aria-label="{{.MenuLabel}}" aria-controls="navigation-menu">{{template "public-icon" "menu"}}</summary>

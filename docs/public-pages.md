@@ -31,6 +31,13 @@ collection, unpublished member, missing locale or unknown page returns a real
 backslashes and dot traversal are rejected. Canonicals use `BLOG_BASE_URL`, never
 forwarded Host headers. Private owner routes retain authentication and noindex.
 
+**Settings → Public languages** controls the language picker, automatic translation
+links, public content endpoints, feeds and sitemap. Hidden language paths return
+404 until enabled again. The home page at `/` and default feed use the first
+enabled language in English, Arabic, French order. The picker is omitted when
+only one language is public. Owner login, editing and translation tools support
+all three languages. Media URLs keep their own access rules.
+
 `GET /api/v1/public/page?path=/en/articles/{slug}` uses the same resolver as HTML.
 It returns `kind`, `locale`, `url`, `title`, `summary`, `alternatives`, and optional
 `content`/`collection`. A locked lesson returns 403 with this safe page projection,
@@ -163,7 +170,7 @@ include the published title, summary, canonical link, and latest publication
 date. An entry keeps its ID across updates to the same language version.
 
 `/sitemap.xml` lists canonical Home, About, Writing, Learn, and Docs pages in
-all supported languages, plus anonymously readable content and collection
+all visible languages, plus anonymously readable content and collection
 outlines with at least one readable published member. `/robots.txt` advertises
 the sitemap. Public URLs use `BLOG_BASE_URL`, including encoded slugs. The
 sitemap follows the protocol's single-file limits and returns 503 if the

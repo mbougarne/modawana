@@ -13,11 +13,12 @@ func (d *Domain) contentRoutes(w http.ResponseWriter, r *http.Request) bool {
 	p := r.URL.Path
 	if strings.HasPrefix(p, "/api/v1/public/content/") && r.Method == "GET" {
 		parts := strings.Split(strings.TrimPrefix(p, "/api/v1/public/content/"), "/")
-		if len(parts) != 2 {
+		if len(parts) != 2 || hiddenLocale(r.Context(), parts[0]) {
 			writeError(w, NotFound)
 			return true
 		}
 		out, e := d.Content.Public(r.Context(), parts[0], parts[1], d.readerPrincipal(r))
+		out = localizePublicContent(r.Context(), out)
 		if errors.Is(e, content.ErrLocked) {
 			writeJSON(w, statuses[LessonLocked], map[string]any{"error": APIError{Code: LessonLocked, Message: messages[LessonLocked], RequestID: w.Header().Get("X-Request-ID")}, "teaser": out})
 		} else if e != nil {
@@ -29,8 +30,11 @@ func (d *Domain) contentRoutes(w http.ResponseWriter, r *http.Request) bool {
 	}
 	if strings.HasPrefix(p, "/api/v1/public/alternatives/") && r.Method == "GET" {
 		out, e := d.Content.Alternatives(r.Context(), strings.TrimPrefix(p, "/api/v1/public/alternatives/"))
+		out = hideLocaleLinks(r.Context(), out)
 		if e != nil {
 			domainError(w, e)
+		} else if len(out) == 0 {
+			writeError(w, NotFound)
 		} else {
 			writeJSON(w, 200, map[string]any{"items": out})
 		}

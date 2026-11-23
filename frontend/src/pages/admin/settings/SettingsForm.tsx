@@ -9,6 +9,7 @@ import { MediaInput, Section, TextField } from '../../../features/configuration/
 import { PublicThemeSettings } from './PublicThemeSettings';
 import { MenuSettings } from './MenuSettings';
 import { useOwnerAppearanceContext } from '../../../features/owner/OwnerAppearance';
+import { PublicLanguageSettings } from './PublicLanguageSettings';
 
 export function SettingsForm({
   value: s,
@@ -41,6 +42,10 @@ export function SettingsForm({
   return (
     <div className="config-editor-layout config-settings-editor">
       <div className="config-edit-controls">
+        <PublicLanguageSettings
+          value={s.public_locales}
+          onChange={(locales) => change('public_locales', locales)}
+        />
         <Section name="config.identity">
           <label className="config-field">
             <Label name="config.logoMode" />

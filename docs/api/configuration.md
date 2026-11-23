@@ -17,7 +17,7 @@ For each of `/api/v1/settings`, `/api/v1/profile`, `/api/v1/labels`:
 | POST base/restore | `{expected_version, revision_id}` returns a historical working copy; does not apply it |
 | GET base/defaults | Return a default working copy at the current version; does not apply it |
 
-Snapshots are bounded to 256 KiB; request bodies to 1 MiB. Unknown fields are rejected; site/profile snapshots require all top-level fields except the optional site theme and public menus. Invalid values return 422; missing/negative apply versions return 422 and stale/concurrent saves return 409 (Preview requires a matching version). HTTP 409 preserves the local form until the owner chooses Reload. Preview/Cancel never changes live configuration. Reset and Restore also require explicit Save and apply. History references continue protecting files from deletion. New media stays private until an applied visible field references it; disabled banners and inactive image logos do not grant access.
+Snapshots are bounded to 256 KiB; request bodies to 1 MiB. Unknown fields are rejected; site/profile snapshots require all top-level fields except the optional site theme, public menus and public languages. Invalid values return 422; missing/negative apply versions return 422 and stale/concurrent saves return 409 (Preview requires a matching version). HTTP 409 preserves the local form until the owner chooses Reload. Preview/Cancel never changes live configuration. Reset and Restore also require explicit Save and apply. History references continue protecting files from deletion. New media stays private until an applied visible field references it; disabled banners and inactive image logos do not grant access.
 
 Changed nonempty Arabic/French values require explicit confirmation of each `{path, locale, source_hash, value_hash}` from Preview. Hashes bind the exact value to effective English; stable row IDs survive reordering. An existing reviewed translation remains live when only English changes and is marked stale; it can be reviewed again. A restore is validated against current review rules. Profile, menu-label and interface-label fallback is permitted and marked with actual language/direction; published content never falls back.
 
@@ -46,6 +46,13 @@ Profile includes EN/AR/FR name (100 characters), headline (200), bio (320), stic
 There are at most three Now rows (label 80/text 160), ten links plus one main action (label 80/URL 2048), and twenty experience entries (role/organization 120/description 500). Row IDs are stable, bounded and unique. Months use YYYY-MM; date order is validated. Links allow HTTPS, local absolute paths and simple mailto addresses, rejecting controls, credentials and protocol-relative URLs. Public email is at most 254 characters. Home limits are 1–20. Empty/disabled sections stay hidden. The About picker lists documents published in the editing locale; public About resolution requires publication in the requested locale and never exposes a draft or falls back to another language.
 
 `header_menu` and `footer_menu` are independent ordered arrays in site settings with up to 12 links each. An omitted array uses the default navigation and an empty array removes the links for that placement. A built-in destination uses its localized interface label and URL. A custom destination takes a local path, HTTPS URL or mailto address and a label in English with optional reviewed French and Arabic translations. Missing translations use the English label. Custom paths are used as entered. Menu edits use the same Preview, Save and apply, revision history and restore workflow as the rest of site settings.
+
+The optional `public_locales` field contains one or more distinct supported locale
+codes (`en`, `ar`, `fr`). Historical snapshots without it expose all languages.
+`GET /api/v1/public/runtime` returns the visible codes and the effective default.
+The owner-only `GET /api/v1/owner/about-documents?locale=…` lists published
+documents for the About picker, including in hidden languages. Public site and
+label configuration remains available as a UI resource.
 
 ## Labels
 

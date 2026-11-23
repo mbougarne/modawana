@@ -50,17 +50,28 @@ func (s *Server) syndicationRoutes(w http.ResponseWriter, r *http.Request) bool 
 		return false
 	}
 	origin := s.options.Config.BaseURL
-	switch p := r.URL.Path; p {
-	case "/robots.txt":
+	p := r.URL.Path
+	if p == "/robots.txt" {
 		serveSyndication(w, r, "text/plain; charset=utf-8", []byte("User-agent: *\nDisallow:\n\nSitemap: "+origin+"/sitemap.xml\n"))
+		return true
+	}
+	locale, rest, _ := strings.Cut(strings.TrimPrefix(p, "/"), "/")
+	if p != "/sitemap.xml" && p != "/feed.xml" && !(pageLocale(locale) && rest == "feed.xml") {
+		return false
+	}
+	r, ok := s.withPublicLocales(w, r)
+	if !ok {
+		return true
+	}
+	switch p {
 	case "/sitemap.xml":
 		s.serveSitemap(w, r, source, origin)
 	case "/feed.xml":
-		http.Redirect(w, r, feedPath(s.options.Config.Public().DefaultLocale), http.StatusPermanentRedirect)
+		http.Redirect(w, r, feedPath(publicLocales(r.Context())[0]), http.StatusPermanentRedirect)
 	default:
-		locale, rest, ok := strings.Cut(strings.TrimPrefix(p, "/"), "/")
-		if !ok || !pageLocale(locale) || rest != "feed.xml" {
-			return false
+		if !visibleLocale(r.Context(), locale) {
+			writeError(w, NotFound)
+			return true
 		}
 		s.serveRSS(w, r, source, origin, locale)
 	}
@@ -161,10 +172,19 @@ type sitemapURL struct {
 func (s *Server) serveSitemap(w http.ResponseWriter, r *http.Request, source syndicationSource, origin string) {
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
-	pages, err := source.SyndicatedPages(ctx, "", sitemapLimit+1)
-	if err != nil || len(pages) > sitemapLimit {
-		writeError(w, Unavailable)
-		return
+	locales := publicLocales(ctx)
+	sources := locales
+	if len(locales) == len(s.options.Config.Public().Locales) {
+		sources = []string{""} // Preserve the combined published-date order when all languages are public.
+	}
+	var pages []content.SyndicatedPage
+	for _, locale := range sources {
+		batch, err := source.SyndicatedPages(ctx, locale, sitemapLimit+1-len(pages))
+		if err != nil || len(pages)+len(batch) > sitemapLimit {
+			writeError(w, Unavailable)
+			return
+		}
+		pages = append(pages, batch...)
 	}
 	doc := sitemapDocument{}
 	seen := map[string]bool{}
@@ -175,7 +195,7 @@ func (s *Server) serveSitemap(w http.ResponseWriter, r *http.Request, source syn
 			doc.URLs = append(doc.URLs, sitemapURL{Location: location, Modified: modified})
 		}
 	}
-	for _, locale := range s.options.Config.Public().Locales {
+	for _, locale := range locales {
 		for _, suffix := range []string{"", "/about", "/writing", "/learn", "/docs"} {
 			add("/"+locale+suffix, "")
 		}

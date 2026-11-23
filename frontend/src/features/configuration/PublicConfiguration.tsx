@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { BrandStyle, DEFAULT_PRIMARY, DEFAULT_SECONDARY } from '@ui';
+import { BrandStyle } from '../../../../ui/src/theme/ThemeProvider';
+import { DEFAULT_PRIMARY, DEFAULT_SECONDARY } from '../../../../ui/src/theme/brand';
 import { call } from '../auth/api';
 import type { PublicConfiguration } from '../../api/configuration';
 

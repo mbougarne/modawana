@@ -993,6 +993,22 @@ export const DEFAULT_LABELS = {
   'owner.themes': l('Themes', 'Thèmes', 'السمات'),
   'owner.menus': l('Menus', 'Menus', 'القوائم'),
   'config.headerMenu': l('Header menu', 'Menu d’en-tête', 'قائمة الترويسة'),
+  'config.publicLanguages': l('Public languages', 'Langues du site public', 'لغات الموقع العام'),
+  'config.publicLanguagesHelp': l(
+    'Select the languages visitors can browse. Keep at least one language visible.',
+    'Cochez les langues accessibles aux visiteurs. Gardez au moins une langue visible.',
+    'حدّد اللغات التي يمكن للزوار تصفّحها. أبقِ لغة واحدة ظاهرة على الأقل.',
+  ),
+  'config.publicDefaultLanguage': l(
+    'Home page language: {language}',
+    'Langue de la page d’accueil : {language}',
+    'لغة الصفحة الرئيسية: {language}',
+  ),
+  'validation.public_locales': l(
+    'Select at least one supported public language.',
+    'Sélectionnez au moins une langue prise en charge pour le site public.',
+    'اختر لغة واحدة مدعومة على الأقل للموقع العام.',
+  ),
   'config.footerMenu': l('Footer menu', 'Menu de pied de page', 'قائمة التذييل'),
   'config.headerMenuHelp': l(
     'These links appear in the header and the mobile menu.',

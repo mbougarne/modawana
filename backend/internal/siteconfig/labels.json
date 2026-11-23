@@ -3896,6 +3896,48 @@
       "ar": "قائمة الترويسة"
     }
   },
+  "config.publicLanguages": {
+    "section": "config",
+    "description": "Interface text: config.publicLanguages",
+    "placeholders": [],
+    "values": {
+      "en": "Public languages",
+      "fr": "Langues du site public",
+      "ar": "لغات الموقع العام"
+    }
+  },
+  "config.publicLanguagesHelp": {
+    "section": "config",
+    "description": "Interface text: config.publicLanguagesHelp",
+    "placeholders": [],
+    "values": {
+      "en": "Select the languages visitors can browse. Keep at least one language visible.",
+      "fr": "Cochez les langues accessibles aux visiteurs. Gardez au moins une langue visible.",
+      "ar": "حدّد اللغات التي يمكن للزوار تصفّحها. أبقِ لغة واحدة ظاهرة على الأقل."
+    }
+  },
+  "config.publicDefaultLanguage": {
+    "section": "config",
+    "description": "Interface text: config.publicDefaultLanguage",
+    "placeholders": [
+      "language"
+    ],
+    "values": {
+      "en": "Home page language: {language}",
+      "fr": "Langue de la page d’accueil : {language}",
+      "ar": "لغة الصفحة الرئيسية: {language}"
+    }
+  },
+  "validation.public_locales": {
+    "section": "validation",
+    "description": "Interface text: validation.public_locales",
+    "placeholders": [],
+    "values": {
+      "en": "Select at least one supported public language.",
+      "fr": "Sélectionnez au moins une langue prise en charge pour le site public.",
+      "ar": "اختر لغة واحدة مدعومة على الأقل للموقع العام."
+    }
+  },
   "config.footerMenu": {
     "section": "config",
     "description": "Interface text: config.footerMenu",

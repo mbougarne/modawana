@@ -6316,6 +6316,96 @@
         }
       ]
     },
+    "/api/v1/owner/about-documents": {
+      "get": {
+        "operationId": "ownerAboutDocuments",
+        "description": "Published documents for the owner’s About picker in any supported language. / الوثائق المنشورة لمنتقي صفحة التعريف الخاص بالمالك بأي لغة مدعومة.",
+        "responses": {
+          "200": {
+            "description": "Response / استجابة",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiscoveryPage"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Response / استجابة",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "enum": [
+                "en",
+                "ar",
+                "fr"
+              ]
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 200
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          }
+        ],
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ]
+      }
+    },
     "/api/v1/owner/references": {
       "get": {
         "operationId": "ownerReferenceChoices",
@@ -6589,7 +6679,11 @@
           },
           "default_locale": {
             "type": "string",
-            "const": "en"
+            "enum": [
+              "en",
+              "ar",
+              "fr"
+            ]
           },
           "locales": {
             "type": "array",
@@ -6601,7 +6695,8 @@
                 "fr"
               ]
             },
-            "uniqueItems": true
+            "uniqueItems": true,
+            "minItems": 1
           }
         }
       },
@@ -8063,6 +8158,20 @@
               "$ref": "#/components/schemas/MenuItem"
             },
             "description": "Ordered public footer navigation links. Omit for defaults. / روابط تنقّل عامة مرتبة في التذييل. يؤدي غياب الحقل إلى استخدام الروابط الافتراضية."
+          },
+          "public_locales": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "en",
+                "ar",
+                "fr"
+              ]
+            },
+            "description": "Languages visible on the public site. Omit to enable all supported languages. / لغات الموقع العام الظاهرة. عند غياب الحقل تظهر جميع اللغات المدعومة."
           }
         },
         "required": [

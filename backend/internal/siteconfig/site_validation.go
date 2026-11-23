@@ -17,6 +17,9 @@ func siteIssues(s Site) []FieldIssue {
 	if _, ok := theme.Lookup(s.PublicTheme); !ok && !theme.IsPack(s.PublicTheme) {
 		add("public_theme", "public_theme")
 	}
+	if !validPublicLocales(s.PublicLocales) {
+		add("public_locales", "public_locales")
+	}
 	if s.LogoMode != "wordmark" && s.LogoMode != "monogram" && s.LogoMode != "image" {
 		add("logo_mode", "logo_mode")
 	}

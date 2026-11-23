@@ -730,7 +730,11 @@ export function AuthPage() {
           <p className={styles.help}>
             <Label name="auth.backupHelp" />
           </p>
-          <a href={`/${locale}`}>
+          <a
+            href={
+              configuration?.site.public_locales?.includes(locale) === false ? '/' : `/${locale}`
+            }
+          >
             <Label name="auth.viewSite" />
           </a>
         </>

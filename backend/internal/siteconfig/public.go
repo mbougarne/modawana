@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"slices"
 
 	"github.com/mbougarne/modawana/backend/internal/theme"
 )
@@ -85,7 +86,7 @@ func (s *Service) Public(ctx context.Context, locale string) (Public, error) {
 	if !out.Profile.ShowNow {
 		out.Profile.Now = []NowRow{}
 	}
-	if out.Profile.AboutKey != "" {
+	if out.Profile.AboutKey != "" && slices.Contains(out.Site.visibleLocales(), locale) {
 		var slug string
 		err := tx.QueryRowContext(ctx, `SELECT v.slug FROM content_items i JOIN content_versions v ON v.item_id=i.id WHERE i.key=? AND i.kind='doc' AND v.locale=? AND v.published_revision_id IS NOT NULL`, out.Profile.AboutKey, locale).Scan(&slug)
 		if err == nil {
@@ -94,8 +95,8 @@ func (s *Service) Public(ctx context.Context, locale string) (Public, error) {
 		if err != nil && !errors.Is(err, sql.ErrNoRows) {
 			return out, err
 		}
-		out.Profile.AboutKey = ""
 	}
+	out.Profile.AboutKey = ""
 	for path, v := range translations("profile", raw(out.Profile)) {
 		en, text := "", ""
 		_ = json.Unmarshal(v["en"], &en)
