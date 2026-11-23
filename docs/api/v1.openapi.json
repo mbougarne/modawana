@@ -7057,6 +7057,62 @@
         ],
         "additionalProperties": false
       },
+      "PageBlockDocument": {
+        "type": "object",
+        "description": "At most 256 KiB UTF-8 JSON, 100 total blocks and three block levels. IDs are unique across columns. / حتى 256 KiB بترميز UTF-8 و100 كتلة إجمالاً وثلاثة مستويات. معرّفات الكتل فريدة عبر الأعمدة.",
+        "properties": {
+          "version": {
+            "const": 1
+          },
+          "blocks": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/PageBlock"
+            }
+          }
+        },
+        "required": [
+          "version",
+          "blocks"
+        ],
+        "additionalProperties": false
+      },
+      "PageBlock": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
+          },
+          "type": {
+            "enum": [
+              "core.markdown",
+              "core.heading",
+              "core.image",
+              "core.button",
+              "core.columns",
+              "core.hero",
+              "core.call_to_action",
+              "core.content_list"
+            ]
+          },
+          "version": {
+            "const": 1
+          },
+          "properties": {
+            "type": "object",
+            "description": "Fields are validated by block type and version. See the content API guide. / تُتحقق الحقول بحسب نوع الكتلة وإصدارها. راجع دليل واجهة المحتوى."
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "version",
+          "properties"
+        ],
+        "additionalProperties": false
+      },
       "DraftInput": {
         "type": "object",
         "properties": {
@@ -7144,6 +7200,15 @@
               "landing"
             ],
             "description": "Template for kind=page. Omit for Standard. / قالب النوع page. غياب الحقل يختار القالب القياسي."
+          },
+          "body_format": {
+            "enum": [
+              "markdown",
+              "blocks"
+            ]
+          },
+          "page_blocks": {
+            "$ref": "#/components/schemas/PageBlockDocument"
           }
         },
         "required": [
@@ -7151,10 +7216,42 @@
           "kind",
           "source_locale",
           "slug",
-          "title",
-          "markdown"
+          "title"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "if": {
+          "properties": {
+            "body_format": {
+              "const": "blocks"
+            }
+          },
+          "required": [
+            "body_format"
+          ]
+        },
+        "then": {
+          "required": [
+            "page_blocks"
+          ],
+          "properties": {
+            "kind": {
+              "const": "page"
+            },
+            "markdown": {
+              "const": ""
+            }
+          }
+        },
+        "else": {
+          "required": [
+            "markdown"
+          ],
+          "not": {
+            "required": [
+              "page_blocks"
+            ]
+          }
+        }
       },
       "RevisionAction": {
         "type": "object",
@@ -7260,6 +7357,14 @@
               "standard",
               "landing"
             ]
+          },
+          "body_format": {
+            "enum": [
+              "blocks"
+            ]
+          },
+          "page_blocks": {
+            "$ref": "#/components/schemas/PageBlockDocument"
           }
         },
         "required": [
@@ -7594,6 +7699,10 @@
               "standard",
               "landing"
             ]
+          },
+          "body_format": {
+            "const": "blocks",
+            "description": "Indicates a block revision. The document is available through owner revision endpoints. / يشير إلى مراجعة كتل. تتوفر الوثيقة عبر مسارات المراجعات الخاصة بالمالك."
           }
         },
         "required": [

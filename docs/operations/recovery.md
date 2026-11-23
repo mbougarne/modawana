@@ -7,7 +7,8 @@
 Content export is not disaster recovery. `blog backup --file /private/snapshot.zip`
 uses SQLite's online backup API, then copies every referenced retained revision and
 upload under the storage maintenance lock. The ZIP includes schema history, hashes
-and sizes. Keep it private: it contains owner credential records and private quiz
+and sizes. Markdown and standalone page block artifacts are copied with their
+full history and linked draft and publication pointers. Keep it private: it contains owner credential records and private quiz
 answers. The separate 32-byte `BLOG_AUTH_KEY_FILE` is deliberately excluded. Back up
 that key in a separate encrypted offline location, with the age decryption identity
 and independent passkey/recovery instructions. Never commit these secrets.
@@ -41,7 +42,9 @@ BLOG_DATA_ROOT=/srv/modawana/restored ./blog restore --file /private/restore.zip
 ```
 
 The destination must not exist. Restore verifies the exact schema, checksums,
-references and file limits before atomic installation. It removes all restored
+references and file limits before atomic installation. A backup containing
+block revisions requires a block-aware release. Markdown-only backups remain
+compatible when their SQLite schema matches. It removes all restored
 passkeys, passwords/TOTP, sessions, API tokens, grants and recovery codes, and resets
 browser learning identities/attempts/progress. A credential revoked after backup
 cannot become usable again. The login email remains as the recovery identifier,
@@ -82,10 +85,13 @@ virtual passkey re-enrollment and reopening; it does not prove physical-key supp
 تُستبعد قيم الأسرار. أدخلها مجدداً بعد الاستعادة. تُستعاد الإضافة معطلة
 إذا غابت ملفاتها المعتمدة. [استعادة الإضافات](../plugins.ar.md#واجهة-المالك-والاستعادة)
 
-لا يُعد تصدير المحتوى بديلاً عن خطة التعافي من الكوارث (disaster recovery). يقوم الأمر `blog backup --file /private/snapshot.zip` بالاعتماد على واجهة النسخ الاحتياطي الحي في SQLite، ثم ينسخ كافة المراجعات والوسائط المحفوظة والمشار إليها تحت حماية قفل صيانة التخزين الحصري. يتضمن الأرشيف المضغوط (ZIP) تاريخ مخطط البيانات، وأحجام الملفات، وبصمات التجزئة؛ ويحتوي على سجلات بيانات اعتماد المالك وإجابات الاختبارات الخاصة؛ لذا يجب الحفاظ على سريته التامة. ولا يتضمن الأرشيف ملف مفتاح التشفير المنفصل ذي 32 بايت والمحدد في `BLOG_AUTH_KEY_FILE`؛ حيث يجب أخذ نسخة احتياطية مشفرة ومستقلة لهذا المفتاح في موقع آمن غير متصل بالإنترنت، مصحوباً بهوية فك التشفير لأداة age وتعليمات تسجيل مفتاح المرور البديل والاسترداد. احذر من وضع هذه الأسرار في مستودع Git.
+لا يُعد تصدير المحتوى بديلاً عن خطة التعافي من الكوارث (disaster recovery). يقوم الأمر `blog backup --file /private/snapshot.zip` بالاعتماد على واجهة النسخ الاحتياطي الحي في SQLite، ثم ينسخ كافة المراجعات والوسائط المحفوظة والمشار إليها تحت حماية قفل صيانة التخزين الحصري. يتضمن الأرشيف المضغوط (ZIP) تاريخ مخطط البيانات، وأحجام الملفات، وبصمات التجزئة؛ وتشمل المراجعات ملفات Markdown ووثائق كتل الصفحات المستقلة مع سجلها الكامل ومؤشرات المسودات والنشر؛ ويحتوي الأرشيف على سجلات بيانات اعتماد المالك وإجابات الاختبارات الخاصة؛ لذا يجب الحفاظ على سريته التامة. ولا يتضمن الأرشيف ملف مفتاح التشفير المنفصل ذي 32 بايت والمحدد في `BLOG_AUTH_KEY_FILE`؛ حيث يجب أخذ نسخة احتياطية مشفرة ومستقلة لهذا المفتاح في موقع آمن غير متصل بالإنترنت، مصحوباً بهوية فك التشفير لأداة age وتعليمات تسجيل مفتاح المرور البديل والاسترداد. احذر من وضع هذه الأسرار في مستودع Git.
 
 يبلغ هدف نقطة التعافي المستهدف (RPO) **24 ساعة** كحد أقصى، شريطة نجاح النقل اليومي للنسخ خارج الخادم. ثبّت كلاً من age وrsync وOpenSSH وحزم أدوات GNU (coreutils وfindutils وflock) على الجهاز المضيف بنظام Linux. اضبط المتغير `BLOG_BINARY` بمسار تنفيذي أصلي ومطلق، مع متغيرات بيئة BLOG المعتادة، وحدد مجلداً خاصاً خارج مجلد البيانات في `BLOG_BACKUP_DIR`، ومفتاح المستلم العام لأداة age في `BLOG_BACKUP_RECIPIENT`، ومسار النقل البعيد في `BLOG_BACKUP_REMOTE=user@host:/private/path`. تحقق من صحة مفتاح مضيف SSH وأنشئ حساب نسخ احتياطي مخصصاً ومقيد الصلاحيات على الخادم البعيد. شغّل السكربت `sh scripts/backup-daily.sh`؛ حيث يقوم بتشفير النسخة قبل نقلها، ويحتفظ بسبع نسخ يومية وأربع نسخ أسبوعية مشفرة، ولا يبدأ بحذف النسخ القديمة إلا بعد اكتمال رفع النسختين بنجاح. ويجب أن يوفر الخادم البعيد أداتي GNU find وsh. ثبّت ملفي خدمة ومؤقت systemd المرفقين مع تعديل المسارات لتكون مطلقة، واستخدم ملف بيئة خاصاً محمياً، ثم فعّل المؤقت عبر: `systemctl enable --now blog-backup.timer`. راقب الحالة عبر `systemctl status blog-backup.timer` و`journalctl -u blog-backup.service`. واحرص على إعداد تنبيه فوري عند فشل أي تشغيل أو إذا تجاوز عمر أحدث نسخة بعيدة 24 ساعة. لا يقوم المستودع بتهيئة وجهة نسخ بعيدة نيابة عنك. وفي بيئات الحاويات، استخدم ملفاً تنفيذياً أصلياً مبنياً من **المراجعة البرمجية نفسها** أو غلافاً برمجياً موثوقاً يستدعي:
 `docker compose exec -T blog /app/blog backup --file /backups/...`؛ مع مراعاة إتاحة مسار المجلد المؤقت للسكربت اليومي داخل الحاوية بالمسار المطابق نفسه.
+
+تتطلب استعادة أرشيف يحتوي على مراجعات كتل إصداراً يدعمها. تبقى أرشيفات
+Markdown فقط متوافقة عندما يطابق مخطط SQLite الإصدار المستخدم.
 
 إجراء تجربة الاستعادة الميدانية (باستخدام الإصدار المطابق للبرنامج مع تحميل متغيرات البيئة الخاصة):
 

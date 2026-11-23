@@ -14,6 +14,15 @@ type PortableRevision struct {
 	Input    DraftInput `json:"input"`
 }
 
+// ExpectedBodyPath is the generated archive path for a portable revision.
+func (r PortableRevision) ExpectedBodyPath() string {
+	suffix := ".md"
+	if r.Input.BodyFormat == BlockBodyFormat {
+		suffix = ".blocks.json"
+	}
+	return "content/" + r.ID + suffix
+}
+
 // PortableRevisions exports all retained revisions, with exact source linkage.
 func (s *Service) PortableRevisions(ctx context.Context) ([]PortableRevision, error) {
 	rows, e := s.DB.QueryContext(ctx, `SELECT r.id,v.id,i.key,v.locale,i.kind,i.source_locale,coalesce(c.key,''),coalesce(m.position,0),r.id=v.draft_revision_id FROM revisions r JOIN content_versions v ON v.id=r.version_id JOIN content_items i ON i.id=v.item_id LEFT JOIN collection_items m ON m.item_id=i.id LEFT JOIN collections c ON c.id=m.collection_id ORDER BY (v.locale!=i.source_locale),r.created_at,r.id`)
@@ -49,8 +58,10 @@ func (s *Service) PortableRevisions(ctx context.Context) ([]PortableRevision, er
 		if e != nil {
 			return nil, e
 		}
-		in := DraftInput{Kind: r.kind, PageTemplate: v.PageTemplate, SourceLocale: r.source, Slug: v.Slug, Title: v.Title, Summary: v.Summary, Markdown: v.Markdown, SourceRevisionID: v.SourceID, CategoryKey: v.CategoryKey, TagKeys: v.Tags, CoverMediaID: v.CoverID, Presentations: v.Presentations, CollectionKey: r.collection, Position: r.position, Quiz: v.Quiz}
-		out = append(out, PortableRevision{ID: r.id, Key: r.key, Locale: r.locale, BodyPath: "content/" + r.id + ".md", Current: r.current, Input: in})
+		in := DraftInput{Kind: r.kind, PageTemplate: v.PageTemplate, BodyFormat: v.BodyFormat, PageBlocks: v.PageBlocks, SourceLocale: r.source, Slug: v.Slug, Title: v.Title, Summary: v.Summary, Markdown: v.Markdown, SourceRevisionID: v.SourceID, CategoryKey: v.CategoryKey, TagKeys: v.Tags, CoverMediaID: v.CoverID, Presentations: v.Presentations, CollectionKey: r.collection, Position: r.position, Quiz: v.Quiz}
+		entry := PortableRevision{ID: r.id, Key: r.key, Locale: r.locale, Current: r.current, Input: in}
+		entry.BodyPath = entry.ExpectedBodyPath()
+		out = append(out, entry)
 	}
 	return out, nil
 }

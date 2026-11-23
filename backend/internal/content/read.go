@@ -3,6 +3,7 @@ package content
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"github.com/mbougarne/modawana/backend/internal/access"
 	"github.com/mbougarne/modawana/backend/internal/learning"
@@ -19,6 +20,8 @@ type Revision struct {
 	Markdown      string               `json:"markdown"`
 	Slug          string               `json:"slug"`
 	PageTemplate  string               `json:"page_template,omitempty"`
+	BodyFormat    string               `json:"body_format,omitempty"`
+	PageBlocks    json.RawMessage      `json:"page_blocks,omitempty"`
 	SourceID      string               `json:"source_revision_id"`
 	CategoryKey   string               `json:"category_key"`
 	Tags          []string             `json:"tag_keys"`
@@ -53,7 +56,14 @@ func (s *Service) revision(ctx context.Context, q query, id, versionID string) (
 	if e != nil {
 		return out, e
 	}
-	out.Markdown = string(b)
+	if file.HasPageBlocks() {
+		if e = ValidatePageBlocks(b); e != nil {
+			return out, storage.ErrIntegrity
+		}
+		out.BodyFormat, out.PageBlocks = BlockBodyFormat, b
+	} else {
+		out.Markdown = string(b)
+	}
 	rows, e := q.QueryContext(ctx, "SELECT t.key FROM revision_tags rt JOIN tags t ON t.id=rt.tag_id WHERE rt.revision_id=? ORDER BY t.key", id)
 	if e != nil {
 		return out, e
@@ -214,7 +224,7 @@ func (s *Service) Restore(ctx context.Context, owner, key, locale, retryKey stri
 	if v.First != "" {
 		slug = v.Slug
 	}
-	in := DraftInput{Quiz: r.Quiz, ExpectedVersion: a.ExpectedVersion, Kind: v.Kind, PageTemplate: r.PageTemplate, SourceLocale: v.Source, Slug: slug, Title: r.Title, Summary: r.Summary, Markdown: r.Markdown, SourceRevisionID: r.SourceID, CategoryKey: r.CategoryKey, TagKeys: r.Tags, CoverMediaID: r.CoverID, Presentations: r.Presentations}
+	in := DraftInput{Quiz: r.Quiz, ExpectedVersion: a.ExpectedVersion, Kind: v.Kind, PageTemplate: r.PageTemplate, BodyFormat: r.BodyFormat, PageBlocks: r.PageBlocks, SourceLocale: v.Source, Slug: slug, Title: r.Title, Summary: r.Summary, Markdown: r.Markdown, SourceRevisionID: r.SourceID, CategoryKey: r.CategoryKey, TagKeys: r.Tags, CoverMediaID: r.CoverID, Presentations: r.Presentations}
 	// The exact historical revision participates in the operation key even if two
 	// revisions have identical bytes and metadata.
 	return s.save(ctx, owner, key, locale, retryKey, "restore:"+a.RevisionID, in)

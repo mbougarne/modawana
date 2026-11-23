@@ -46,30 +46,41 @@ func (s *Service) Import(ctx context.Context, owner, source string, authorize fu
 		return result, bundle.ErrInvalid
 	}
 	var data Data
-	if bundle.Decode(raw, &data) != nil || data.Schema != 1 || len(data.Revisions) > 2000 || len(data.Media) > 10000 || len(data.Collections) > 1000 || len(data.Taxonomy) > 3000 || len(data.Configuration) != 3 {
+	if bundle.Decode(raw, &data) != nil || (data.Schema != 1 && data.Schema != 2) || len(data.Revisions) > 2000 || len(data.Media) > 10000 || len(data.Collections) > 1000 || len(data.Taxonomy) > 3000 || len(data.Configuration) != 3 {
 		return result, bundle.ErrInvalid
 	}
-	expected := map[string]bool{"data.json": true}
+	expected := map[string]int64{"data.json": bundle.MaxManifest}
 	ids := map[string]bool{}
 	for _, r := range data.Revisions {
-		if !media.ID.MatchString(r.ID) || ids[r.ID] || r.BodyPath != "content/"+r.ID+".md" || r.Input.Markdown != "" {
+		if !media.ID.MatchString(r.ID) || ids[r.ID] || r.BodyPath != r.ExpectedBodyPath() ||
+			r.Input.Markdown != "" || len(r.Input.PageBlocks) != 0 {
 			return result, bundle.ErrInvalid
 		}
 		ids[r.ID] = true
-		expected[r.BodyPath] = true
+		switch r.Input.BodyFormat {
+		case "":
+			expected[r.BodyPath] = content.MaxBody
+		case content.BlockBodyFormat:
+			if data.Schema != 2 || r.Input.Kind != "page" {
+				return result, bundle.ErrInvalid
+			}
+			expected[r.BodyPath] = content.MaxPageBlockBytes
+		default:
+			return result, bundle.ErrInvalid
+		}
 	}
 	for _, m := range data.Media {
 		if !media.ID.MatchString(m.ID) || ids[m.ID] || m.Path != "media/"+m.ID+".bin" {
 			return result, bundle.ErrInvalid
 		}
 		ids[m.ID] = true
-		expected[m.Path] = true
+		expected[m.Path] = bundle.MaxFile
 	}
 	if len(expected) != len(manifest.Files) {
 		return result, bundle.ErrInvalid
 	}
 	for _, f := range manifest.Files {
-		if !expected[f.Path] {
+		if max, ok := expected[f.Path]; !ok || f.Size > max {
 			return result, bundle.ErrInvalid
 		}
 	}
@@ -150,9 +161,16 @@ func (s *Service) Import(ctx context.Context, owner, source string, authorize fu
 			if e != nil {
 				return result, e
 			}
-			in.Markdown = string(body)
-			for old, id := range mediaIDs {
-				in.Markdown = strings.ReplaceAll(in.Markdown, "/media/"+old, "/media/"+id)
+			if in.BodyFormat == content.BlockBodyFormat {
+				in.PageBlocks, e = content.RemapPageBlockMedia(body, mediaIDs)
+				if e != nil {
+					return result, fmt.Errorf("block document import rejected: %w", e)
+				}
+			} else {
+				in.Markdown = string(body)
+				for old, id := range mediaIDs {
+					in.Markdown = strings.ReplaceAll(in.Markdown, "/media/"+old, "/media/"+id)
+				}
 			}
 			if in.CoverMediaID, e = remap(in.CoverMediaID, mediaIDs); e != nil {
 				return result, e

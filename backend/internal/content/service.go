@@ -64,6 +64,8 @@ type DraftInput struct {
 	ExpectedVersion           *int64               `json:"expected_version"`
 	Kind                      string               `json:"kind"`
 	PageTemplate              string               `json:"page_template,omitempty"`
+	BodyFormat                string               `json:"body_format,omitempty"`
+	PageBlocks                json.RawMessage      `json:"page_blocks,omitempty"`
 	SourceLocale              string               `json:"source_locale"`
 	Slug                      string               `json:"slug"`
 	Title                     string               `json:"title"`
@@ -142,7 +144,7 @@ func validKind(kind string) bool {
 	return kind == "article" || kind == "lesson" || kind == "doc" || kind == "page"
 }
 
-func refs(in DraftInput) ([]string, error) {
+func refs(in DraftInput, blocks blockReferences) ([]string, error) {
 	if !slugPattern.MatchString(in.Slug) {
 		return nil, typeIssue("slug", "content_slug")
 	}
@@ -168,46 +170,12 @@ func refs(in DraftInput) ([]string, error) {
 		}
 		seenTags[k] = true
 	}
-	found := map[string]bool{}
-	source := []byte(in.Markdown)
-	root := goldmark.DefaultParser().Parse(text.NewReader(source))
-	e := ast.Walk(root, func(n ast.Node, enter bool) (ast.WalkStatus, error) {
-		if !enter {
-			return ast.WalkContinue, nil
-		}
-		var dest []byte
-		img := false
-		switch n := n.(type) {
-		case *ast.Image:
-			dest = n.Destination
-			img = true
-		case *ast.Link:
-			dest = n.Destination
-		case *ast.RawHTML, *ast.HTMLBlock:
-			return ast.WalkStop, ErrInvalid
-		}
-		if dest != nil {
-			if strings.Contains(string(dest), "\\") || strings.HasPrefix(string(dest), "//") {
-				return ast.WalkStop, ErrInvalid
-			}
-			u, e := url.Parse(string(dest))
-			if e != nil || u.Scheme == "" && (u.Host != "" || strings.HasPrefix(u.Path, "//") || strings.Contains(u.Path, "\\")) {
-				return ast.WalkStop, ErrInvalid
-			}
-			if strings.HasPrefix(u.Path, "/media/") && u.Scheme == "" && u.Host == "" {
-				id := strings.TrimPrefix(u.Path, "/media/")
-				if !media.ID.MatchString(id) || u.RawQuery != "" || u.Fragment != "" || u.RawPath != "" {
-					return ast.WalkStop, ErrInvalid
-				}
-				found[id] = true
-			} else if img || u.Scheme != "" && u.Scheme != "https" && u.Scheme != "http" && u.Scheme != "mailto" || u.Scheme == "" && !strings.HasPrefix(string(dest), "#") && !strings.HasPrefix(string(dest), "/") {
-				return ast.WalkStop, ErrInvalid
-			}
-		}
-		return ast.WalkContinue, nil
-	})
-	if e != nil {
-		return nil, e
+	found := blocks.media
+	if found == nil {
+		found = map[string]bool{}
+	}
+	if err := markdownReferences(in.Markdown, found); err != nil {
+		return nil, err
 	}
 	if in.CoverMediaID != "" {
 		if !media.ID.MatchString(in.CoverMediaID) {
@@ -240,6 +208,54 @@ func refs(in DraftInput) ([]string, error) {
 	sort.Strings(ids)
 	return ids, nil
 }
+func markdownReferences(markdown string, found map[string]bool) error {
+	return walkMarkdownReferences([]byte(markdown), func(id string, _ []byte) error {
+		found[id] = true
+		return nil
+	})
+}
+
+func walkMarkdownReferences(source []byte, visit func(id string, destination []byte) error) error {
+	root := goldmark.DefaultParser().Parse(text.NewReader(source))
+	return ast.Walk(root, func(n ast.Node, enter bool) (ast.WalkStatus, error) {
+		if !enter {
+			return ast.WalkContinue, nil
+		}
+		var dest []byte
+		img := false
+		switch n := n.(type) {
+		case *ast.Image:
+			dest = n.Destination
+			img = true
+		case *ast.Link:
+			dest = n.Destination
+		case *ast.RawHTML, *ast.HTMLBlock:
+			return ast.WalkStop, ErrInvalid
+		}
+		if dest != nil {
+			if strings.Contains(string(dest), "\\") || strings.HasPrefix(string(dest), "//") {
+				return ast.WalkStop, ErrInvalid
+			}
+			u, e := url.Parse(string(dest))
+			if e != nil || u.Scheme == "" && (u.Host != "" || strings.HasPrefix(u.Path, "//") || strings.Contains(u.Path, "\\")) {
+				return ast.WalkStop, ErrInvalid
+			}
+			if strings.HasPrefix(u.Path, "/media/") && u.Scheme == "" && u.Host == "" {
+				id := strings.TrimPrefix(u.Path, "/media/")
+				if !media.ID.MatchString(id) || u.RawQuery != "" || u.Fragment != "" || u.RawPath != "" {
+					return ast.WalkStop, ErrInvalid
+				}
+				if err := visit(id, dest); err != nil {
+					return ast.WalkStop, err
+				}
+			} else if img || u.Scheme != "" && u.Scheme != "https" && u.Scheme != "http" && u.Scheme != "mailto" || u.Scheme == "" && !strings.HasPrefix(string(dest), "#") && !strings.HasPrefix(string(dest), "/") {
+				return ast.WalkStop, ErrInvalid
+			}
+		}
+		return ast.WalkContinue, nil
+	})
+}
+
 func (s *Service) Save(ctx context.Context, owner, key, locale, retryKey string, in DraftInput) (Result, error) {
 	return s.save(ctx, owner, key, locale, retryKey, "draft", in)
 }
@@ -248,7 +264,11 @@ func (s *Service) save(ctx context.Context, owner, key, locale, retryKey, op str
 	if !keyPattern.MatchString(key) || !localeOK(locale) {
 		return out, ErrInvalid
 	}
-	ids, e := refs(in)
+	blocks, e := draftBlockReferences(in)
+	if e != nil {
+		return out, e
+	}
+	ids, e := refs(in, blocks)
 	if e != nil {
 		return out, e
 	}
@@ -301,10 +321,6 @@ func (s *Service) save(ctx context.Context, owner, key, locale, retryKey, op str
 			converted = true
 		}
 
-		file, revision, e := s.Files.WriteLocked(item, locale, []byte(in.Markdown))
-		if e != nil {
-			return e
-		}
 		if fresh {
 			if _, e = tx.ExecContext(ctx, "INSERT INTO content_items(id,key,kind,source_locale) VALUES(?,?,?,?)", item, key, in.Kind, in.SourceLocale); e != nil {
 				return e
@@ -314,6 +330,21 @@ func (s *Service) save(ctx context.Context, owner, key, locale, retryKey, op str
 		create := errors.Is(e, sql.ErrNoRows)
 		if e != nil && !create {
 			return e
+		}
+		if v.Number != *in.ExpectedVersion {
+			return db.ErrVersionConflict
+		}
+		if op == "draft" && in.Kind == "page" && !create && in.BodyFormat == "" {
+			var prior storage.File
+			if e = tx.QueryRowContext(ctx, "SELECT markdown_path FROM revisions WHERE id=?", v.Draft).Scan(&prior.Key); e != nil {
+				return e
+			}
+			if prior.HasPageBlocks() {
+				return typeIssue("body_format", "body_format")
+			}
+		}
+		if v.First != "" && v.Slug != in.Slug {
+			return ErrInvalid
 		}
 		if op == "draft" && (create || v.First == "") {
 			base := []rune(in.Slug)
@@ -337,26 +368,25 @@ func (s *Service) save(ctx context.Context, owner, key, locale, retryKey, op str
 				}
 			}
 		}
+		writeBody, body := s.Files.WriteLocked, []byte(in.Markdown)
+		if in.BodyFormat == BlockBodyFormat {
+			writeBody, body = s.Files.WritePageBlocksLocked, in.PageBlocks
+		}
+		file, revision, e := writeBody(item, locale, body)
+		if e != nil {
+			return e
+		}
 		versionSlug := in.Slug
 		if op == "import-stage" {
 			versionSlug = "import-" + revision
 		}
 		if create {
-			if *in.ExpectedVersion != 0 {
-				return db.ErrVersionConflict
-			}
 			v.ID, e = db.NewID()
 			if e != nil {
 				return e
 			}
 			_, e = tx.ExecContext(ctx, "INSERT INTO content_versions(id,item_id,locale,slug,draft_revision_id) VALUES(?,?,?,?,?)", v.ID, item, locale, versionSlug, revision)
 		} else {
-			if v.Number != *in.ExpectedVersion {
-				return db.ErrVersionConflict
-			}
-			if v.First != "" && v.Slug != in.Slug {
-				return ErrInvalid
-			}
 			_, e = tx.ExecContext(ctx, "UPDATE content_versions SET slug=?,draft_revision_id=?,version=version+1 WHERE id=?", versionSlug, revision, v.ID)
 		}
 		if e != nil {
@@ -395,6 +425,11 @@ func (s *Service) save(ctx context.Context, owner, key, locale, retryKey, op str
 		}
 		if in.CoverMediaID != "" && formats[in.CoverMediaID].Kind != "image" {
 			return ErrInvalid
+		}
+		for id := range blocks.images {
+			if formats[id].Kind != "image" {
+				return ErrInvalid
+			}
 		}
 		for _, p := range in.Presentations {
 			if formats[p.MediaID].Kind != "video" || p.PosterID != "" && formats[p.PosterID].Kind != "image" || p.TrackID != "" && formats[p.TrackID].Kind != "captions" {

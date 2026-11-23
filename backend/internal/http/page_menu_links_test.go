@@ -124,6 +124,8 @@ func TestPageMenuLinksFollowLocalizedPublication(t *testing.T) {
 
 	in.ExpectedVersion = &live.Version
 	in.Title = "Updated contact title"
+	in.BodyFormat, in.Markdown = content.BlockBodyFormat, ""
+	in.PageBlocks = json.RawMessage(`{"version":1,"blocks":[{"id":"heading","type":"core.heading","version":1,"properties":{"level":2,"text":"Contact"}}]}`)
 	update, err := c.Save(ctx, owner, key, "en", "", in)
 	if err != nil {
 		t.Fatal(err)
@@ -156,7 +158,7 @@ func TestPageMenuLinksFollowLocalizedPublication(t *testing.T) {
 	}
 	publish("en", "publish", content.Action{ExpectedVersion: &unpublished.Version, RevisionID: update.RevisionID})
 	if html := request("/en", 200); strings.Count(html, ">"+in.Title+"</a>") != 3 {
-		t.Fatal("republishing should update the menu label")
+		t.Fatal("publishing a block revision should update the existing menu link")
 	}
 	site.PublicLocales = []string{"en"}
 	if _, err := settings.Apply(ctx, owner, "site", input()); err != nil {

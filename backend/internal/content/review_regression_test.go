@@ -17,14 +17,14 @@ func TestMarkdownRejectsNetworkPathAndBackslashLinks(t *testing.T) {
 	for _, destination := range []string{"//evil.example/x", `/\evil.example/x`, "/%5cevil.example/x", "/%2f%2fevil.example/x"} {
 		in := input()
 		in.Markdown = "[link](" + destination + ")"
-		if _, e := refs(in); !errors.Is(e, ErrInvalid) {
+		if _, e := refs(in, blockReferences{}); !errors.Is(e, ErrInvalid) {
 			t.Fatalf("accepted %q: %v", destination, e)
 		}
 	}
 	for _, destination := range []string{"/en/articles/first", "#section", "https://example.test/path", "mailto:owner@example.test"} {
 		in := input()
 		in.Markdown = "[link](" + destination + ")"
-		if _, e := refs(in); e != nil {
+		if _, e := refs(in, blockReferences{}); e != nil {
 			t.Fatalf("rejected %q: %v", destination, e)
 		}
 	}

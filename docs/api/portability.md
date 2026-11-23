@@ -22,9 +22,14 @@ build/blog export --file /private/content.zip
 build/blog import --file /private/content.zip
 ```
 
-The archive contains schema-1 `manifest.json`, checksums and byte sizes, `data.json`,
-selected Markdown files (the exporter selects **all retained revisions**) and
-referenced upload files. Current revision pointers and source-translation links
+The archive contains a schema-1 `manifest.json`, checksums and byte sizes,
+`data.json`, body files for **all retained revisions**, and referenced uploads.
+Markdown-only archives keep the schema-1 `data.json` contract. Archives with
+block revisions use schema 2 in `data.json` and store each block document at
+`content/<revision-id>.blocks.json`, with `body_format: "blocks"` in its revision
+metadata. Both schemas can be imported. Block IDs and order survive import,
+and managed media references use the newly assigned upload IDs.
+Current revision pointers and source-translation links
 are preserved through ID remapping. Quizzes include private answer keys, so treat
 this as private owner data. Applied configuration/label overrides, taxonomy,
 collection locales, draft plans and intended gates are included. Credentials,
@@ -44,7 +49,7 @@ All persisted IDs and file paths are generated again; source revision, quiz and
 media references are remapped. Only after full validation are files installed and
 metadata committed together into the still-empty destination. A failed commit may
 leave unreferenced generated files; bounded maintenance collects old orphans.
-No imported article/lesson/document is published, no collection plan is active,
+No imported content is published, no collection plan is active,
 and no translation or assessment review is copied. Imported collection visibility
 starts off. Review quizzes and gates, publish intended revisions, then apply plans.
 Configuration is retained as unapplied history: open Settings/Profile/Labels,

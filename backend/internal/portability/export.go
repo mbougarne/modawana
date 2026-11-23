@@ -94,11 +94,17 @@ func (s *Service) Export(ctx context.Context, out io.Writer) error {
 		paths := []string{"data.json"}
 		for i := range data.Revisions {
 			r := &data.Revisions[i]
-			if e = put(root, r.BodyPath, []byte(r.Input.Markdown)); e != nil {
+			body := []byte(r.Input.Markdown)
+			if r.Input.BodyFormat == content.BlockBodyFormat {
+				data.Schema = 2
+				body = r.Input.PageBlocks
+			}
+			if e = put(root, r.BodyPath, body); e != nil {
 				return e
 			}
 			paths = append(paths, r.BodyPath)
 			r.Input.Markdown = ""
+			r.Input.PageBlocks = nil
 		}
 		for _, locale := range []string{"en", "ar", "fr"} {
 			terms, e := cs.Taxonomy(ctx, locale, true)

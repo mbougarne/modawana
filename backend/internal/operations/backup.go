@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"github.com/mbougarne/modawana/backend/internal/bundle"
+	"github.com/mbougarne/modawana/backend/internal/content"
 	"github.com/mbougarne/modawana/backend/internal/db"
 	"github.com/mbougarne/modawana/backend/internal/plugin"
 	"github.com/mbougarne/modawana/backend/internal/storage"
@@ -35,6 +36,17 @@ func References(ctx context.Context, d *sql.DB) ([]storage.File, error) {
 	}
 	return out, rows.Err()
 }
+func readRevisionArtifact(files *storage.Store, f storage.File) ([]byte, error) {
+	body, err := files.Read(f)
+	if err != nil {
+		return nil, err
+	}
+	if f.HasPageBlocks() && content.ValidatePageBlocks(body) != nil {
+		return nil, storage.ErrIntegrity
+	}
+	return body, nil
+}
+
 func copyFile(source, destination string) error {
 	r, e := os.Open(source)
 	if e != nil {
@@ -104,7 +116,7 @@ func Backup(ctx context.Context, d *sql.DB, files *storage.Store, dataRoot strin
 				return e
 			}
 			if strings.HasPrefix(f.Key, "content/") {
-				b, e := files.Read(f)
+				b, e := readRevisionArtifact(files, f)
 				if e != nil {
 					return e
 				}
@@ -281,7 +293,7 @@ func Restore(ctx context.Context, archive, target string) error {
 	}
 	for _, f := range refs {
 		if strings.HasPrefix(f.Key, "content/") {
-			_, e = fs.Read(f)
+			_, e = readRevisionArtifact(fs, f)
 		} else {
 			var r *os.File
 			r, e = fs.OpenUpload(f)
