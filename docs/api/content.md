@@ -24,7 +24,7 @@ currently identify API resources; HTML reader routes are documented in [public p
 | POST /content/{key}/{locale}/restore | Copy the selected history into a new draft; live pointer unchanged |
 
 A save requires `expected_version`, `kind`, `source_locale`, `slug`, `title` and
-`markdown`. Optional fields: `summary`, `source_revision_id`, `category_key`,
+a body. Markdown requests supply `markdown`. Optional fields: `summary`, `source_revision_id`, `category_key`,
 `tag_keys`, `cover_media_id`, `media_presentations`, `collection_key`, `position`.
 Use version 0 only for a new language version. Stable keys are lowercase ASCII
 letters/digits, `_` and `-`, at most 120 characters, beginning with a letter/digit.
@@ -64,10 +64,56 @@ endpoint. The owner list and public Search accept `kind=page`. Pages support
 translation reviews and media. Quiz, collection assignment, taxonomy and
 content-type conversion are available for their applicable post types.
 
+### Versioned page blocks
+
+A standalone page can save `body_format: "blocks"` and a `page_blocks` document.
+Omit `markdown` or send an empty string with that format. A Markdown draft
+uses the existing request shape. Supply `body_format: "markdown"` explicitly
+to replace a block draft with Markdown. Restoring a historical revision
+copies its body in its original format.
+
+```json
+{
+  "version": 1,
+  "blocks": [
+    {
+      "id": "intro",
+      "type": "core.heading",
+      "version": 1,
+      "properties": { "text": "Welcome", "level": 2 }
+    }
+  ]
+}
+```
+
+The UTF-8 document is limited to 256 KiB, 100 blocks total and three levels of
+blocks including nested columns. Keep a block's ID when editing or moving it.
+IDs must be unique within the document and match
+`^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$`. Document and block versions are both 1.
+Properties marked optional may be omitted. Unknown types, fields, duplicate
+JSON members and null values are rejected.
+
+| Type | Version 1 properties |
+| --- | --- |
+| `core.markdown` | `markdown` up to 64 KiB, with the normal Markdown and managed media rules |
+| `core.heading` | `text` up to 200 characters and `level` from 2 to 6 |
+| `core.image` | Image `media_id`, `alt` up to 400 characters, optional `caption` up to 500 |
+| `core.button` | `label` up to 80 characters and safe `href` up to 2048 |
+| `core.columns` | `columns` containing two or three ordered arrays of blocks |
+| `core.hero` | `heading` up to 200 characters, optional `text` up to 1000, optional image `media_id` with `alt` up to 400 |
+| `core.call_to_action` | `heading` up to 200 characters, optional `text` up to 1000, `label` up to 80, and safe `href` up to 2048 |
+| `core.content_list` | `section` of `writing`, `pages`, `learning` or `docs`, and `limit` from 1 to 12 |
+
+Owner draft and history responses return the stored document in `page_blocks`.
+Block revisions use the same version, review and publication endpoints.
+This release supports storing and transferring blocks. Public pages keep their
+title and summary for a published block revision. Block rendering, previews and
+visual editing are scheduled separately.
+
 ## Review and publication
 
 `POST /content/{key}/{locale}/publish` requires `{expected_version,revision_id}`
-for the exact current draft. It verifies the Markdown and every referenced media
+for the exact current draft. It verifies the revision body and every referenced media
 checksum before changing the live pointer. `unpublish` uses the same fields for
 the exact current live revision and retains all history. Unpublication remains
 possible even when content bytes are damaged. Both support retry keys.

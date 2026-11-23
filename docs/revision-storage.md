@@ -9,7 +9,11 @@ expected version and commits SQLite metadata/draft pointers. Published pointers
 remain unchanged. Expected version zero creates the first language version of an
 existing item; subsequent edits require the current positive version.
 
-Files use generated `content/<item-id>/<en|ar|fr>/<revision-id>.md` keys. A private
+Markdown files use generated `content/<item-id>/<en|ar|fr>/<revision-id>.md`
+keys. A standalone [block revision](api/content.md#versioned-page-blocks) uses
+the same directory and checksum record with the suffix `.blocks.md`. The
+generated suffix identifies the body format within the existing SQLite schema.
+The artifact contains the validated UTF-8 JSON document. A private
 same-directory temporary file is flushed, renamed, and its directory flushed
 before SQLite can reference it. New parent entries are flushed too. SHA-256 and
 byte length are checked on every read; missing or corrupt bodies fail explicitly,

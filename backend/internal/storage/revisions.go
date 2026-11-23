@@ -24,13 +24,17 @@ const MaxMarkdown = 2 << 20
 var ErrStorage = errors.New("revision storage unavailable")
 var ErrIntegrity = errors.New("revision missing or corrupt")
 var idPattern = regexp.MustCompile(`^[0-9a-f]{32}$`)
-var keyPattern = regexp.MustCompile(`^content/[0-9a-f]{32}/(en|ar|fr)/[0-9a-f]{32}\.md$`)
+var keyPattern = regexp.MustCompile(`^content/[0-9a-f]{32}/(en|ar|fr)/[0-9a-f]{32}(?:\.blocks)?\.md$`)
 
 type File struct {
 	Key    string
 	SHA256 string
 	Size   int64
 }
+
+// HasPageBlocks identifies the body format from its generated immutable key.
+func (f File) HasPageBlocks() bool { return strings.HasSuffix(f.Key, ".blocks.md") }
+
 type Store struct {
 	root  *os.Root
 	fault func(string) error
@@ -103,6 +107,15 @@ func (s *Store) safe(p string) bool {
 // WriteLocked requires Exclusive for the full subsequent database transaction.
 // Only generated IDs can name a file. A fresh ID is allocated even for identical bytes.
 func (s *Store) WriteLocked(item, locale string, body []byte) (File, string, error) {
+	return s.writeRevisionLocked(item, locale, ".md", body)
+}
+
+// WritePageBlocksLocked stores UTF-8 JSON using the same durability and hash checks.
+func (s *Store) WritePageBlocksLocked(item, locale string, body []byte) (File, string, error) {
+	return s.writeRevisionLocked(item, locale, ".blocks.md", body)
+}
+
+func (s *Store) writeRevisionLocked(item, locale, extension string, body []byte) (File, string, error) {
 	var out File
 	if !idPattern.MatchString(item) || (locale != "en" && locale != "ar" && locale != "fr") || len(body) > MaxMarkdown || !utf8.Valid(body) {
 		return out, "", ErrStorage
@@ -111,7 +124,7 @@ func (s *Store) WriteLocked(item, locale string, body []byte) (File, string, err
 	if e != nil {
 		return out, "", ErrStorage
 	}
-	return s.writeLocked("content/"+item+"/"+locale, revision, ".md", body)
+	return s.writeLocked("content/"+item+"/"+locale, revision, extension, body)
 }
 func (s *Store) writeLocked(dir, revision, extension string, body []byte) (File, string, error) {
 	var out File
