@@ -1,5 +1,6 @@
 import { Portability } from './Portability';
 import { Plugins } from './Plugins';
+import { DashboardLayoutSettings, OwnerDashboard } from './DashboardScreens';
 import { Organization } from './Organization';
 import { OwnerPageHeading } from './OwnerWorkspace';
 import { useI18n } from '@ui';
@@ -12,7 +13,16 @@ export function OwnerArea({
   page,
 }: {
   page:
-    'posts' | 'pages' | 'editor' | 'media' | 'collections' | 'taxonomy' | 'transfer' | 'plugins';
+    | 'posts'
+    | 'pages'
+    | 'editor'
+    | 'media'
+    | 'collections'
+    | 'taxonomy'
+    | 'transfer'
+    | 'plugins'
+    | 'dashboard'
+    | 'layout';
 }) {
   const { t } = useI18n();
   return (
@@ -24,6 +34,10 @@ export function OwnerArea({
           <EditorPage csrf={csrf} />
         ) : page === 'transfer' ? (
           <Portability csrf={csrf} />
+        ) : page === 'dashboard' ? (
+          <OwnerDashboard />
+        ) : page === 'layout' ? (
+          <DashboardLayoutSettings csrf={csrf} />
         ) : page === 'plugins' ? (
           <Plugins csrf={csrf} />
         ) : page === 'media' ? (

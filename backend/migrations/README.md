@@ -113,3 +113,9 @@ See [durable publication events](../../docs/plugins.md#durable-publication-event
 Adds provider connection bindings, durable verified receipts, and monotonic
 resource status. Signing keys stay outside the data root. See the
 [webhook inbox contract](../../docs/plugins.md#verified-webhook-inbox).
+
+## 0021 — Dashboard layout preferences
+
+Adds independent versioned rows for site defaults and each owner's personal
+layout. Existing browser appearance preferences remain available. See
+[dashboard layout preferences](../../docs/ui-contracts.md#dashboard-layout-preferences).

@@ -16,7 +16,17 @@ import {
   type RegisteredContribution,
 } from './ExtensionCatalog';
 
+import {
+  DashboardLayoutContext,
+  appliedLayout,
+  dashboardURL,
+  orderedItems,
+  type DashboardLayout,
+  type DashboardState,
+} from './DashboardLayout';
+
 const pages = [
+  ['dashboard', 'page'],
   ['posts', 'ul'],
   ['pages', 'page'],
   ['collections', 'folder'],
@@ -30,41 +40,98 @@ const pages = [
   ['security', 'lock'],
   ['transfer', 'upload'],
   ['plugins', 'plug'],
+  ['layout', 'settings'],
 ] as const satisfies readonly (readonly [string, IconName])[];
 
 export function OwnerNavigation({
   current,
   showIcons = false,
   contributions = [],
-}: { current?: string; showIcons?: boolean; contributions?: RegisteredContribution[] } = {}) {
+  layout,
+}: {
+  current?: string;
+  showIcons?: boolean;
+  contributions?: RegisteredContribution[];
+  layout?: DashboardLayout | null;
+} = {}) {
   const { locale, t } = useI18n();
+  const entries = pages
+    .filter(
+      ([page]) =>
+        showIcons ||
+        layout?.navigation ||
+        page === current ||
+        (page !== 'themes' && page !== 'menus'),
+    )
+    .map(([id, icon]) => ({
+      id: id as string,
+      icon: icon as IconName,
+      label: t('owner.' + id),
+      path: `/${locale}/admin/${id}`,
+    }));
+  for (const item of contributions) {
+    if (item.kind === 'admin_navigation') {
+      entries.push({
+        id: 'extension:' + contributionKey(item),
+        icon: 'plug',
+        label: localizedContribution(item.label, locale),
+        path: `/${locale}/admin/plugins#extension-${item.extension}${item.target === 'settings' ? ':settings' : ''}`,
+      });
+    }
+  }
+  const pinned = ['profile', 'security', 'layout', 'dashboard'];
+  const renderEntry = (target: (typeof entries)[number], label = target.label) => (
+    <Link
+      key={target.id}
+      to={target.path}
+      aria-current={target.id === current ? 'page' : undefined}
+    >
+      {showIcons && <Icon name={target.icon} size={16} />}
+      <span dir="auto">{label}</span>
+    </Link>
+  );
+  if (!layout?.navigation) {
+    return (
+      <nav className="owner-navigation vb-nav" aria-label={t('config.owner')}>
+        {entries.map((row) => renderEntry(row))}
+      </nav>
+    );
+  }
+  const order = orderedItems(
+    entries.filter((row) => !pinned.includes(row.id)),
+    layout.navigation,
+  ).filter(({ item }) => !item.hidden);
+  const groups = new Map<string, typeof order>();
+  for (const row of order) {
+    const group = row.item.group ?? '';
+    const entries = groups.get(group);
+    if (entries) {
+      entries.push(row);
+    } else {
+      groups.set(group, [row]);
+    }
+  }
   return (
     <nav className="owner-navigation vb-nav" aria-label={t('config.owner')}>
-      {pages
-        .filter(
-          ([page]) => showIcons || page === current || (page !== 'themes' && page !== 'menus'),
-        )
-        .map(([page, icon]) => (
-          <Link
-            key={page}
-            to={`/${locale}/admin/${page}`}
-            aria-current={page === current ? 'page' : undefined}
+      {[...groups].map(([group, rows]) => {
+        const links = rows.map(({ target, item }) =>
+          renderEntry(target, item.rename?.[locale] || item.rename?.en),
+        );
+        return group ? (
+          <div
+            className="workspace-nav-group"
+            key={group}
+            role="group"
+            aria-label={t('ownerLayout.group.' + group)}
           >
-            {showIcons && <Icon name={icon} size={16} />}
-            <span>{t('owner.' + page)}</span>
-          </Link>
-        ))}
-      {contributions
-        .filter((item) => item.kind === 'admin_navigation')
-        .map((item) => (
-          <Link
-            key={contributionKey(item)}
-            to={`/${locale}/admin/plugins#extension-${item.extension}${item.target === 'settings' ? ':settings' : ''}`}
-          >
-            {showIcons && <Icon name="plug" size={16} />}
-            <span>{localizedContribution(item.label, locale)}</span>
-          </Link>
-        ))}
+            <span>{t('ownerLayout.group.' + group)}</span>
+            {links}
+          </div>
+        ) : (
+          links
+        );
+      })}
+      {entries.filter((row) => pinned.includes(row.id)).map((row) => renderEntry(row))}
     </nav>
   );
 }
@@ -115,7 +182,9 @@ export function OwnerWorkspace({
   const { locale, dir, t } = useI18n();
   const { resolved, toggle } = useTheme();
   const location = useLocation();
-  const appearance = useOwnerAppearance();
+  const dashboard = useResource<DashboardState>(csrf ? dashboardURL : undefined);
+  const layout = appliedLayout(dashboard.data);
+  const appearance = useOwnerAppearance(layout?.appearance.theme);
   const slate = appearance.theme === 'slate';
   const postsHref = `/${locale}/admin/posts`;
   const [signingOut, setSigningOut] = useState(false);
@@ -152,6 +221,7 @@ export function OwnerWorkspace({
       <div
         className={`vb owner-workspace ds-ui ${className}`}
         data-admin-theme={appearance.theme}
+        data-dashboard-density={layout?.appearance.density}
         data-admin-color-mode={resolved}
         lang={locale}
         dir={dir}
@@ -208,6 +278,7 @@ export function OwnerWorkspace({
               current={current}
               showIcons={slate}
               contributions={catalog.data?.items}
+              layout={layout}
             />
           </div>
           <div className="workspace-content">
@@ -220,7 +291,11 @@ export function OwnerWorkspace({
               <ExtensionCatalog.Provider
                 value={{ items: catalog.data?.items || [], refresh: catalog.retry }}
               >
-                {children}
+                <DashboardLayoutContext.Provider
+                  value={{ state: dashboard.data, error: dashboard.error, reload: dashboard.retry }}
+                >
+                  {children}
+                </DashboardLayoutContext.Provider>
               </ExtensionCatalog.Provider>
             </main>
           </div>

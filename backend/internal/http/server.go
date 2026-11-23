@@ -257,7 +257,7 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 	if private && len(parts) == 5 && (parts[2] == "preview" || parts[2] == "editor") && (parts[0] == "en" || parts[0] == "ar" || parts[0] == "fr") {
 		locale, status = parts[0], 200
 	}
-	if private && len(parts) == 3 && (parts[2] == "oauth" || parts[2] == "settings" || parts[2] == "themes" || parts[2] == "menus" || parts[2] == "profile" || parts[2] == "labels" || parts[2] == "posts" || parts[2] == "pages" || parts[2] == "new" || parts[2] == "collections" || parts[2] == "taxonomy" || parts[2] == "media" || parts[2] == "transfer" || parts[2] == "plugins") && pageLocale(parts[0]) {
+	if private && len(parts) == 3 && (parts[2] == "oauth" || parts[2] == "settings" || parts[2] == "themes" || parts[2] == "menus" || parts[2] == "profile" || parts[2] == "labels" || parts[2] == "posts" || parts[2] == "pages" || parts[2] == "new" || parts[2] == "collections" || parts[2] == "taxonomy" || parts[2] == "media" || parts[2] == "transfer" || parts[2] == "plugins" || parts[2] == "dashboard" || parts[2] == "layout") && pageLocale(parts[0]) {
 		locale, status = parts[0], 200
 	}
 	login := status == 200 && len(parts) == 2 && parts[1] == "login"
