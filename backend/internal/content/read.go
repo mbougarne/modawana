@@ -268,3 +268,30 @@ func (s *Service) Historical(ctx context.Context, key, locale, id string) (Revis
 	}
 	return s.revision(ctx, s.DB, id, v.ID)
 }
+
+// PreviewPage projects a saved standalone revision. Its caller must authorize
+// the owner before invoking it.
+func (s *Service) PreviewPage(ctx context.Context, key, locale, id string) (PageRoute, error) {
+	if !keyPattern.MatchString(key) || !localeOK(locale) || !media.ID.MatchString(id) {
+		return PageRoute{}, sql.ErrNoRows
+	}
+	tx, err := s.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return PageRoute{}, err
+	}
+	defer tx.Rollback()
+	v, err := loadVersion(ctx, tx, key, locale)
+	if err != nil {
+		return PageRoute{}, err
+	}
+	if v.Kind != "page" {
+		return PageRoute{}, sql.ErrNoRows
+	}
+	r, err := s.revision(ctx, tx, id, v.ID)
+	if err != nil {
+		return PageRoute{}, err
+	}
+	out := PublicContent{Key: key, Kind: v.Kind, Locale: locale, Slug: r.Slug, Title: r.Title, Summary: r.Summary, RevisionID: r.ID}
+	s.projectRevision(&out, r)
+	return PageRoute{Kind: v.Kind, Locale: locale, Title: r.Title, Summary: r.Summary, Content: &out}, nil
+}

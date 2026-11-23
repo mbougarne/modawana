@@ -7086,19 +7086,13 @@
             "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$"
           },
           "type": {
-            "enum": [
-              "core.markdown",
-              "core.heading",
-              "core.image",
-              "core.button",
-              "core.columns",
-              "core.hero",
-              "core.call_to_action",
-              "core.content_list"
-            ]
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_-]{0,31}\\.[a-z][a-z0-9_-]{0,31}$"
           },
           "version": {
-            "const": 1
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535
           },
           "properties": {
             "type": "object",

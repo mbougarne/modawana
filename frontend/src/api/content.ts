@@ -7,6 +7,18 @@ export type ContentKind = 'article' | 'lesson' | 'doc' | 'page';
 
 export type PageTemplate = 'standard' | 'landing';
 
+export interface PageBlock {
+  id: string;
+  type: string;
+  version: number;
+  properties: Record<string, unknown>;
+}
+
+export interface PageBlockDocument {
+  version: 1;
+  blocks: PageBlock[];
+}
+
 export interface MediaPresentation {
   media_id: string;
   poster_media_id?: string;
@@ -21,6 +33,8 @@ export interface DraftInput {
   expected_version: number;
   kind: ContentKind;
   page_template?: PageTemplate;
+  body_format?: 'markdown' | 'blocks';
+  page_blocks?: PageBlockDocument;
   source_locale: Locale;
   slug: string;
   title: string;
@@ -55,6 +69,8 @@ export interface Revision {
   markdown: string;
   slug: string;
   page_template?: PageTemplate;
+  body_format?: 'markdown' | 'blocks';
+  page_blocks?: PageBlockDocument;
   source_revision_id: string;
   category_key: string;
   tag_keys: string[];

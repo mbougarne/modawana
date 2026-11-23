@@ -41,6 +41,15 @@ Open **Pages → New page** and enter a title and Markdown. In **Details**, choo
 wider content. The template is saved with the draft and takes effect when that
 revision is published. Pages support media, translations and revision history.
 
+Choose **Use page builder** to add blocks or **Start with Landing preset**
+to copy a hero and content list into a new page. **Convert Markdown to blocks**
+places existing Markdown in a new draft. The published revision stays live
+until you publish the new draft. Use the **Move block up** and **Move block down**
+buttons to reorder with the keyboard. A focused block also accepts
+**Alt+Up** and **Alt+Down**. Save the draft, then open **Preview → Open saved
+page preview** to see the exact revision on the server. Translations still
+need review against their published source revision.
+
 **View published page** opens the localized URL. In **Menus**, choose **Add
 link** in the header or footer, set the destination to **Page**, and search by
 title or key. Choose the page and select **Save and apply**. You can select a

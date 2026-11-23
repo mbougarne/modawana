@@ -73,10 +73,27 @@ func (s *Service) changePublicationIn(ctx context.Context, tx *sql.Tx, owner, ke
 			return Result{}, e
 		}
 	}
+	if op == "publish" && rev.BodyFormat == BlockBodyFormat {
+		_, refs, err := parsePageBlocks(rev.PageBlocks, nil)
+		if err != nil || refs.unsupported {
+			return Result{}, typeIssue("page_blocks", "page_block_unavailable")
+		}
+		for _, m := range rev.Media {
+			if !refs.images[m.ID] || m.Kind == "image" {
+				delete(refs.media, m.ID)
+			}
+		}
+		if len(refs.media) != 0 {
+			return Result{}, typeIssue("page_blocks", "page_block_media")
+		}
+	}
 	if op != "unpublish" {
 		for _, m := range rev.Media {
 			h, e := s.Files.OpenUpload(m.File)
 			if e != nil {
+				if rev.BodyFormat == BlockBodyFormat {
+					return Result{}, typeIssue("page_blocks", "page_block_media")
+				}
 				return Result{}, e
 			}
 			h.Close()
@@ -306,6 +323,11 @@ func (s *Service) Public(ctx context.Context, locale, slug string, p access.Prin
 	if e != nil {
 		return out, e
 	}
+	s.projectRevision(&out, r)
+	return out, nil
+}
+
+func (s *Service) projectRevision(out *PublicContent, r Revision) {
 	out.ReadingMinutes = readingMinutes(r.Markdown)
 	out.Markdown = r.Markdown
 	out.PageTemplate = r.PageTemplate
@@ -315,7 +337,9 @@ func (s *Service) Public(ctx context.Context, locale, slug string, p access.Prin
 	out.CategoryKey = r.CategoryKey
 	out.Tags = r.Tags
 	for _, m := range r.Media {
+		if r.BodyFormat == BlockBodyFormat && !s.Files.UploadPresent(m.File) {
+			continue
+		}
 		out.Media = append(out.Media, PublicMedia{m.ID, m.URL, m.Kind, m.MIME, m.Width, m.Height})
 	}
-	return out, nil
 }

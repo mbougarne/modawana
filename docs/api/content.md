@@ -89,9 +89,11 @@ copies its body in its original format.
 The UTF-8 document is limited to 256 KiB, 100 blocks total and three levels of
 blocks including nested columns. Keep a block's ID when editing or moving it.
 IDs must be unique within the document and match
-`^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$`. Document and block versions are both 1.
-Properties marked optional may be omitted. Unknown types, fields, duplicate
-JSON members and null values are rejected.
+`^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$`. Document version is 1. Core block
+properties below are for block version 1. Unrecognized block types and versions
+are preserved in drafts and exports after bounded envelope validation. Publishing
+requires support for each block and its required media. Duplicate JSON members
+and null values are rejected.
 
 | Type | Version 1 properties |
 | --- | --- |
@@ -106,9 +108,12 @@ JSON members and null values are rejected.
 
 Owner draft and history responses return the stored document in `page_blocks`.
 Block revisions use the same version, review and publication endpoints.
-This release supports storing and transferring blocks. Public pages keep their
-title and summary for a published block revision. Block rendering, previews and
-visual editing are scheduled separately.
+The owner-only HTML route
+`/{adminLocale}/admin/page-preview/{key}/{contentLocale}/{revisionID}`
+renders an exact saved standalone revision. The response is private and noindex.
+Public pages use the same renderer for the current published revision. A missing
+block dependency displays a localized fallback. Content lists use current
+published discovery results in the page language.
 
 ## Review and publication
 

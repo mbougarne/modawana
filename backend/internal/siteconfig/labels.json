@@ -6610,6 +6610,388 @@
       "ar": "صفحة"
     }
   },
+  "pageBlocks.unavailable": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.unavailable",
+    "placeholders": [],
+    "values": {
+      "en": "Block unavailable",
+      "fr": "Bloc indisponible",
+      "ar": "الكتلة غير متاحة"
+    }
+  },
+  "pageBlocks.emptyList": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.emptyList",
+    "placeholders": [],
+    "values": {
+      "en": "No published items yet.",
+      "fr": "Aucun élément publié pour le moment.",
+      "ar": "لا توجد عناصر منشورة بعد."
+    }
+  },
+  "pageBlocks.unknownHelp": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.unknownHelp",
+    "placeholders": [],
+    "values": {
+      "en": "This block is kept in the draft. Remove it or enable support for it before publishing.",
+      "fr": "Ce bloc est conservé dans le brouillon. Supprimez-le ou activez sa prise en charge avant de publier.",
+      "ar": "تُحفظ هذه الكتلة في المسودة. احذفها أو فعّل دعمها قبل النشر."
+    }
+  },
+  "pageBlocks.page_block_unavailable": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.page_block_unavailable",
+    "placeholders": [],
+    "values": {
+      "en": "A block needs support before you can publish this page.",
+      "fr": "La publication nécessite la prise en charge d’un bloc.",
+      "ar": "يتطلب نشر الصفحة دعم إحدى كتلها."
+    }
+  },
+  "pageBlocks.page_block_media": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.page_block_media",
+    "placeholders": [],
+    "values": {
+      "en": "Replace the unavailable media before publishing.",
+      "fr": "Remplacez le média indisponible avant de publier.",
+      "ar": "استبدل الوسائط غير المتاحة قبل النشر."
+    }
+  },
+  "pageBlocks.markdown": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.markdown",
+    "placeholders": [],
+    "values": {
+      "en": "Markdown",
+      "fr": "Markdown",
+      "ar": "Markdown"
+    }
+  },
+  "pageBlocks.heading": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.heading",
+    "placeholders": [],
+    "values": {
+      "en": "Heading",
+      "fr": "Titre",
+      "ar": "عنوان"
+    }
+  },
+  "pageBlocks.image": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.image",
+    "placeholders": [],
+    "values": {
+      "en": "Image",
+      "fr": "Image",
+      "ar": "صورة"
+    }
+  },
+  "pageBlocks.button": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.button",
+    "placeholders": [],
+    "values": {
+      "en": "Button",
+      "fr": "Bouton",
+      "ar": "زر"
+    }
+  },
+  "pageBlocks.columns": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.columns",
+    "placeholders": [],
+    "values": {
+      "en": "Columns",
+      "fr": "Colonnes",
+      "ar": "أعمدة"
+    }
+  },
+  "pageBlocks.hero": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.hero",
+    "placeholders": [],
+    "values": {
+      "en": "Hero",
+      "fr": "Bannière",
+      "ar": "واجهة رئيسية"
+    }
+  },
+  "pageBlocks.call_to_action": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.call_to_action",
+    "placeholders": [],
+    "values": {
+      "en": "Call to action",
+      "fr": "Appel à l’action",
+      "ar": "دعوة إلى إجراء"
+    }
+  },
+  "pageBlocks.content_list": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.content_list",
+    "placeholders": [],
+    "values": {
+      "en": "Content list",
+      "fr": "Liste de contenus",
+      "ar": "قائمة محتوى"
+    }
+  },
+  "pageBlocks.chooseImage": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.chooseImage",
+    "placeholders": [],
+    "values": {
+      "en": "Choose image",
+      "fr": "Choisir une image",
+      "ar": "اختيار صورة"
+    }
+  },
+  "pageBlocks.clearImage": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.clearImage",
+    "placeholders": [],
+    "values": {
+      "en": "Remove image",
+      "fr": "Retirer l’image",
+      "ar": "إزالة الصورة"
+    }
+  },
+  "pageBlocks.column": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.column",
+    "placeholders": [
+      "n"
+    ],
+    "values": {
+      "en": "Column {n}",
+      "fr": "Colonne {n}",
+      "ar": "العمود {n}"
+    }
+  },
+  "pageBlocks.addColumn": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.addColumn",
+    "placeholders": [],
+    "values": {
+      "en": "Add a column",
+      "fr": "Ajouter une colonne",
+      "ar": "إضافة عمود"
+    }
+  },
+  "pageBlocks.removeColumn": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.removeColumn",
+    "placeholders": [],
+    "values": {
+      "en": "Remove the last column",
+      "fr": "Retirer la dernière colonne",
+      "ar": "إزالة العمود الأخير"
+    }
+  },
+  "pageBlocks.moveUp": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.moveUp",
+    "placeholders": [],
+    "values": {
+      "en": "Move block up",
+      "fr": "Monter le bloc",
+      "ar": "نقل الكتلة لأعلى"
+    }
+  },
+  "pageBlocks.moveDown": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.moveDown",
+    "placeholders": [],
+    "values": {
+      "en": "Move block down",
+      "fr": "Descendre le bloc",
+      "ar": "نقل الكتلة لأسفل"
+    }
+  },
+  "pageBlocks.type": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.type",
+    "placeholders": [],
+    "values": {
+      "en": "Block type",
+      "fr": "Type de bloc",
+      "ar": "نوع الكتلة"
+    }
+  },
+  "pageBlocks.add": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.add",
+    "placeholders": [],
+    "values": {
+      "en": "Add block",
+      "fr": "Ajouter un bloc",
+      "ar": "إضافة كتلة"
+    }
+  },
+  "pageBlocks.level": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.level",
+    "placeholders": [],
+    "values": {
+      "en": "Heading level",
+      "fr": "Niveau du titre",
+      "ar": "مستوى العنوان"
+    }
+  },
+  "pageBlocks.section": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.section",
+    "placeholders": [],
+    "values": {
+      "en": "Content section",
+      "fr": "Section de contenu",
+      "ar": "قسم المحتوى"
+    }
+  },
+  "pageBlocks.limit": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.limit",
+    "placeholders": [],
+    "values": {
+      "en": "Number of items",
+      "fr": "Nombre d’éléments",
+      "ar": "عدد العناصر"
+    }
+  },
+  "pageBlocks.field.heading": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.field.heading",
+    "placeholders": [],
+    "values": {
+      "en": "Heading",
+      "fr": "Titre",
+      "ar": "عنوان"
+    }
+  },
+  "pageBlocks.field.text": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.field.text",
+    "placeholders": [],
+    "values": {
+      "en": "Text",
+      "fr": "Texte",
+      "ar": "النص"
+    }
+  },
+  "pageBlocks.field.label": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.field.label",
+    "placeholders": [],
+    "values": {
+      "en": "Button label",
+      "fr": "Libellé du bouton",
+      "ar": "تسمية الزر"
+    }
+  },
+  "pageBlocks.field.href": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.field.href",
+    "placeholders": [],
+    "values": {
+      "en": "Destination URL",
+      "fr": "URL de destination",
+      "ar": "رابط الوجهة"
+    }
+  },
+  "pageBlocks.field.alt": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.field.alt",
+    "placeholders": [],
+    "values": {
+      "en": "Alternative text",
+      "fr": "Texte alternatif",
+      "ar": "النص البديل"
+    }
+  },
+  "pageBlocks.field.caption": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.field.caption",
+    "placeholders": [],
+    "values": {
+      "en": "Caption",
+      "fr": "Légende",
+      "ar": "وصف الصورة"
+    }
+  },
+  "pageBlocks.start": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.start",
+    "placeholders": [],
+    "values": {
+      "en": "Use page builder",
+      "fr": "Utiliser le constructeur de pages",
+      "ar": "استخدام منشئ الصفحات"
+    }
+  },
+  "pageBlocks.convert": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.convert",
+    "placeholders": [],
+    "values": {
+      "en": "Convert Markdown to blocks",
+      "fr": "Convertir le Markdown en blocs",
+      "ar": "تحويل Markdown إلى كتل"
+    }
+  },
+  "pageBlocks.landingPreset": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.landingPreset",
+    "placeholders": [],
+    "values": {
+      "en": "Start with Landing preset",
+      "fr": "Utiliser le modèle de page d’accueil",
+      "ar": "البدء بقالب صفحة الهبوط"
+    }
+  },
+  "pageBlocks.welcome": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.welcome",
+    "placeholders": [],
+    "values": {
+      "en": "Welcome",
+      "fr": "Bienvenue",
+      "ar": "مرحباً"
+    }
+  },
+  "pageBlocks.openPreview": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.openPreview",
+    "placeholders": [],
+    "values": {
+      "en": "Open saved page preview",
+      "fr": "Ouvrir l’aperçu de la page enregistrée",
+      "ar": "فتح معاينة الصفحة المحفوظة"
+    }
+  },
+  "pageBlocks.saveToPreview": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.saveToPreview",
+    "placeholders": [],
+    "values": {
+      "en": "Save the draft to see an exact server preview.",
+      "fr": "Enregistrez le brouillon pour ouvrir l’aperçu du serveur.",
+      "ar": "احفظ المسودة لعرض معاينتها من الخادم."
+    }
+  },
+  "pageBlocks.markdownLimit": {
+    "section": "pageBlocks",
+    "description": "Interface text: pageBlocks.markdownLimit",
+    "placeholders": [],
+    "values": {
+      "en": "The Markdown body exceeds the 64 KiB limit for a single block.",
+      "fr": "Le texte Markdown dépasse la limite de 64 KiB pour un bloc.",
+      "ar": "يتجاوز متن Markdown حد 64 KiB للكتلة الواحدة."
+    }
+  },
   "owner.pageTemplate": {
     "section": "owner",
     "description": "Interface text: owner.pageTemplate",

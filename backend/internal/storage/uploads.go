@@ -35,8 +35,18 @@ func (s *Store) WriteUploadLocked(ctx context.Context, body []byte) (File, strin
 	return f, id, e
 }
 
-// OpenUpload verifies the whole immutable file before any bytes or range are served.
-func (s *Store) OpenUpload(f File) (*os.File, error) {
+// UploadPresent checks an immutable upload's location and size for HTML projections.
+// The media route verifies the full checksum before sending bytes.
+func (s *Store) UploadPresent(f File) bool {
+	h, err := s.openUpload(f)
+	if err != nil {
+		return false
+	}
+	h.Close()
+	return true
+}
+
+func (s *Store) openUpload(f File) (*os.File, error) {
 	if !uploadKey.MatchString(f.Key) || f.Size < 1 || f.Size > MaxUpload || !s.safe(f.Key) {
 		return nil, ErrIntegrity
 	}
@@ -44,16 +54,26 @@ func (s *Store) OpenUpload(f File) (*os.File, error) {
 	if e != nil {
 		return nil, ErrIntegrity
 	}
+	info, e := h.Stat()
+	if e != nil || !info.Mode().IsRegular() || info.Size() != f.Size {
+		h.Close()
+		return nil, ErrIntegrity
+	}
+	return h, nil
+}
+
+// OpenUpload verifies the whole immutable file before any bytes or range are served.
+func (s *Store) OpenUpload(f File) (*os.File, error) {
+	h, e := s.openUpload(f)
+	if e != nil {
+		return nil, e
+	}
 	valid := false
 	defer func() {
 		if !valid {
 			h.Close()
 		}
 	}()
-	info, e := h.Stat()
-	if e != nil || !info.Mode().IsRegular() || info.Size() != f.Size {
-		return nil, ErrIntegrity
-	}
 	hash := sha256.New()
 	n, e := io.Copy(hash, io.LimitReader(h, MaxUpload+1))
 	if e != nil || n != f.Size || hex.EncodeToString(hash.Sum(nil)) != f.SHA256 {

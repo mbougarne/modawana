@@ -16,15 +16,18 @@ export function MediaLibrary({
   csrf,
   onSelect,
   pendingFile,
+  imageOnly = false,
   onPendingFileHandled,
 }: {
   csrf: string;
   onSelect?: (m: UsedMedia) => void;
   pendingFile?: File;
+  imageOnly?: boolean;
   onPendingFileHandled?: () => void;
 }) {
   const { t } = useI18n();
-  const [kind, setKind] = useState('');
+  const [kind, setKind] = useState(imageOnly ? 'image' : '');
+  const imageTypes = 'image/jpeg,image/png,image/webp';
   const [cursor, setCursor] = useState('');
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
@@ -49,6 +52,10 @@ export function MediaLibrary({
     }
   }, [pendingFile]);
   async function send(selected: File) {
+    if (imageOnly && !imageTypes.split(',').includes(selected.type)) {
+      setNotice('owner.uploadFailed');
+      return;
+    }
     if (upload.current) {
       setNotice('owner.uploadBusy');
       return;
@@ -151,18 +158,24 @@ export function MediaLibrary({
         choices={[
           {
             label: t('upload.chooseImage'),
-            accept: 'image/jpeg,image/png,image/webp',
-            icon: 'image',
+            accept: imageTypes,
+            icon: 'image' as const,
           },
-          { label: t('upload.chooseVideo'), accept: 'video/mp4,video/webm', icon: 'video' },
+          {
+            label: t('upload.chooseVideo'),
+            accept: 'video/mp4,video/webm',
+            icon: 'video' as const,
+          },
           {
             label: t('upload.chooseAttachment'),
             accept: 'text/vtt,application/pdf',
-            icon: 'upload',
+            icon: 'upload' as const,
             quiet: true,
           },
-        ]}
-        accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,text/vtt,application/pdf"
+        ].slice(0, imageOnly ? 1 : 3)}
+        accept={
+          imageOnly ? imageTypes : imageTypes + ',video/mp4,video/webm,text/vtt,application/pdf'
+        }
         onFile={(selected) => void send(selected)}
       />
       {busy && (
@@ -195,23 +208,25 @@ export function MediaLibrary({
           {t('public.retry')}
         </button>
       )}
-      <label className="media-filter">
-        {t('owner.mediaKind')}
-        <select
-          value={kind}
-          onChange={(e) => {
-            setKind(e.target.value);
-            setCursor('');
-          }}
-        >
-          <option value="">{t('owner.all')}</option>
-          {['image', 'video', 'pdf', 'captions'].map((k) => (
-            <option key={k} value={k}>
-              {t('owner.' + k)}
-            </option>
-          ))}
-        </select>
-      </label>
+      {!imageOnly && (
+        <label className="media-filter">
+          {t('owner.mediaKind')}
+          <select
+            value={kind}
+            onChange={(e) => {
+              setKind(e.target.value);
+              setCursor('');
+            }}
+          >
+            <option value="">{t('owner.all')}</option>
+            {['image', 'video', 'pdf', 'captions'].map((k) => (
+              <option key={k} value={k}>
+                {t('owner.' + k)}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       <ResourceState resource={list} />
       {list.data?.items.length === 0 && <p className="vb-empty">{t('owner.empty')}</p>}
       <div className="owner-media-grid">

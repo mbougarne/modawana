@@ -608,3 +608,41 @@
 .public-server-search .public-kind select {
   min-block-size: var(--target);
 }
+
+.page-blocks,
+.page-block-column {
+  display: grid;
+  gap: clamp(1rem, 3vw, 2rem);
+  min-inline-size: 0;
+}
+.page-block figure {
+  margin: 0;
+}
+.page-block img {
+  display: block;
+  max-inline-size: 100%;
+  block-size: auto;
+  border-radius: 0.5rem;
+}
+.page-block-columns {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: clamp(1rem, 3vw, 2rem);
+}
+:is(.page-block-hero, .page-block-call_to_action) > section {
+  padding: clamp(1.25rem, 4vw, 3rem);
+  border: 1px solid var(--border-strong);
+  border-radius: 0.75rem;
+}
+.page-block-hero img {
+  margin-block-start: 1.25rem;
+}
+.page-block :is(h2, h3, h4, h5, h6) {
+  margin-block-start: 0;
+}
+@media (max-width: 640px) {
+  .page-block-columns {
+    grid-auto-flow: row;
+  }
+}

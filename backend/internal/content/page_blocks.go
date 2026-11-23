@@ -21,6 +21,7 @@ const (
 	maxBlockDepth      = 3
 )
 
+var blockType = regexp.MustCompile(`^[a-z][a-z0-9_-]{0,31}\.[a-z][a-z0-9_-]{0,31}$`)
 var blockID = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$`)
 
 type pageBlockDocument struct {
@@ -36,8 +37,9 @@ type pageBlock struct {
 }
 
 type blockReferences struct {
-	media  map[string]bool
-	images map[string]bool
+	media       map[string]bool
+	images      map[string]bool
+	unsupported bool
 }
 
 type blockValidation struct {
@@ -187,11 +189,15 @@ func (w *blockValidation) walk(blocks []pageBlock, depth int) error {
 	for i := range blocks {
 		b := &blocks[i]
 		props := bytes.TrimSpace(b.Properties)
-		if b.Version != 1 || !blockID.MatchString(b.ID) || w.ids[b.ID] || len(w.ids) == maxPageBlocks ||
+		if b.Version < 1 || b.Version > 65535 || !blockType.MatchString(b.Type) || !blockID.MatchString(b.ID) || w.ids[b.ID] || len(w.ids) == maxPageBlocks ||
 			len(props) == 0 || props[0] != '{' {
 			return ErrInvalid
 		}
 		w.ids[b.ID] = true
+		if b.Version != 1 || !knownPageBlock(b.Type) {
+			w.refs.unsupported = true
+			continue
+		}
 		updated, err := w.properties(b.Type, props, depth)
 		if err != nil {
 			return err
@@ -202,6 +208,14 @@ func (w *blockValidation) walk(blocks []pageBlock, depth int) error {
 		}
 	}
 	return nil
+}
+
+func knownPageBlock(kind string) bool {
+	switch kind {
+	case "core.markdown", "core.heading", "core.image", "core.button", "core.columns", "core.hero", "core.call_to_action", "core.content_list":
+		return true
+	}
+	return false
 }
 
 func (w *blockValidation) properties(kind string, raw []byte, depth int) (json.RawMessage, error) {
