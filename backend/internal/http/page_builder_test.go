@@ -19,13 +19,35 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/config"
 	"github.com/mbougarne/modawana/backend/internal/content"
 	"github.com/mbougarne/modawana/backend/internal/db"
+	"github.com/mbougarne/modawana/backend/internal/extension"
 	"github.com/mbougarne/modawana/backend/internal/media"
 	"github.com/mbougarne/modawana/backend/internal/siteconfig"
 )
 
+type pagePreviewExtension struct{}
+
+func (pagePreviewExtension) Slug() string { return "editorial-notes" }
+func (pagePreviewExtension) Register(r *extension.Registrar) error {
+	label := extension.LocalizedText{"en": "Note"}
+	if err := r.Contribution(extension.Contribution{
+		Kind: extension.BuilderBlock, Key: "notice", Version: 1, Label: label, Target: "text_panel",
+	}, nil); err != nil {
+		return err
+	}
+	return r.Contribution(extension.Contribution{
+		Kind: extension.PublicProjection, Key: "footer", Version: 1, Label: label, Target: "footer",
+		Text: extension.LocalizedText{"en": "Editorial footer", "ar": "ملاحظة <عربية>"},
+	}, nil)
+}
+
 func TestSavedPagePreviewMatchesPublicRenderer(t *testing.T) {
 	ctx := t.Context()
 	c, owner := newThemeContent(t)
+	host := extension.NewHost(nil)
+	if err := host.Install(pagePreviewExtension{}); err != nil {
+		t.Fatal(err)
+	}
+	c.Extensions = host
 	settings := &siteconfig.Service{DB: c.DB, Files: c.Files}
 	cfg := config.Config{BaseURL: "https://example.test"}
 	a := auth.New(c.DB, cfg)
@@ -34,7 +56,7 @@ func TestSavedPagePreviewMatchesPublicRenderer(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	h := New(Options{Assets: assets, Config: cfg, Auth: a, SiteConfig: settings,
+	h := New(Options{Assets: assets, Config: cfg, Auth: a, SiteConfig: settings, Extensions: host,
 		Domain: &Domain{Content: c, Auth: a, SiteConfig: settings, Media: mediaService}})
 	raw := strings.Repeat("p", 43)
 	sum := sha256.Sum256([]byte(raw))
@@ -88,6 +110,7 @@ func TestSavedPagePreviewMatchesPublicRenderer(t *testing.T) {
 			BodyFormat: content.BlockBodyFormat, PageBlocks: json.RawMessage(fmt.Sprintf(`{"version":1,"blocks":[
 			{"id":"hero","type":"core.hero","version":1,"properties":{"heading":%q,"text":"Text","media_id":%q,"alt":"Shape"}},
 			{"id":"heading","type":"core.heading","version":1,"properties":{"text":"A < B","level":3}},
+			{"id":"note","type":"editorial-notes.notice","version":1,"properties":{"text":"<Editorial note>"}},
 			{"id":"columns","type":"core.columns","version":1,"properties":{"columns":[[
 				{"id":"copy","type":"core.markdown","version":1,"properties":{"markdown":"**Body**"}}
 			],[
@@ -118,8 +141,11 @@ func TestSavedPagePreviewMatchesPublicRenderer(t *testing.T) {
 		if tc.lang == "ar" && !strings.Contains(preview.Body.String(), `<html lang="ar" dir="rtl">`) {
 			t.Fatal("Arabic preview is not RTL")
 		}
+		if tc.lang == "ar" && !strings.Contains(preview.Body.String(), "ملاحظة &lt;عربية&gt;") {
+			t.Fatal("Arabic footer projection missing or unescaped")
+		}
 		before := pageBody(preview)
-		for _, want := range []string{`data-page-template="landing"`, `<h3 dir="auto">A &lt; B</h3>`, "<strong>Body</strong>", img.URL, `data-block-id="posts"`} {
+		for _, want := range []string{`data-page-template="landing"`, `<h3 dir="auto">A &lt; B</h3>`, "<strong>Body</strong>", "&lt;Editorial note&gt;", img.URL, `data-block-id="posts"`} {
 			if !strings.Contains(before, want) {
 				t.Fatalf("preview missing %q", want)
 			}
@@ -160,6 +186,11 @@ func TestSavedPagePreviewMatchesPublicRenderer(t *testing.T) {
 	fr := request("/fr/pages/bienvenue", false, 200)
 	if strings.Contains(fr.Body.String(), img.URL) || !strings.Contains(fr.Body.String(), "Bloc indisponible") {
 		t.Fatal("a missing upload did not use the localized block fallback")
+	}
+	host.Uninstall("editorial-notes")
+	body := request("/ar/pages/marhaban", false, 200).Body.String()
+	if strings.Contains(body, "&lt;Editorial note&gt;") || strings.Contains(body, "ملاحظة &lt;عربية&gt;") {
+		t.Fatal("disabled contributions still render")
 	}
 }
 

@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"html/template"
 	"strings"
+
+	"github.com/mbougarne/modawana/backend/internal/extension"
 )
 
 type PageBlockLink struct {
@@ -13,11 +15,12 @@ type PageBlockLink struct {
 }
 
 type PageBlockRenderOptions struct {
-	Media       []PublicMedia
-	Unavailable string
-	Empty       string
-	Markdown    func(string) (template.HTML, error)
-	Links       func(section string, limit int) ([]PageBlockLink, error)
+	Media          []PublicMedia
+	Unavailable    string
+	Empty          string
+	Markdown       func(string) (template.HTML, error)
+	Links          func(section string, limit int) ([]PageBlockLink, error)
+	ExtensionBlock func(string, int, json.RawMessage) (extension.TextPanel, bool)
 }
 
 type renderedBlock struct {
@@ -43,13 +46,14 @@ var pageBlockHTML = template.Must(template.New("page-blocks").Parse(`
 {{else if eq .Kind "columns"}}{{range .Columns}}<div class="page-block-column">{{template "blocks" .}}</div>{{end}}
 {{else if eq .Kind "hero"}}<section><h2 dir="auto">{{.Heading}}</h2>{{if .Text}}<p dir="auto">{{.Text}}</p>{{end}}{{if .Media}}{{template "image" .}}{{end}}</section>
 {{else if eq .Kind "call_to_action"}}<section><h2 dir="auto">{{.Heading}}</h2>{{if .Text}}<p dir="auto">{{.Text}}</p>{{end}}{{template "button" .}}</section>
+{{else if eq .Kind "extension_text"}}<section>{{if .Heading}}<h2 dir="auto">{{.Heading}}</h2>{{end}}<p dir="auto">{{.Text}}</p></section>
 {{else if eq .Kind "content_list"}}<ul>{{range .Links}}<li><a href="{{.URL}}"><bdi>{{.Title}}</bdi></a></li>{{end}}</ul>
 {{end}}</div>{{end}}{{end}}
 {{define "image"}}<img src="{{.Media.URL}}" alt="{{.Alt}}" width="{{.Media.Width}}" height="{{.Media.Height}}" loading="lazy" decoding="async">{{end}}
 {{define "button"}}<a class="vb-btn" href="{{.Href}}" dir="auto">{{.Label}}</a>{{end}}
 `))
 
-// RenderPageBlocks renders only validated core blocks through host-owned HTML.
+// RenderPageBlocks renders validated blocks through host-owned HTML.
 func RenderPageBlocks(body []byte, options PageBlockRenderOptions) (template.HTML, error) {
 	doc, _, err := parsePageBlocks(body, nil)
 	if err != nil {
@@ -82,6 +86,11 @@ func (r pageBlockRenderer) blocks(blocks []pageBlock) ([]renderedBlock, error) {
 		view := renderedBlock{ID: b.ID, Kind: "unavailable"}
 		if b.Version != 1 || !knownPageBlock(b.Type) {
 			view.Fallback = r.Unavailable
+			if r.ExtensionBlock != nil {
+				if panel, ok := r.ExtensionBlock(b.Type, b.Version, b.Properties); ok {
+					view.Kind, view.Heading, view.Text, view.Fallback = "extension_text", panel.Heading, panel.Text, ""
+				}
+			}
 		} else {
 			view.Kind = strings.TrimPrefix(b.Type, "core.")
 			if err := r.block(&view, b.Properties); err != nil {

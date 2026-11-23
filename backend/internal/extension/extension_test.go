@@ -1,6 +1,7 @@
 package extension
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -258,6 +259,49 @@ func TestRouteAndSettingsRegistries(t *testing.T) {
 	sections := h.SettingsSections()
 	if len(sections) != 1 || sections[0].Extension != "routed" || sections[0].Key != "delivery" {
 		t.Fatal(sections)
+	}
+}
+
+func TestJobStatusRetainsScheduleAndRedactsFailure(t *testing.T) {
+	host := NewHost(nil)
+	const reason = "private job details"
+	if err := host.Install(declared{"job-health", func(r *Registrar) error {
+		return r.Job(Job{Name: "check", Every: 5 * time.Millisecond, Run: func(context.Context) error {
+			return errors.New(reason)
+		}})
+	}}); err != nil {
+		t.Fatal(err)
+	}
+	status := host.JobStatuses("job-health")
+	if len(status) != 1 || status[0].State != "idle" || !status[0].NextRunAt.IsZero() {
+		t.Fatal(status)
+	}
+	ctx, cancel := context.WithCancel(t.Context())
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		host.RunJobs(ctx)
+	}()
+	defer func() { cancel(); <-done }()
+	deadline := time.Now().Add(time.Second)
+	for {
+		status = host.JobStatuses("job-health")
+		if status[0].State == "backoff" {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("failure was not recorded", status)
+		}
+		time.Sleep(time.Millisecond)
+	}
+	data, err := json.Marshal(status)
+	if err != nil || bytes.Contains(data, []byte(reason)) ||
+		status[0].ConsecutiveFailures < 1 || status[0].NextRunAt.IsZero() {
+		t.Fatal(string(data), err)
+	}
+	host.Uninstall("job-health")
+	if len(host.JobStatuses("job-health")) != 0 {
+		t.Fatal("uninstalled job still reports health")
 	}
 }
 

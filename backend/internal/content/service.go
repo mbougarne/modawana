@@ -18,6 +18,7 @@ import (
 
 	"github.com/mbougarne/modawana/backend/internal/access"
 	"github.com/mbougarne/modawana/backend/internal/db"
+	"github.com/mbougarne/modawana/backend/internal/extension"
 	"github.com/mbougarne/modawana/backend/internal/media"
 	"github.com/mbougarne/modawana/backend/internal/storage"
 	"github.com/yuin/goldmark"
@@ -88,6 +89,7 @@ type Service struct {
 	DB              *sql.DB
 	Files           *storage.Store
 	Access          *access.Live
+	Extensions      *extension.Host
 	PublicationHook func(context.Context, *sql.Tx, string, string, bool) error
 	// Membership is installed by 015; earlier saves reject unsupported collection inputs.
 	Membership func(context.Context, *sql.Tx, string, string, string, int) error

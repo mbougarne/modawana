@@ -16,6 +16,7 @@ import (
 
 	"github.com/mbougarne/modawana/backend/internal/content"
 	"github.com/mbougarne/modawana/backend/internal/db"
+	"github.com/mbougarne/modawana/backend/internal/extension"
 	"github.com/mbougarne/modawana/backend/internal/render"
 	"github.com/mbougarne/modawana/backend/internal/siteconfig"
 	"github.com/mbougarne/modawana/backend/internal/theme"
@@ -399,6 +400,9 @@ func (s *Server) themeFooter(settings siteconfig.Public, navigation themeNavigat
 		Email:     settings.Profile.PublicEmail,
 		Copyright: pick(settings.Profile.Copyright),
 		NavLabel:  label("footer.links"),
+	}
+	for _, projection := range s.extensions().Contributions(extension.PublicProjection) {
+		footer.Projections = append(footer.Projections, projection.Text.For(locale))
 	}
 	items := []siteconfig.MenuItem{{Target: "writing"}, {Target: "learning"}, {Target: "docs"}}
 	if settings.Site.FooterMenu != nil {

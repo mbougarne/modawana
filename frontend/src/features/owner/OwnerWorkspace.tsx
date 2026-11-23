@@ -8,6 +8,13 @@ import { OwnerLanguageMenu } from './OwnerLanguageMenu';
 import { OwnerAppearanceContext, useOwnerAppearance } from './OwnerAppearance';
 import { call } from '../auth/api';
 import { usePublicConfiguration } from '../configuration/PublicConfiguration';
+import { useResource } from '../../pages/public/api';
+import {
+  ExtensionCatalog,
+  localizedContribution,
+  contributionKey,
+  type RegisteredContribution,
+} from './ExtensionCatalog';
 
 const pages = [
   ['posts', 'ul'],
@@ -28,7 +35,8 @@ const pages = [
 export function OwnerNavigation({
   current,
   showIcons = false,
-}: { current?: string; showIcons?: boolean } = {}) {
+  contributions = [],
+}: { current?: string; showIcons?: boolean; contributions?: RegisteredContribution[] } = {}) {
   const { locale, t } = useI18n();
   return (
     <nav className="owner-navigation vb-nav" aria-label={t('config.owner')}>
@@ -44,6 +52,17 @@ export function OwnerNavigation({
           >
             {showIcons && <Icon name={icon} size={16} />}
             <span>{t('owner.' + page)}</span>
+          </Link>
+        ))}
+      {contributions
+        .filter((item) => item.kind === 'admin_navigation')
+        .map((item) => (
+          <Link
+            key={contributionKey(item)}
+            to={`/${locale}/admin/plugins#extension-${item.extension}${item.target === 'settings' ? ':settings' : ''}`}
+          >
+            {showIcons && <Icon name="plug" size={16} />}
+            <span>{localizedContribution(item.label, locale)}</span>
           </Link>
         ))}
     </nav>
@@ -106,6 +125,9 @@ export function OwnerWorkspace({
       (location.pathname.replace(/^\/(en|ar|fr)(?=\/|$)/, '') || '/admin/' + current)) +
     location.search;
   const { data: configuration } = usePublicConfiguration();
+  const catalog = useResource<{ items: RegisteredContribution[] }>(
+    csrf ? '/api/v1/extension-contributions' : undefined,
+  );
   const siteHref =
     configuration?.site.public_locales?.includes(locale) === false ? '/' : `/${locale}`;
 
@@ -182,7 +204,11 @@ export function OwnerWorkspace({
                 {t('config.owner')}
               </Link>
             )}
-            <OwnerNavigation current={current} showIcons={slate} />
+            <OwnerNavigation
+              current={current}
+              showIcons={slate}
+              contributions={catalog.data?.items}
+            />
           </div>
           <div className="workspace-content">
             {failed && (
@@ -191,7 +217,11 @@ export function OwnerWorkspace({
               </p>
             )}
             <main id={mainId} className="workspace-main config-main" aria-busy={busy}>
-              {children}
+              <ExtensionCatalog.Provider
+                value={{ items: catalog.data?.items || [], refresh: catalog.retry }}
+              >
+                {children}
+              </ExtensionCatalog.Provider>
             </main>
           </div>
         </div>

@@ -1635,6 +1635,238 @@
       "ar": "المهام المجدولة"
     }
   },
+  "plugins.hostAPI": {
+    "section": "plugins",
+    "description": "Interface text: plugins.hostAPI",
+    "placeholders": [],
+    "values": {
+      "en": "Host API",
+      "fr": "API hôte",
+      "ar": "واجهة المضيف"
+    }
+  },
+  "plugins.running": {
+    "section": "plugins",
+    "description": "Interface text: plugins.running",
+    "placeholders": [],
+    "values": {
+      "en": "Running",
+      "fr": "En cours d’exécution",
+      "ar": "قيد التشغيل"
+    }
+  },
+  "plugins.stopped": {
+    "section": "plugins",
+    "description": "Interface text: plugins.stopped",
+    "placeholders": [],
+    "values": {
+      "en": "Unavailable",
+      "fr": "Indisponible",
+      "ar": "غير متاحة"
+    }
+  },
+  "plugins.contributions": {
+    "section": "plugins",
+    "description": "Interface text: plugins.contributions",
+    "placeholders": [],
+    "values": {
+      "en": "Contributions",
+      "fr": "Contributions",
+      "ar": "مساهمات الإضافة"
+    }
+  },
+  "plugins.kind.builder_block": {
+    "section": "plugins",
+    "description": "Interface text: plugins.kind.builder_block",
+    "placeholders": [],
+    "values": {
+      "en": "Page block",
+      "fr": "Bloc de page",
+      "ar": "كتلة صفحة"
+    }
+  },
+  "plugins.kind.admin_navigation": {
+    "section": "plugins",
+    "description": "Interface text: plugins.kind.admin_navigation",
+    "placeholders": [],
+    "values": {
+      "en": "Admin navigation",
+      "fr": "Navigation d’administration",
+      "ar": "تنقّل لوحة الإدارة"
+    }
+  },
+  "plugins.kind.settings": {
+    "section": "plugins",
+    "description": "Interface text: plugins.kind.settings",
+    "placeholders": [],
+    "values": {
+      "en": "Settings",
+      "fr": "Paramètres",
+      "ar": "الإعدادات"
+    }
+  },
+  "plugins.kind.widget": {
+    "section": "plugins",
+    "description": "Interface text: plugins.kind.widget",
+    "placeholders": [],
+    "values": {
+      "en": "Dashboard widget",
+      "fr": "Widget du tableau de bord",
+      "ar": "عنصر لوحة الإدارة"
+    }
+  },
+  "plugins.kind.public_projection": {
+    "section": "plugins",
+    "description": "Interface text: plugins.kind.public_projection",
+    "placeholders": [],
+    "values": {
+      "en": "Public display",
+      "fr": "Affichage public",
+      "ar": "عرض عام"
+    }
+  },
+  "plugins.kind.provider_adapter": {
+    "section": "plugins",
+    "description": "Interface text: plugins.kind.provider_adapter",
+    "placeholders": [],
+    "values": {
+      "en": "Provider adapter",
+      "fr": "Adaptateur de fournisseur",
+      "ar": "محوّل مزوّد"
+    }
+  },
+  "plugins.job.idle": {
+    "section": "plugins",
+    "description": "Interface text: plugins.job.idle",
+    "placeholders": [],
+    "values": {
+      "en": "Idle",
+      "fr": "En attente",
+      "ar": "خاملة"
+    }
+  },
+  "plugins.job.scheduled": {
+    "section": "plugins",
+    "description": "Interface text: plugins.job.scheduled",
+    "placeholders": [],
+    "values": {
+      "en": "Scheduled",
+      "fr": "Planifiée",
+      "ar": "مجدولة"
+    }
+  },
+  "plugins.job.running": {
+    "section": "plugins",
+    "description": "Interface text: plugins.job.running",
+    "placeholders": [],
+    "values": {
+      "en": "Running",
+      "fr": "En cours",
+      "ar": "قيد التشغيل"
+    }
+  },
+  "plugins.job.backoff": {
+    "section": "plugins",
+    "description": "Interface text: plugins.job.backoff",
+    "placeholders": [],
+    "values": {
+      "en": "Retry scheduled",
+      "fr": "Nouvelle tentative planifiée",
+      "ar": "إعادة المحاولة مجدولة"
+    }
+  },
+  "plugins.job.failures": {
+    "section": "plugins",
+    "description": "Interface text: plugins.job.failures",
+    "placeholders": [
+      "n"
+    ],
+    "values": {
+      "en": "Consecutive failures: {n}",
+      "fr": "Échecs consécutifs : {n}",
+      "ar": "الإخفاقات المتتالية: {n}"
+    }
+  },
+  "plugins.reviewDisable": {
+    "section": "plugins",
+    "description": "Interface text: plugins.reviewDisable",
+    "placeholders": [],
+    "values": {
+      "en": "Review impact before disabling",
+      "fr": "Vérifier l’impact avant de désactiver",
+      "ar": "راجع الأثر قبل التعطيل"
+    }
+  },
+  "plugins.affectedPages": {
+    "section": "plugins",
+    "description": "Interface text: plugins.affectedPages",
+    "placeholders": [],
+    "values": {
+      "en": "Affected pages",
+      "fr": "Pages concernées",
+      "ar": "الصفحات المتأثرة"
+    }
+  },
+  "plugins.noPageUses": {
+    "section": "plugins",
+    "description": "Interface text: plugins.noPageUses",
+    "placeholders": [],
+    "values": {
+      "en": "No pages use blocks from this plugin.",
+      "fr": "Aucune page n’utilise les blocs de cette extension.",
+      "ar": "لا توجد صفحات تستخدم كتل هذه الإضافة."
+    }
+  },
+  "plugins.noPageUsesBatch": {
+    "section": "plugins",
+    "description": "Interface text: plugins.noPageUsesBatch",
+    "placeholders": [],
+    "values": {
+      "en": "No matches in this set of pages.",
+      "fr": "Aucune correspondance dans ce lot de pages.",
+      "ar": "لا توجد نتائج في هذه المجموعة من الصفحات."
+    }
+  },
+  "plugins.previousPageUses": {
+    "section": "plugins",
+    "description": "Interface text: plugins.previousPageUses",
+    "placeholders": [],
+    "values": {
+      "en": "Scan previous pages",
+      "fr": "Vérifier les pages précédentes",
+      "ar": "افحص الصفحات السابقة"
+    }
+  },
+  "plugins.nextPageUses": {
+    "section": "plugins",
+    "description": "Interface text: plugins.nextPageUses",
+    "placeholders": [],
+    "values": {
+      "en": "Scan more pages",
+      "fr": "Vérifier d’autres pages",
+      "ar": "افحص صفحات أخرى"
+    }
+  },
+  "plugins.pageDraft": {
+    "section": "plugins",
+    "description": "Interface text: plugins.pageDraft",
+    "placeholders": [],
+    "values": {
+      "en": "Draft",
+      "fr": "Brouillon",
+      "ar": "مسودة"
+    }
+  },
+  "plugins.pagePublished": {
+    "section": "plugins",
+    "description": "Interface text: plugins.pagePublished",
+    "placeholders": [],
+    "values": {
+      "en": "Published",
+      "fr": "Publiée",
+      "ar": "منشورة"
+    }
+  },
   "plugins.state.available": {
     "section": "plugins",
     "description": "Interface text: plugins.state.available",

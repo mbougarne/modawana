@@ -37,9 +37,9 @@ type pageBlock struct {
 }
 
 type blockReferences struct {
-	media       map[string]bool
-	images      map[string]bool
-	unsupported bool
+	media           map[string]bool
+	images          map[string]bool
+	extensionBlocks []pageBlock
 }
 
 type blockValidation struct {
@@ -195,7 +195,7 @@ func (w *blockValidation) walk(blocks []pageBlock, depth int) error {
 		}
 		w.ids[b.ID] = true
 		if b.Version != 1 || !knownPageBlock(b.Type) {
-			w.refs.unsupported = true
+			w.refs.extensionBlocks = append(w.refs.extensionBlocks, *b)
 			continue
 		}
 		updated, err := w.properties(b.Type, props, depth)

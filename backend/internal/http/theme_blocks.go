@@ -12,7 +12,8 @@ func (s *Server) themePageBlocks(ctx context.Context, c *content.PublicContent, 
 	listContext := access.WithPrincipal(ctx, access.Principal{})
 	cache := map[string][]content.PageBlockLink{}
 	return content.RenderPageBlocks(c.PageBlocks, content.PageBlockRenderOptions{
-		Media: c.Media, Unavailable: label("pageBlocks.unavailable"), Empty: label("pageBlocks.emptyList"),
+		ExtensionBlock: s.extensions().RenderBlock,
+		Media:          c.Media, Unavailable: label("pageBlocks.unavailable"), Empty: label("pageBlocks.emptyList"),
 		Markdown: func(markdown string) (template.HTML, error) {
 			projection := *c
 			projection.Markdown = markdown

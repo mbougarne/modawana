@@ -127,6 +127,15 @@ func TestPluginRoutesOwnerBoundaryAndLifecycle(t *testing.T) {
 			t.Fatal(e)
 		}
 	}
+	for _, path := range []string{"/api/v1/extension-contributions", "/api/v1/plugin-usage/example"} {
+		if w := request("GET", path, "", false, false); w.Code != 401 {
+			t.Fatal(path, w.Code)
+		}
+	}
+	if w := request("GET", "/api/v1/extension-contributions", "", true, false); w.Code != 200 ||
+		w.Header().Get("Cache-Control") != "no-store" || strings.TrimSpace(w.Body.String()) != `{"items":[]}` {
+		t.Fatal("extension catalog", w.Code, w.Body.String())
+	}
 	if w := request("GET", "/api/v1/plugins", "", false, false); w.Code != 401 {
 		t.Fatal("list without session", w.Code)
 	}

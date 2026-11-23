@@ -88,13 +88,14 @@ type Article struct {
 // Footer is the static public footer: configured text or the default
 // email call to action, copyright, and safe visible destinations.
 type Footer struct {
-	Text      string
-	Question  string
-	SayHi     string
-	Email     string
-	Copyright string
-	NavLabel  string
-	Links     []Link
+	Projections []string
+	Text        string
+	Question    string
+	SayHi       string
+	Email       string
+	Copyright   string
+	NavLabel    string
+	Links       []Link
 }
 
 // Page carries the shared shell and the view for the requested public route.

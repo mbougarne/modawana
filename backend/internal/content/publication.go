@@ -75,8 +75,13 @@ func (s *Service) changePublicationIn(ctx context.Context, tx *sql.Tx, owner, ke
 	}
 	if op == "publish" && rev.BodyFormat == BlockBodyFormat {
 		_, refs, err := parsePageBlocks(rev.PageBlocks, nil)
-		if err != nil || refs.unsupported {
+		if err != nil {
 			return Result{}, typeIssue("page_blocks", "page_block_unavailable")
+		}
+		for _, b := range refs.extensionBlocks {
+			if _, ok := s.Extensions.RenderBlock(b.Type, b.Version, b.Properties); !ok {
+				return Result{}, typeIssue("page_blocks", "page_block_unavailable")
+			}
 		}
 		for _, m := range rev.Media {
 			if !refs.images[m.ID] || m.Kind == "image" {
