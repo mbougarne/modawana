@@ -307,6 +307,16 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 			}
 			previewTheme = choice
 			path = "/" + locale
+			if target := r.URL.Query().Get("path"); target != "" {
+				segments := strings.Split(strings.TrimPrefix(target, "/"), "/")
+				if len(target) > 512 || !strings.HasPrefix(target, "/") || len(segments) != 3 ||
+					segments[0] != locale || (segments[1] != "pages" && segments[1] != "articles") ||
+					strings.ContainsAny(segments[2], "?#\\") {
+					writeError(w, InvalidFields)
+					return
+				}
+				path = target
+			}
 		}
 		if resolver, ok := s.options.Domain.(pageResolver); ok {
 			var err error
@@ -324,6 +334,15 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 			}
 		} else if public && status == 200 {
 			page = content.PageRoute{Kind: "home", Locale: locale, URL: "/" + locale}
+		}
+		if public && status == http.StatusOK && page.Kind == "page" && page.URL == "/"+locale &&
+			strings.HasPrefix(path, "/"+locale+"/pages/") {
+			destination := page.URL
+			if r.URL.RawQuery != "" {
+				destination += "?" + r.URL.RawQuery
+			}
+			http.Redirect(w, r, destination, http.StatusTemporaryRedirect)
+			return
 		}
 		page = localizePublicPage(r.Context(), page)
 	}

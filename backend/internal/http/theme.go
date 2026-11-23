@@ -51,8 +51,13 @@ func (s *Server) renderThemed(ctx context.Context, r *http.Request, page content
 	if appearance.ID == "" {
 		appearance, _ = theme.Lookup(settings.Site.PublicTheme)
 	}
+	viewKind := page.Kind
+	if page.URL == "/"+locale && page.Content != nil && page.Content.Kind == "page" {
+		viewKind, current = "home", ""
+	}
+	appearance = appearance.ForView(viewKind)
 	head.ThemeCSS = template.CSS(appearance.CSS)
-	navigation := themeNavigation{locale: locale, section: current, path: page.URL, pages: settings.MenuPages, label: label}
+	navigation := themeNavigation{locale: locale, frontKey: settings.Site.FrontPages[locale], section: current, path: page.URL, pages: settings.MenuPages, label: label}
 	view := theme.Page{
 		ThemeID: appearance.ID, Layout: appearance.Layout, BannerURL: appearance.BannerURL, Locale: locale, Direction: head.Direction, SkipLabel: label("foundation.skip"),
 		Brand: themeBrand(settings.Site, locale), Nav: navigation.headerLinks(settings.Site.HeaderMenu, false),
@@ -279,6 +284,8 @@ func setReaderDetails(article *theme.Article, c *content.PublicContent, label fu
 }
 
 type themeNavigation struct {
+	footer                bool
+	frontKey              string
 	locale, section, path string
 	pages                 map[string]siteconfig.MenuPage
 	label                 func(string) string
@@ -298,11 +305,15 @@ func (n themeNavigation) headerLinks(menu *[]siteconfig.MenuItem, home bool) []t
 func (n themeNavigation) links(items []siteconfig.MenuItem) []theme.Link {
 	out := make([]theme.Link, 0, len(items))
 	for _, item := range items {
+		previous := len(out)
 		switch item.Target {
 		case "page":
 			if page, ok := n.pages[item.PageKey]; ok {
 				destination := content.StandalonePagePath(n.locale, page.Slug)
-				out = append(out, theme.Link{Label: page.Title, URL: destination, Language: n.locale, Current: n.path == destination})
+				if item.PageKey == n.frontKey {
+					destination = "/" + n.locale
+				}
+				out = append(out, theme.Link{Label: page.Title, URL: destination, Language: n.locale, Current: !n.footer && n.path == destination})
 			}
 		case "custom":
 			destination, ok := render.SafeLink(item.URL)
@@ -328,7 +339,10 @@ func (n themeNavigation) links(items []siteconfig.MenuItem) []theme.Link {
 			if section != "" {
 				destination += "/" + section
 			}
-			out = append(out, theme.Link{Label: n.label("slot." + item.Target), URL: destination, Current: n.section == section})
+			out = append(out, theme.Link{Label: n.label("slot." + item.Target), URL: destination, Current: !n.footer && n.section == section})
+		}
+		if len(out) > previous && len(item.Children) > 0 {
+			out[previous].Children = n.links(item.Children)
 		}
 	}
 	return out
@@ -408,6 +422,7 @@ func (s *Server) themeFooter(settings siteconfig.Public, navigation themeNavigat
 	if settings.Site.FooterMenu != nil {
 		items = *settings.Site.FooterMenu
 	}
+	navigation.footer = true
 	footer.Links = navigation.links(items)
 	candidates := settings.Profile.Links
 	if settings.Profile.MainAction != nil {

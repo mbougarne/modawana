@@ -20,6 +20,7 @@ var templates = template.Must(template.ParseFS(files, "templates/*.tmpl"))
 
 // Link is one resolved navigation or tag destination.
 type Link struct {
+	Children []Link
 	Label    string
 	URL      string
 	Current  bool

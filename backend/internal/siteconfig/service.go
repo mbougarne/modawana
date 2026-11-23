@@ -173,6 +173,9 @@ func (s *Service) validateRefs(ctx context.Context, q query, kind string, b json
 		if e := json.Unmarshal(b, &site); e != nil {
 			return e
 		}
+		if err := validateFrontPageReferences(ctx, q, site); err != nil {
+			return err
+		}
 		return validateMenuPageReferences(ctx, q, site)
 	}
 	if kind == "profile" {

@@ -568,3 +568,7 @@
   background: var(--majorelle);
   color: var(--on-majorelle);
 }
+
+.config-menu-children {
+  margin-inline-start: var(--space-4);
+}

@@ -33,14 +33,16 @@ type Site struct {
 	MenuIcons     map[string]string `json:"menu_icons"`
 	HeaderMenu    *[]MenuItem       `json:"header_menu,omitempty"`
 	FooterMenu    *[]MenuItem       `json:"footer_menu,omitempty"`
+	FrontPages    Localized         `json:"front_pages,omitempty"`
 	PublicLocales []string          `json:"public_locales,omitempty"`
 }
 type MenuItem struct {
-	ID      string    `json:"id"`
-	Target  string    `json:"target"`
-	Label   Localized `json:"label,omitempty"`
-	URL     string    `json:"url,omitempty"`
-	PageKey string    `json:"page_key,omitempty"`
+	ID       string     `json:"id"`
+	Target   string     `json:"target"`
+	Label    Localized  `json:"label,omitempty"`
+	URL      string     `json:"url,omitempty"`
+	PageKey  string     `json:"page_key,omitempty"`
+	Children []MenuItem `json:"children,omitempty"`
 }
 type NowRow struct {
 	ID    string    `json:"id"`

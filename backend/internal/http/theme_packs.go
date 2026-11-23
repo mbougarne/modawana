@@ -96,15 +96,16 @@ func (d *Domain) themeAsset(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	parts := strings.Split(strings.TrimPrefix(r.URL.Path, "/theme-assets/"), "/")
-	if len(parts) != 3 || !theme.IsPack(parts[0]) || len(parts[1]) != 64 || parts[2] != "banner.png" {
+	if len(parts) != 3 || !theme.IsPack(parts[0]) || len(parts[1]) != 64 {
 		writeError(w, NotFound)
 		return
 	}
 	pack, err := d.SiteConfig.Themes.ApprovedPack(r.Context(), d.SiteConfig.DB, parts[0])
-	if err != nil || pack.Checksum != parts[1] || len(pack.BannerPNG) == 0 {
+	asset := pack.Asset(parts[2])
+	if err != nil || pack.Checksum != parts[1] || len(asset) == 0 {
 		writeError(w, NotFound)
 		return
 	}
 	w.Header().Set("Content-Type", "image/png")
-	http.ServeContent(w, r, "banner.png", time.Time{}, bytes.NewReader(pack.BannerPNG))
+	http.ServeContent(w, r, parts[2], time.Time{}, bytes.NewReader(asset))
 }

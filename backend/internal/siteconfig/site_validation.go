@@ -4,10 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"unicode"
 
+	"github.com/mbougarne/modawana/backend/internal/config"
 	"github.com/mbougarne/modawana/backend/internal/render"
 	"github.com/mbougarne/modawana/backend/internal/theme"
 )
@@ -65,6 +67,11 @@ func siteIssues(s Site) []FieldIssue {
 			issues = append(issues, menuIssues(menu.path, *menu.items)...)
 		}
 	}
+	for locale, key := range s.FrontPages {
+		if !slices.Contains(config.SupportedLocales(), locale) || !menuPageKey.MatchString(key) {
+			add("front_pages."+locale, "menu_page")
+		}
+	}
 	if s.LogoMode == "image" && s.LogoID == "" {
 		add("logo_media_id", "logo_image")
 	}
@@ -78,41 +85,58 @@ func menuIssues(path string, items []MenuItem) []FieldIssue {
 	var issues []FieldIssue
 	seen := map[string]bool{}
 	targets := map[string]bool{}
-	for i, item := range items {
-		row := path + "." + strconv.Itoa(i)
-		if !stableID.MatchString(item.ID) || seen[item.ID] {
-			issues = append(issues, FieldIssue{row + ".id", "id"})
+	count := 0
+	var visit func(string, []MenuItem, int)
+	visit = func(path string, items []MenuItem, level int) {
+		if len(items) > 12 || (level > 2 && len(items) != 0) {
+			issues = append(issues, FieldIssue{path, "limit"})
+			return
 		}
-		seen[item.ID] = true
-		switch item.Target {
-		case "home", "writing", "learning", "docs", "about":
-			if targets[item.Target] || item.URL != "" || len(item.Label) != 0 || item.PageKey != "" {
+		for i, item := range items {
+			count++
+			if count > 12 {
+				issues = append(issues, FieldIssue{path, "limit"})
+				return
+			}
+			row := path + "." + strconv.Itoa(i)
+			if !stableID.MatchString(item.ID) || seen[item.ID] {
+				issues = append(issues, FieldIssue{row + ".id", "id"})
+			}
+			seen[item.ID] = true
+			switch item.Target {
+			case "home", "writing", "learning", "docs", "about":
+				if targets[item.Target] || item.URL != "" || len(item.Label) != 0 || item.PageKey != "" {
+					issues = append(issues, FieldIssue{row + ".target", "menu_target"})
+				}
+				targets[item.Target] = true
+			case "custom":
+				if item.PageKey != "" {
+					issues = append(issues, FieldIssue{row + ".target", "menu_target"})
+				}
+				if _, ok := render.SafeLink(item.URL); !ok || !safeURL(item.URL) {
+					issues = append(issues, FieldIssue{row + ".url", "url"})
+				}
+				if strings.TrimSpace(item.Label["en"]) == "" {
+					issues = append(issues, FieldIssue{row + ".label.en", "required"})
+				} else if !localized(item.Label, 80) {
+					issues = append(issues, FieldIssue{row + ".label", "text"})
+				}
+			case "page":
+				if !menuPageKey.MatchString(item.PageKey) {
+					issues = append(issues, FieldIssue{row + ".page_key", "menu_page"})
+				}
+				if item.URL != "" || len(item.Label) != 0 {
+					issues = append(issues, FieldIssue{row + ".target", "menu_target"})
+				}
+			default:
 				issues = append(issues, FieldIssue{row + ".target", "menu_target"})
 			}
-			targets[item.Target] = true
-		case "custom":
-			if item.PageKey != "" {
-				issues = append(issues, FieldIssue{row + ".target", "menu_target"})
+			if len(item.Children) > 0 {
+				visit(row+".children", item.Children, level+1)
 			}
-			if _, ok := render.SafeLink(item.URL); !ok || !safeURL(item.URL) {
-				issues = append(issues, FieldIssue{row + ".url", "url"})
-			}
-			if strings.TrimSpace(item.Label["en"]) == "" {
-				issues = append(issues, FieldIssue{row + ".label.en", "required"})
-			} else if !localized(item.Label, 80) {
-				issues = append(issues, FieldIssue{row + ".label", "text"})
-			}
-		case "page":
-			if !menuPageKey.MatchString(item.PageKey) {
-				issues = append(issues, FieldIssue{row + ".page_key", "menu_page"})
-			}
-			if item.URL != "" || len(item.Label) != 0 {
-				issues = append(issues, FieldIssue{row + ".target", "menu_target"})
-			}
-		default:
-			issues = append(issues, FieldIssue{row + ".target", "menu_target"})
 		}
 	}
+	visit(path, items, 1)
 	return issues
 }
 

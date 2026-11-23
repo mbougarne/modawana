@@ -9,6 +9,7 @@ export interface MenuItem {
   id: string;
   target: 'home' | 'writing' | 'learning' | 'docs' | 'about' | 'page' | 'custom';
   page_key?: string;
+  children?: MenuItem[];
   label?: Localized;
   url?: string;
 }
@@ -26,6 +27,7 @@ export interface SiteSettings {
   header_menu?: MenuItem[];
   footer_menu?: MenuItem[];
   public_locales?: Locale[];
+  front_pages?: Localized;
 }
 
 export interface ProfileLink {
