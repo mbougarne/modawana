@@ -34,6 +34,16 @@ The content list filters language, type, publication status and text with pagina
 Bulk publication shows a confirmation and uses exact selected versions. A stale,
 inaccessible or unreviewed selection is rejected by the server.
 
+## Standalone pages
+
+Open **Pages → New page** and enter a title and Markdown. In **Details**, choose
+**Standard** for a reading page or **Landing** for a centered introduction and
+wider content. The template is saved with the draft and takes effect when that
+revision is published. Pages support media, translations and revision history.
+
+**View published page** opens the localized URL. Add that path as a **Custom
+link** in your header or footer menu when you want a navigation entry.
+
 ## Collections, categories and tags
 
 Create or open a collection, set its localized details, search by content title,

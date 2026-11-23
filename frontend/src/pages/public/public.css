@@ -287,6 +287,25 @@
   min-inline-size: 0;
   overflow-wrap: anywhere;
 }
+.public-reader-page[data-page-template='landing'] {
+  max-inline-size: 56rem;
+}
+.public-reader-page[data-page-template='standard'] > .vb-art-head {
+  justify-items: start;
+  text-align: start;
+}
+.public-reader-page[data-page-template='landing'] > .vb-art-head {
+  text-align: center;
+  padding-block: clamp(var(--space-6), 7vw, calc(var(--space-7) * 2));
+}
+.public-reader-page[data-page-template='landing'] > .vb-art-head .vb-title {
+  font-size: clamp(2rem, 6vw, 4.25rem);
+  line-height: 1.15;
+}
+.public-reader-page[data-page-template='landing'] > .vb-art-head .vb-lead {
+  max-inline-size: var(--measure);
+  margin-inline: auto;
+}
 .public-cover {
   inline-size: 100%;
   block-size: auto;

@@ -11,6 +11,7 @@ import { usePublicConfiguration } from '../configuration/PublicConfiguration';
 
 const pages = [
   ['posts', 'ul'],
+  ['pages', 'page'],
   ['collections', 'folder'],
   ['taxonomy', 'tag'],
   ['media', 'image'],

@@ -1734,7 +1734,8 @@
                                 "enum": [
                                   "article",
                                   "lesson",
-                                  "doc"
+                                  "doc",
+                                  "page"
                                 ]
                               },
                               "source_locale": {
@@ -7066,7 +7067,8 @@
             "enum": [
               "article",
               "lesson",
-              "doc"
+              "doc",
+              "page"
             ]
           },
           "source_locale": {
@@ -7133,6 +7135,14 @@
             "type": "integer",
             "minimum": 1,
             "description": "Required for an existing item changing to lesson/doc. Selected collection version. / مطلوب عند تغيير عنصر حالي إلى درس أو مستند، وهو إصدار المجموعة المختارة."
+          },
+          "page_template": {
+            "type": "string",
+            "enum": [
+              "standard",
+              "landing"
+            ],
+            "description": "Template for kind=page. Omit for Standard. / قالب النوع page. غياب الحقل يختار القالب القياسي."
           }
         },
         "required": [
@@ -7242,6 +7252,13 @@
           },
           "quiz": {
             "$ref": "#/components/schemas/QuizDefinition"
+          },
+          "page_template": {
+            "type": "string",
+            "enum": [
+              "standard",
+              "landing"
+            ]
           }
         },
         "required": [
@@ -7270,7 +7287,8 @@
             "enum": [
               "article",
               "lesson",
-              "doc"
+              "doc",
+              "page"
             ]
           },
           "source_locale": {
@@ -7403,7 +7421,8 @@
             "enum": [
               "article",
               "lesson",
-              "doc"
+              "doc",
+              "page"
             ]
           },
           "locale": {
@@ -7494,7 +7513,8 @@
             "enum": [
               "article",
               "lesson",
-              "doc"
+              "doc",
+              "page"
             ]
           },
           "locale": {
@@ -7566,6 +7586,13 @@
           },
           "learning": {
             "$ref": "#/components/schemas/ReaderLearning"
+          },
+          "page_template": {
+            "type": "string",
+            "enum": [
+              "standard",
+              "landing"
+            ]
           }
         },
         "required": [
@@ -9386,7 +9413,8 @@
               "collection",
               "article",
               "lesson",
-              "doc"
+              "doc",
+              "page"
             ]
           },
           "locale": {
@@ -9808,7 +9836,8 @@
             "enum": [
               "article",
               "lesson",
-              "doc"
+              "doc",
+              "page"
             ]
           },
           "source_locale": {

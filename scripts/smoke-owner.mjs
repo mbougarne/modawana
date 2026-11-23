@@ -92,7 +92,7 @@ export async function smokeOwner({ context, origin, root, locale, t }) {
       await page.goto(origin + `/${locale}/admin/${destination}`);
       await page.getByRole('navigation', { name: t('config.owner'), exact: true }).waitFor();
       await page.getByRole('heading', { level: 1 }).first().waitFor();
-      assert.equal(await page.locator('.workspace-navigation .owner-navigation a').count(), 10);
+      assert.equal(await page.locator('.workspace-navigation .owner-navigation a').count(), 11);
       assert.equal(
         await page
           .locator('.workspace-navigation .owner-navigation [aria-current="page"]')

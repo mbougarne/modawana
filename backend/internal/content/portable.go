@@ -49,7 +49,7 @@ func (s *Service) PortableRevisions(ctx context.Context) ([]PortableRevision, er
 		if e != nil {
 			return nil, e
 		}
-		in := DraftInput{Kind: r.kind, SourceLocale: r.source, Slug: v.Slug, Title: v.Title, Summary: v.Summary, Markdown: v.Markdown, SourceRevisionID: v.SourceID, CategoryKey: v.CategoryKey, TagKeys: v.Tags, CoverMediaID: v.CoverID, Presentations: v.Presentations, CollectionKey: r.collection, Position: r.position, Quiz: v.Quiz}
+		in := DraftInput{Kind: r.kind, PageTemplate: v.PageTemplate, SourceLocale: r.source, Slug: v.Slug, Title: v.Title, Summary: v.Summary, Markdown: v.Markdown, SourceRevisionID: v.SourceID, CategoryKey: v.CategoryKey, TagKeys: v.Tags, CoverMediaID: v.CoverID, Presentations: v.Presentations, CollectionKey: r.collection, Position: r.position, Quiz: v.Quiz}
 		out = append(out, PortableRevision{ID: r.id, Key: r.key, Locale: r.locale, BodyPath: "content/" + r.id + ".md", Current: r.current, Input: in})
 	}
 	return out, nil

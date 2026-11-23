@@ -658,6 +658,16 @@
       "ar": "وثائق"
     }
   },
+  "public.page": {
+    "section": "public",
+    "description": "Interface text: public.page",
+    "placeholders": [],
+    "values": {
+      "en": "Page",
+      "fr": "Page",
+      "ar": "صفحة"
+    }
+  },
   "public.category": {
     "section": "public",
     "description": "Interface text: public.category",
@@ -5697,6 +5707,16 @@
       "ar": "وثيقة"
     }
   },
+  "kind.page": {
+    "section": "kind",
+    "description": "Interface text: kind.page",
+    "placeholders": [],
+    "values": {
+      "en": "Page",
+      "fr": "Page",
+      "ar": "صفحة"
+    }
+  },
   "post.minutes": {
     "section": "post",
     "description": "Interface text: post.minutes",
@@ -6390,6 +6410,36 @@
       "ar": "المحتوى"
     }
   },
+  "owner.pages": {
+    "section": "owner",
+    "description": "Interface text: owner.pages",
+    "placeholders": [],
+    "values": {
+      "en": "Pages",
+      "fr": "Pages",
+      "ar": "الصفحات"
+    }
+  },
+  "workspace.pagesHelp": {
+    "section": "workspace",
+    "description": "Interface text: workspace.pagesHelp",
+    "placeholders": [],
+    "values": {
+      "en": "Create and manage standalone pages on your site.",
+      "fr": "Créez et gérez les pages indépendantes de votre site.",
+      "ar": "أنشئ صفحات موقعك المستقلة وأدِرها."
+    }
+  },
+  "workspace.searchPages": {
+    "section": "workspace",
+    "description": "Interface text: workspace.searchPages",
+    "placeholders": [],
+    "values": {
+      "en": "Search pages",
+      "fr": "Rechercher des pages",
+      "ar": "ابحث في الصفحات"
+    }
+  },
   "owner.collections": {
     "section": "owner",
     "description": "Interface text: owner.collections",
@@ -6498,6 +6548,66 @@
       "en": "New content",
       "fr": "Nouveau contenu",
       "ar": "محتوى جديد"
+    }
+  },
+  "owner.newPage": {
+    "section": "owner",
+    "description": "Interface text: owner.newPage",
+    "placeholders": [],
+    "values": {
+      "en": "New page",
+      "fr": "Nouvelle page",
+      "ar": "صفحة جديدة"
+    }
+  },
+  "owner.viewPage": {
+    "section": "owner",
+    "description": "Interface text: owner.viewPage",
+    "placeholders": [],
+    "values": {
+      "en": "View published page",
+      "fr": "Voir la page publiée",
+      "ar": "عرض الصفحة المنشورة"
+    }
+  },
+  "owner.page": {
+    "section": "owner",
+    "description": "Interface text: owner.page",
+    "placeholders": [],
+    "values": {
+      "en": "Page",
+      "fr": "Page",
+      "ar": "صفحة"
+    }
+  },
+  "owner.pageTemplate": {
+    "section": "owner",
+    "description": "Interface text: owner.pageTemplate",
+    "placeholders": [],
+    "values": {
+      "en": "Page template",
+      "fr": "Modèle de page",
+      "ar": "قالب الصفحة"
+    }
+  },
+  "owner.standardPage": {
+    "section": "owner",
+    "description": "Interface text: owner.standardPage",
+    "placeholders": [],
+    "values": {
+      "en": "Standard",
+      "fr": "Standard",
+      "ar": "قياسي"
+    }
+  },
+  "owner.landingPage": {
+    "section": "owner",
+    "description": "Interface text: owner.landingPage",
+    "placeholders": [],
+    "values": {
+      "en": "Landing",
+      "fr": "Page d’accueil promotionnelle",
+      "ar": "صفحة هبوط"
     }
   },
   "owner.all": {

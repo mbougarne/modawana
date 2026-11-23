@@ -68,7 +68,7 @@ func (s *Server) themeDiscovery(ctx context.Context, query url.Values, page cont
 	}
 	filter := content.Filter{
 		Locale: page.Locale, Kind: query.Get("kind"), Category: query.Get("category"),
-		Tag: query.Get("tag"), Query: query.Get("q"), Cursor: query.Get("cursor"), Limit: 20,
+		Tag: query.Get("tag"), Query: query.Get("q"), Cursor: query.Get("cursor"), Limit: 20, ExcludePages: page.Kind == "writing",
 	}
 	filters := url.Values{}
 	for _, key := range []string{"kind", "category", "tag", "q"} {
@@ -89,7 +89,7 @@ func (s *Server) themeDiscovery(ctx context.Context, query url.Values, page cont
 			}
 		}
 		view.Kinds = append(view.Kinds, theme.Choice{Label: label("public.any"), Selected: filter.Kind == ""})
-		for _, kind := range []string{"article", "lesson", "doc"} {
+		for _, kind := range []string{"article", "lesson", "doc", "page"} {
 			view.Kinds = append(view.Kinds, theme.Choice{Value: kind, Label: label("public." + kind), Selected: filter.Kind == kind})
 		}
 	} else {

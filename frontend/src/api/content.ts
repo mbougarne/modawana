@@ -3,7 +3,9 @@ import type { MediaRecord } from './contracts';
 
 export type Locale = 'en' | 'ar' | 'fr';
 
-export type ContentKind = 'article' | 'lesson' | 'doc';
+export type ContentKind = 'article' | 'lesson' | 'doc' | 'page';
+
+export type PageTemplate = 'standard' | 'landing';
 
 export interface MediaPresentation {
   media_id: string;
@@ -18,6 +20,7 @@ export interface DraftInput {
   quiz?: QuizDefinition;
   expected_version: number;
   kind: ContentKind;
+  page_template?: PageTemplate;
   source_locale: Locale;
   slug: string;
   title: string;
@@ -51,6 +54,7 @@ export interface Revision {
   summary: string;
   markdown: string;
   slug: string;
+  page_template?: PageTemplate;
   source_revision_id: string;
   category_key: string;
   tag_keys: string[];
@@ -93,6 +97,7 @@ export interface PublicMedia {
 export interface PublicContent {
   learning?: ReaderLearningState;
   reading_minutes?: number;
+  page_template?: PageTemplate;
   key: string;
   kind: ContentKind;
   locale: Locale;

@@ -131,5 +131,16 @@ func migrate(ctx context.Context, database *sql.DB, source fs.FS) error {
 	if bad {
 		return ErrSchemaMismatch
 	}
+	// A table rebuild can leave deferred drop violations after all rows have
+	// been restored. Clear them only after checking every foreign key above.
+	var deferred int
+	if err = tx.QueryRowContext(ctx, "PRAGMA defer_foreign_keys").Scan(&deferred); err != nil {
+		return err
+	}
+	if deferred != 0 {
+		if _, err = tx.ExecContext(ctx, "PRAGMA defer_foreign_keys=OFF"); err != nil {
+			return err
+		}
+	}
 	return tx.Commit()
 }

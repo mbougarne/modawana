@@ -104,7 +104,7 @@ func (s *Server) themeHome(ctx context.Context, settings siteconfig.Public, loca
 		if !ok || p.WritingLimit < 1 {
 			return nil, "", errThemeUnavailable
 		}
-		result, err := discovery.PublicDiscovery(ctx, content.Filter{Locale: locale, Limit: p.WritingLimit})
+		result, err := discovery.PublicDiscovery(ctx, content.Filter{Locale: locale, Limit: p.WritingLimit, ExcludePages: true})
 		if err != nil {
 			return nil, "", err
 		}

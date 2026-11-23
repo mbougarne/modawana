@@ -36,6 +36,9 @@ func canonical(ctx context.Context, q query, key, locale, kind, slug string) (st
 	if kind == "article" {
 		return "/" + locale + "/articles/" + url.PathEscape(slug), nil
 	}
+	if kind == "page" {
+		return "/" + locale + "/pages/" + url.PathEscape(slug), nil
+	}
 	var collectionSlug, collectionKind string
 	e := q.QueryRowContext(ctx, `SELECT l.slug,c.kind FROM content_items i JOIN collection_plan_members m ON m.item_id=i.id JOIN collection_plan_state st ON st.active_plan_id=m.plan_id JOIN collections c ON c.id=st.collection_id JOIN collection_locales l ON l.collection_id=c.id WHERE i.key=? AND l.locale=? AND l.visible=1`, key, locale).Scan(&collectionSlug, &collectionKind)
 	if errors.Is(e, sql.ErrNoRows) {
@@ -132,7 +135,7 @@ func (s *Service) ResolvePage(ctx context.Context, path string) (PageRoute, erro
 			out.URL = collectionPath(out.Locale, c.Kind, c.Slug)
 			return out, nil
 		}
-	} else if len(parts) != 3 || (parts[1] != "articles" && parts[1] != "doc") {
+	} else if len(parts) != 3 || (parts[1] != "articles" && parts[1] != "doc" && parts[1] != "pages") {
 		return out, sql.ErrNoRows
 	}
 	slug := parts[len(parts)-1]

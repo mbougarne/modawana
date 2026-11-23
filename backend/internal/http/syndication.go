@@ -22,14 +22,14 @@ const sitemapBytes = 50 << 20
 const sitemapURLLength = 2048
 
 type syndicationSource interface {
-	SyndicatedPages(context.Context, string, int) ([]content.SyndicatedPage, error)
+	SyndicatedPages(context.Context, string, int, bool) ([]content.SyndicatedPage, error)
 }
 
-func (d *Domain) SyndicatedPages(ctx context.Context, locale string, limit int) ([]content.SyndicatedPage, error) {
+func (d *Domain) SyndicatedPages(ctx context.Context, locale string, limit int, includePages bool) ([]content.SyndicatedPage, error) {
 	if d.Content == nil {
 		return nil, errors.New("syndication content unavailable")
 	}
-	return d.Content.SyndicatedPages(ctx, locale, limit)
+	return d.Content.SyndicatedPages(ctx, locale, limit, includePages)
 }
 
 func feedPath(locale string) string {
@@ -116,7 +116,7 @@ type rssGUID struct {
 func (s *Server) serveRSS(w http.ResponseWriter, r *http.Request, source syndicationSource, origin, locale string) {
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
-	pages, err := source.SyndicatedPages(ctx, locale, feedLimit)
+	pages, err := source.SyndicatedPages(ctx, locale, feedLimit, false)
 	if err != nil {
 		writeError(w, Unavailable)
 		return
@@ -179,7 +179,7 @@ func (s *Server) serveSitemap(w http.ResponseWriter, r *http.Request, source syn
 	}
 	var pages []content.SyndicatedPage
 	for _, locale := range sources {
-		batch, err := source.SyndicatedPages(ctx, locale, sitemapLimit+1-len(pages))
+		batch, err := source.SyndicatedPages(ctx, locale, sitemapLimit+1-len(pages), true)
 		if err != nil || len(pages)+len(batch) > sitemapLimit {
 			writeError(w, Unavailable)
 			return

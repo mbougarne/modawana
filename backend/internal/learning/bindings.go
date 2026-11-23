@@ -17,7 +17,7 @@ func Bind(ctx context.Context, tx *sql.Tx, item, revision, locale, source, sourc
 	if d == nil {
 		return nil
 	}
-	if kind == "doc" {
+	if kind == "doc" || kind == "page" {
 		return ErrInvalid
 	}
 	c, w, e := split(*d)

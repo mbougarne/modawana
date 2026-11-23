@@ -85,6 +85,7 @@ const PATHS = {
     </>
   ),
   plus: <path d="M12 5v14M5 12h14" />,
+  page: <path d="M5 3h10l4 4v14H5zM14 3v5h5M8 12h8m-8 4h6" />,
   folder: <path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v9H3z" />,
   tag: (
     <>

@@ -25,12 +25,14 @@ import type {
   TaxonomyTerm,
   Revision,
   CollectionDocument,
+  PageTemplate,
 } from '../../../api/content';
 import { useResource } from '../../public/api';
 
-const empty = (locale: Locale): DraftInput => ({
+const empty = (locale: Locale, kind: DraftInput['kind'] = 'article'): DraftInput => ({
   expected_version: 0,
-  kind: 'article',
+  kind,
+  page_template: kind === 'page' ? 'standard' : undefined,
   source_locale: locale,
   slug: '',
   title: '',
@@ -46,6 +48,7 @@ function fromDraft(d: Draft): DraftInput {
     quiz: d.revision.quiz,
     expected_version: d.version,
     kind: d.kind,
+    page_template: d.revision.page_template,
     source_locale: d.source_locale,
     slug: d.revision.slug,
     title: d.revision.title,
@@ -65,10 +68,13 @@ export function EditorPage({ csrf }: { csrf: string }) {
   const [query] = useSearchParams();
   const navigate = useNavigate();
   const lang = (params.contentLocale || locale) as Locale;
+  const initialKind = query.get('kind') === 'page' ? 'page' : 'article';
   const [key, setKey] = useState(params.key || '');
   const [base, setBase] = useState<Draft>();
-  const [working, setWorking] = useState<DraftInput>(() => empty(lang));
-  const [initial, setInitial] = useState(() => JSON.stringify(empty(lang)));
+  const [working, setWorking] = useState<DraftInput>(() => empty(lang, initialKind));
+  const [initial, setInitial] = useState(() => JSON.stringify(empty(lang, initialKind)));
+  const standalone = working.kind === 'page';
+  const canQuiz = working.kind === 'article' || working.kind === 'lesson';
   const [pendingFile, setPendingFile] = useState<File>();
   const [tab, setTab] = useState('write');
   const [split, setSplit] = useState(false);
@@ -216,6 +222,7 @@ export function EditorPage({ csrf }: { csrf: string }) {
               quiz,
               ...empty(lang),
               kind: d.kind,
+              page_template: published.page_template,
               source_locale: d.source_locale,
               source_revision_id: d.published_revision_id,
             };
@@ -232,7 +239,7 @@ export function EditorPage({ csrf }: { csrf: string }) {
         }
       } else {
         slugManual.current = false;
-        const form = empty(lang);
+        const form = empty(lang, initialKind);
         setWorking(form);
         setInitial(JSON.stringify(form));
         setKey('');
@@ -255,7 +262,7 @@ export function EditorPage({ csrf }: { csrf: string }) {
     return () => {
       loadGeneration.current++;
     };
-  }, [params.key, lang, query.get('source')]);
+  }, [params.key, lang, initialKind, query.get('source')]);
   function change<K extends keyof DraftInput>(field: K, value: DraftInput[K]) {
     setWorking((w) => ({ ...w, [field]: value }));
     setNotice('config.unsaved');
@@ -640,7 +647,7 @@ export function EditorPage({ csrf }: { csrf: string }) {
                     { key: 'write', label: t('owner.write') },
                     { key: 'preview', label: t('owner.preview') },
                     { key: 'media', label: t('owner.media'), count: media.length },
-                    ...(working.kind === 'doc'
+                    ...(!canQuiz
                       ? []
                       : [
                           {
@@ -711,11 +718,24 @@ export function EditorPage({ csrf }: { csrf: string }) {
                     hidden={tab !== 'preview'}
                   >
                     <I18nProvider locale={lang} syncDocument={false}>
-                      <MarkdownReader
-                        markdown={working.markdown}
-                        media={media}
-                        presentations={working.media_presentations}
-                      />
+                      <div
+                        className={standalone ? 'public-reader public-reader-page' : undefined}
+                        data-page-template={
+                          standalone ? (working.page_template ?? 'standard') : undefined
+                        }
+                      >
+                        {standalone && (working.title || working.summary) && (
+                          <header className="vb-art-head" dir="auto">
+                            {working.title && <h2 className="vb-title">{working.title}</h2>}
+                            {working.summary && <p className="vb-lead">{working.summary}</p>}
+                          </header>
+                        )}
+                        <MarkdownReader
+                          markdown={working.markdown}
+                          media={media}
+                          presentations={working.media_presentations}
+                        />
+                      </div>
                     </I18nProvider>
                   </section>
                   <section
@@ -800,7 +820,7 @@ export function EditorPage({ csrf }: { csrf: string }) {
                     aria-labelledby="tab-quiz"
                     hidden={tab !== 'quiz'}
                   >
-                    {working.kind !== 'doc' && (
+                    {canQuiz && (
                       <QuizBuilder
                         value={working.quiz}
                         onChange={(v) => change('quiz', v)}
@@ -899,10 +919,10 @@ export function EditorPage({ csrf }: { csrf: string }) {
                           setSelected(undefined);
                           setPendingFile(undefined);
                           retry.current = undefined;
-                          navigate('/' + locale + '/admin/new');
+                          navigate('/' + locale + '/admin/new' + (standalone ? '?kind=page' : ''));
                         }}
                       >
-                        {t('owner.new')}
+                        {t(standalone ? 'owner.newPage' : 'owner.new')}
                       </Button>
                     )}
                     {base?.source_locale !== lang && base && (
@@ -919,6 +939,15 @@ export function EditorPage({ csrf }: { csrf: string }) {
                         onClick={() => void run(() => action('unpublish'))}
                       >
                         {t('owner.unpublish')}
+                      </Button>
+                    )}
+                    {base?.kind === 'page' && base.published_revision_id && (
+                      <Button
+                        href={`/${lang}/pages/${encodeURIComponent(base.revision.slug)}`}
+                        target="_blank"
+                        rel="noopener"
+                      >
+                        {t('owner.viewPage')}
                       </Button>
                     )}
                   </div>
@@ -941,16 +970,20 @@ export function EditorPage({ csrf }: { csrf: string }) {
                       <Field label={t('owner.kind')}>
                         <select
                           value={working.kind}
+                          disabled={!!params.key && standalone}
                           onChange={(e) => {
                             const kind = e.target.value as DraftInput['kind'];
-                            if (kind === 'doc' && tab === 'quiz') {
+                            if ((kind === 'doc' || kind === 'page') && tab === 'quiz') {
                               setTab('write');
                             }
                             setWorking((w) => ({
                               ...w,
                               kind,
+                              page_template: kind === 'page' ? 'standard' : undefined,
+                              category_key: kind === 'page' ? undefined : w.category_key,
+                              tag_keys: kind === 'page' ? [] : w.tag_keys,
                               position:
-                                kind === 'article'
+                                kind === 'article' || kind === 'page'
                                   ? undefined
                                   : kind === base?.kind
                                     ? base.position
@@ -961,8 +994,15 @@ export function EditorPage({ csrf }: { csrf: string }) {
                             }));
                           }}
                         >
-                          {['article', 'lesson', 'doc'].map((k) => (
-                            <option key={k} value={k} disabled={k === 'doc' && !!working.quiz}>
+                          {['article', 'lesson', 'doc', 'page'].map((k) => (
+                            <option
+                              key={k}
+                              value={k}
+                              disabled={
+                                ((k === 'doc' || k === 'page') && !!working.quiz) ||
+                                (k === 'page' && !!params.key && !standalone)
+                              }
+                            >
                               {t('owner.' + k)}
                             </option>
                           ))}
@@ -975,6 +1015,19 @@ export function EditorPage({ csrf }: { csrf: string }) {
                   </section>
                   <section className="owner-panel editor-details-card">
                     <h2>{t('owner.details')}</h2>
+                    {standalone && (
+                      <Field label={t('owner.pageTemplate')}>
+                        <select
+                          value={working.page_template ?? 'standard'}
+                          onChange={(event) =>
+                            change('page_template', event.target.value as PageTemplate)
+                          }
+                        >
+                          <option value="standard">{t('owner.standardPage')}</option>
+                          <option value="landing">{t('owner.landingPage')}</option>
+                        </select>
+                      </Field>
+                    )}
                     <Field label={t('owner.slug')}>
                       <input
                         value={working.slug}
@@ -985,63 +1038,66 @@ export function EditorPage({ csrf }: { csrf: string }) {
                         }}
                       />
                     </Field>
-                    <Field label={t('owner.category')}>
-                      <select
-                        value={working.category_key || ''}
-                        onChange={(e) => change('category_key', e.target.value)}
-                      >
-                        <option value="">{t('owner.none')}</option>
-                        {allTerms
-                          .filter((v) => v.kind === 'category')
-                          .map((v) => (
-                            <option key={v.key} value={v.key}>
-                              {v.label}
-                            </option>
-                          ))}
-                      </select>
-                    </Field>
-                    <TaxonomyCreate
-                      kind="category"
-                      locale={lang}
-                      csrf={csrf}
-                      disabled={busy}
-                      onCreated={(term) => {
-                        setCreatedTerms((items) => [...items, term]);
-                        change('category_key', term.key);
-                      }}
-                    />
-                    <section className="editor-tag-card">
-                      <h3>{t('public.tags')}</h3>
-                      <EditorTags
-                        value={working.tag_keys || []}
-                        terms={allTerms.filter((term) => term.kind === 'tag')}
-                        onChange={(keys) => change('tag_keys', keys)}
-                      />
-                      <TaxonomyCreate
-                        kind="tag"
-                        locale={lang}
-                        csrf={csrf}
-                        disabled={busy || (working.tag_keys?.length || 0) >= 8}
-                        onCreated={(term) => {
-                          setCreatedTerms((items) => [...items, term]);
-                          setWorking((current) => ({
-                            ...current,
-                            tag_keys: [...new Set([...(current.tag_keys || []), term.key])].slice(
-                              0,
-                              8,
-                            ),
-                          }));
-                          setNotice('config.unsaved');
-                        }}
-                      />
-                    </section>
+                    {!standalone && (
+                      <>
+                        <Field label={t('owner.category')}>
+                          <select
+                            value={working.category_key || ''}
+                            onChange={(e) => change('category_key', e.target.value)}
+                          >
+                            <option value="">{t('owner.none')}</option>
+                            {allTerms
+                              .filter((v) => v.kind === 'category')
+                              .map((v) => (
+                                <option key={v.key} value={v.key}>
+                                  {v.label}
+                                </option>
+                              ))}
+                          </select>
+                        </Field>
+                        <TaxonomyCreate
+                          kind="category"
+                          locale={lang}
+                          csrf={csrf}
+                          disabled={busy}
+                          onCreated={(term) => {
+                            setCreatedTerms((items) => [...items, term]);
+                            change('category_key', term.key);
+                          }}
+                        />
+                        <section className="editor-tag-card">
+                          <h3>{t('public.tags')}</h3>
+                          <EditorTags
+                            value={working.tag_keys || []}
+                            terms={allTerms.filter((term) => term.kind === 'tag')}
+                            onChange={(keys) => change('tag_keys', keys)}
+                          />
+                          <TaxonomyCreate
+                            kind="tag"
+                            locale={lang}
+                            csrf={csrf}
+                            disabled={busy || (working.tag_keys?.length || 0) >= 8}
+                            onCreated={(term) => {
+                              setCreatedTerms((items) => [...items, term]);
+                              setWorking((current) => ({
+                                ...current,
+                                tag_keys: [
+                                  ...new Set([...(current.tag_keys || []), term.key]),
+                                ].slice(0, 8),
+                              }));
+                              setNotice('config.unsaved');
+                            }}
+                          />
+                        </section>
+                      </>
+                    )}
                     <Field label={t('owner.coverID')}>
                       <input
                         value={working.cover_media_id || ''}
                         onChange={(e) => change('cover_media_id', e.target.value)}
                       />
                     </Field>
-                    {working.kind !== 'article' && (
+                    {(working.kind === 'doc' || working.kind === 'lesson') && (
                       <>
                         <ReferencePicker
                           label={t('owner.collectionKey')}

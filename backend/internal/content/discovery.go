@@ -147,13 +147,14 @@ func (s *Service) Taxonomy(ctx context.Context, locale string, private bool) ([]
 }
 
 type Filter struct {
-	Locale   string `json:"locale"`
-	Kind     string `json:"kind"`
-	Category string `json:"category"`
-	Tag      string `json:"tag"`
-	Query    string `json:"q"`
-	Limit    int    `json:"limit"`
-	Cursor   string `json:"cursor"`
+	Locale       string `json:"locale"`
+	Kind         string `json:"kind"`
+	Category     string `json:"category"`
+	Tag          string `json:"tag"`
+	Query        string `json:"q"`
+	Limit        int    `json:"limit"`
+	Cursor       string `json:"cursor"`
+	ExcludePages bool   `json:"exclude_pages,omitempty"`
 }
 type ListEntry struct {
 	URL            string   `json:"url"`
@@ -185,7 +186,7 @@ func (s *Service) Discover(ctx context.Context, f Filter, p access.Principal) (P
 	if f.Limit == 0 {
 		f.Limit = 20
 	}
-	if !localeOK(f.Locale) || f.Limit < 1 || f.Limit > 50 || !strOK(f.Query, 200, true) || !utf8.ValidString(f.Query) || (f.Kind != "" && f.Kind != "article" && f.Kind != "lesson" && f.Kind != "doc") || f.Category != "" && !slugPattern.MatchString(f.Category) || f.Tag != "" && !slugPattern.MatchString(f.Tag) {
+	if !localeOK(f.Locale) || f.Limit < 1 || f.Limit > 50 || !strOK(f.Query, 200, true) || !utf8.ValidString(f.Query) || (f.Kind != "" && !validKind(f.Kind)) || f.Category != "" && !slugPattern.MatchString(f.Category) || f.Tag != "" && !slugPattern.MatchString(f.Tag) {
 		return out, ErrInvalid
 	}
 	cursor := f.Cursor
@@ -212,6 +213,9 @@ func (s *Service) Discover(ctx context.Context, f Filter, p access.Principal) (P
 	from := ` FROM content_versions v JOIN content_items i ON i.id=v.item_id JOIN revisions r ON r.id=v.published_revision_id WHERE v.locale=?`
 	from += ` AND (i.kind!='lesson' OR EXISTS(SELECT 1 FROM collection_items m JOIN collection_plan_state st ON st.collection_id=m.collection_id JOIN collection_plan_members pm ON pm.plan_id=st.active_plan_id AND pm.item_id=m.item_id JOIN collection_locales l ON l.collection_id=m.collection_id AND l.locale=v.locale AND l.visible=1 WHERE m.item_id=i.id))`
 	args := []any{f.Locale}
+	if f.ExcludePages {
+		from += " AND i.kind!='page'"
+	}
 	if f.Kind != "" {
 		from += " AND i.kind=?"
 		args = append(args, f.Kind)

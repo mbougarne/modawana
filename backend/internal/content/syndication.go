@@ -23,7 +23,7 @@ const syndicationBatch = 128
 // SyndicatedPages selects the newest publicly readable pages. An empty locale
 // includes all languages for the sitemap. Publication, routing, and anonymous
 // access use the same snapshot. No revision file or learner state is loaded.
-func (s *Service) SyndicatedPages(ctx context.Context, locale string, limit int) ([]SyndicatedPage, error) {
+func (s *Service) SyndicatedPages(ctx context.Context, locale string, limit int, includePages bool) ([]SyndicatedPage, error) {
 	if (locale != "" && !localeOK(locale)) || limit < 1 {
 		return nil, ErrInvalid
 	}
@@ -36,7 +36,7 @@ func (s *Service) SyndicatedPages(ctx context.Context, locale string, limit int)
 	pages := []SyndicatedPage{}
 	var after syndicationCandidate
 	for len(pages) < limit {
-		batch, err := syndicationCandidates(ctx, tx, locale, after)
+		batch, err := syndicationCandidates(ctx, tx, locale, after, includePages)
 		if err != nil {
 			return nil, err
 		}
@@ -74,11 +74,14 @@ func (s *Service) SyndicatedPages(ctx context.Context, locale string, limit int)
 	return pages, nil
 }
 
-func syndicationCandidates(ctx context.Context, tx *sql.Tx, locale string, after syndicationCandidate) ([]syndicationCandidate, error) {
+func syndicationCandidates(ctx context.Context, tx *sql.Tx, locale string, after syndicationCandidate, includePages bool) ([]syndicationCandidate, error) {
 	statement := `SELECT v.id,i.key,i.kind,v.locale,v.slug,r.title,r.summary,v.last_published_at
 		FROM content_versions v JOIN content_items i ON i.id=v.item_id JOIN revisions r ON r.id=v.published_revision_id
 		WHERE v.published_revision_id IS NOT NULL`
 	var args []any
+	if !includePages {
+		statement += " AND i.kind!='page'"
+	}
 	if locale != "" {
 		statement += " AND v.locale=?"
 		args = append(args, locale)

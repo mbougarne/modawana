@@ -63,6 +63,7 @@ type DraftInput struct {
 	Quiz                      *learning.Definition `json:"quiz,omitempty"`
 	ExpectedVersion           *int64               `json:"expected_version"`
 	Kind                      string               `json:"kind"`
+	PageTemplate              string               `json:"page_template,omitempty"`
 	SourceLocale              string               `json:"source_locale"`
 	Slug                      string               `json:"slug"`
 	Title                     string               `json:"title"`
@@ -137,6 +138,10 @@ func remember(ctx context.Context, tx *sql.Tx, actor, op, key, request string, r
 	_, e := tx.ExecContext(ctx, `INSERT INTO idempotency_records(actor_id,operation,key_hash,request_hash,http_status,result_id,result_version,expires_at) VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(actor_id,operation,key_hash) DO UPDATE SET request_hash=excluded.request_hash,http_status=excluded.http_status,result_id=excluded.result_id,result_version=excluded.result_version,created_at=excluded.created_at,expires_at=excluded.expires_at`, actor, op, hash(key), request, status, r.RevisionID, r.Version, db.UTC(time.Now().Add(7*24*time.Hour)))
 	return e
 }
+func validKind(kind string) bool {
+	return kind == "article" || kind == "lesson" || kind == "doc" || kind == "page"
+}
+
 func refs(in DraftInput) ([]string, error) {
 	if !slugPattern.MatchString(in.Slug) {
 		return nil, typeIssue("slug", "content_slug")
@@ -144,7 +149,13 @@ func refs(in DraftInput) ([]string, error) {
 	if in.ExpectedVersion == nil || *in.ExpectedVersion < 0 || !localeOK(in.SourceLocale) || !slugPattern.MatchString(in.Slug) || !strOK(in.Title, 200, false) || !strOK(in.Summary, 500, true) || !utf8.ValidString(in.Markdown) || len(in.Markdown) > MaxBody || strings.ContainsRune(in.Markdown, 0) || len(in.TagKeys) > 8 || len(in.Presentations) > 100 {
 		return nil, ErrInvalid
 	}
-	if in.Kind != "article" && in.Kind != "lesson" && in.Kind != "doc" {
+	if !validKind(in.Kind) {
+		return nil, ErrInvalid
+	}
+	if in.PageTemplate != "" && (in.Kind != "page" || in.PageTemplate != "standard" && in.PageTemplate != "landing") {
+		return nil, typeIssue("page_template", "page_template")
+	}
+	if in.Kind == "page" && (in.Quiz != nil || in.CollectionKey != "" || in.Position != 0 || in.ExpectedCollectionVersion != nil || in.CategoryKey != "" || len(in.TagKeys) != 0) {
 		return nil, ErrInvalid
 	}
 	if in.CategoryKey != "" && !keyPattern.MatchString(in.CategoryKey) {
@@ -240,6 +251,9 @@ func (s *Service) save(ctx context.Context, owner, key, locale, retryKey, op str
 	ids, e := refs(in)
 	if e != nil {
 		return out, e
+	}
+	if in.Kind == "page" && in.PageTemplate == "" {
+		in.PageTemplate = "standard"
 	}
 	request := hash(struct {
 		Key, Locale string
@@ -403,7 +417,7 @@ func (s *Service) save(ctx context.Context, owner, key, locale, retryKey, op str
 				created = prior.Add(time.Millisecond)
 			}
 		}
-		_, e = tx.ExecContext(ctx, `INSERT INTO revisions(id,version_id,title,summary,markdown_path,sha256,byte_size,created_by,source_revision_id,category_id,cover_media_id,slug,reading_minutes,created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, revision, v.ID, in.Title, in.Summary, file.Key, file.SHA256, file.Size, owner, nullable(in.SourceRevisionID), nullable(category), nullable(in.CoverMediaID), in.Slug, readingMinutes(in.Markdown), db.UTC(created))
+		_, e = tx.ExecContext(ctx, `INSERT INTO revisions(id,version_id,title,summary,markdown_path,sha256,byte_size,created_by,source_revision_id,category_id,cover_media_id,slug,reading_minutes,created_at,page_template) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, revision, v.ID, in.Title, in.Summary, file.Key, file.SHA256, file.Size, owner, nullable(in.SourceRevisionID), nullable(category), nullable(in.CoverMediaID), in.Slug, readingMinutes(in.Markdown), db.UTC(created), in.PageTemplate)
 		if e != nil {
 			return e
 		}
