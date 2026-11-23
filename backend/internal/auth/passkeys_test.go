@@ -32,10 +32,14 @@ func simulatedKey(t *testing.T) (*ecdsa.PrivateKey, []byte) {
 func registerBody(t *testing.T, s *Service, flow string, key *ecdsa.PrivateKey, id []byte, origin string, flags byte) string {
 	t.Helper()
 	f, _ := s.flow(context.Background(), flow)
+	return registrationBodyForChallenge(t, s, f.Challenge, key, id, origin, flags)
+}
+func registrationBodyForChallenge(t *testing.T, s *Service, challenge string, key *ecdsa.PrivateKey, id []byte, origin string, flags byte) string {
+	t.Helper()
 	var sd struct {
 		Challenge string `json:"challenge"`
 	}
-	json.Unmarshal([]byte(f.Challenge), &sd)
+	json.Unmarshal([]byte(challenge), &sd)
 	client, _ := json.Marshal(map[string]any{"type": "webauthn.create", "challenge": sd.Challenge, "origin": origin})
 	pub, _ := cbor.Marshal(map[int]any{1: 2, 3: -7, -1: 1, -2: key.X.FillBytes(make([]byte, 32)), -3: key.Y.FillBytes(make([]byte, 32))})
 	rp := sha256.Sum256([]byte(s.Config.RPID))
@@ -51,10 +55,14 @@ func registerBody(t *testing.T, s *Service, flow string, key *ecdsa.PrivateKey, 
 func loginBody(t *testing.T, s *Service, flow, owner string, key *ecdsa.PrivateKey, id []byte, origin, kind string, flags byte, counter uint32) string {
 	t.Helper()
 	f, _ := s.flow(context.Background(), flow)
+	return loginBodyForChallenge(t, s, f.Challenge, owner, key, id, origin, kind, flags, counter)
+}
+func loginBodyForChallenge(t *testing.T, s *Service, challenge, owner string, key *ecdsa.PrivateKey, id []byte, origin, kind string, flags byte, counter uint32) string {
+	t.Helper()
 	var sd struct {
 		Challenge string `json:"challenge"`
 	}
-	json.Unmarshal([]byte(f.Challenge), &sd)
+	json.Unmarshal([]byte(challenge), &sd)
 	client, _ := json.Marshal(map[string]any{"type": kind, "challenge": sd.Challenge, "origin": origin})
 	rp := sha256.Sum256([]byte(s.Config.RPID))
 	auth := append(rp[:], flags, 0, 0, 0, 0)

@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/mbougarne/modawana/backend/internal/access"
 	"github.com/mbougarne/modawana/backend/internal/db"
 )
 
@@ -222,6 +223,48 @@ func TestExhaustedLeaseBecomesRetryable(t *testing.T) {
 	page, err := w.List(t.Context(), "")
 	if err != nil || len(page.Items) != 1 || page.Items[0].State != "failed" ||
 		!page.Items[0].CanRetry || page.Items[0].LastError != "lease_expired" {
+		t.Fatal(page, err)
+	}
+}
+
+func TestStaffRevocationFencesQueuedPublicationEffect(t *testing.T) {
+	now := time.Now()
+	_, d := queueFixture(t, now)
+	const ownerID = "0123456789abcdef0123456789abcdef"
+	const memberID = "abcdef0123456789abcdef0123456789"
+	sqlExec(t, d, "DELETE FROM outbox_deliveries")
+	sqlExec(t, d, "DELETE FROM outbox_events")
+	sqlExec(t, d, "INSERT INTO owner(id,login_email) VALUES(?,?)", ownerID, "outbox@example.test")
+	sqlExec(t, d, `INSERT INTO staff_members(id,owner_id,name,role,credential_id,credential)
+		VALUES(?,?,'Publisher','owner','credential','{}')`, memberID, ownerID)
+	tx, err := d.BeginTx(t.Context(), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer tx.Rollback()
+	ctx := access.WithMutation(t.Context(), access.Mutation{StaffID: memberID})
+	if err := RecordPublication(ctx, tx, "article", 2, Publication{ContentID: "article", Locale: "en", RevisionID: "rev"}, now); err != nil {
+		t.Fatal(err)
+	}
+	if err := tx.Commit(); err != nil {
+		t.Fatal(err)
+	}
+	w := Worker{DB: d, now: func() time.Time { return now }}
+	a, err := w.claim(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sqlExec(t, d, "UPDATE staff_members SET revoked_at=? WHERE id=?", db.UTC(now), memberID)
+	effect := func(ctx context.Context, tx *sql.Tx) error {
+		_, err := tx.ExecContext(ctx, "INSERT INTO effects VALUES(?)", a.delivery.ID)
+		return err
+	}
+	if failure, err := w.complete(ctx, a, effect); !errors.Is(failure, ErrUnavailable) || err != nil {
+		t.Fatal(failure, err)
+	}
+	requireEffectCount(t, d, 0)
+	page, err := w.List(ctx, "")
+	if err != nil || len(page.Items) != 1 || page.Items[0].State != "paused" {
 		t.Fatal(page, err)
 	}
 }

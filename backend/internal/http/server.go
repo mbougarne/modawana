@@ -226,6 +226,7 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 		}
 	}
 	private := len(parts) >= 2 && parts[1] == "admin"
+	staffUI := len(parts) == 2 && pageLocale(parts[0]) && parts[1] == "staff"
 	pagePreview := private && len(parts) == 6 && parts[2] == "page-preview" && pageLocale(parts[0]) && pageLocale(parts[4])
 	if pagePreview {
 		w.Header().Set("X-Robots-Tag", "noindex, nofollow")
@@ -260,9 +261,13 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 	if private && len(parts) == 3 && (parts[2] == "oauth" || parts[2] == "settings" || parts[2] == "themes" || parts[2] == "menus" || parts[2] == "profile" || parts[2] == "labels" || parts[2] == "posts" || parts[2] == "pages" || parts[2] == "new" || parts[2] == "collections" || parts[2] == "taxonomy" || parts[2] == "media" || parts[2] == "transfer" || parts[2] == "plugins" || parts[2] == "dashboard" || parts[2] == "layout") && pageLocale(parts[0]) {
 		locale, status = parts[0], 200
 	}
+	if staffUI {
+		status = http.StatusOK
+		w.Header().Set("X-Robots-Tag", "noindex,nofollow")
+	}
 	login := status == 200 && len(parts) == 2 && parts[1] == "login"
 	preview := private && len(parts) == 4 && pageLocale(parts[0]) && parts[2] == "settings" && parts[3] == "theme-preview"
-	public := !private && !login
+	public := !private && !login && !staffUI
 	var page content.PageRoute
 	ctx := r.Context()
 	if len(parts) > 0 && pageLocale(parts[0]) {
@@ -415,7 +420,7 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 	if status == 200 && public {
 		social = s.renderedMeta(r.Context(), page, settings, s.options.Config.BaseURL, metadata.Title)
 	}
-	head := headData{Locale: locale, Direction: dir, Nonce: nonce, Scripts: s.options.Assets.Manifest.Scripts, Styles: s.options.Assets.Manifest.Styles, BrandCSS: brandCSS, Boot: boot, Favicon: favicon, Title: metadata.Title, Description: metadata.Description, Canonical: canonicalURL, Alternatives: alternatives, Social: social}
+	head := headData{Locale: locale, Direction: dir, Nonce: nonce, Scripts: s.options.Assets.Manifest.Scripts, Styles: s.options.Assets.Manifest.Styles, BrandCSS: brandCSS, Boot: boot, NoIndex: staffUI, Favicon: favicon, Title: metadata.Title, Description: metadata.Description, Canonical: canonicalURL, Alternatives: alternatives, Social: social}
 	if status == http.StatusOK && public && s.syndicationSource() != nil {
 		head.Feed = s.options.Config.BaseURL + feedPath(locale)
 	}

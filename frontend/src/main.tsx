@@ -21,6 +21,9 @@ import type { ConfigKind } from './api/configuration';
 import { OAuthPage } from './features/auth/OAuthPage';
 import { AuthPage } from './features/auth/AuthPage';
 
+const StaffPage = lazy(() =>
+  import('./features/auth/StaffPage').then((m) => ({ default: m.StaffPage })),
+);
 const OwnerArea = lazy(() =>
   import('./features/owner/OwnerArea').then((m) => ({ default: m.OwnerArea })),
 );
@@ -40,12 +43,14 @@ function LoginAlias() {
 
 function LocaleRoot({
   auth = false,
+  staff = false,
   oauth = false,
   preview = false,
   config,
   owner,
 }: {
   auth?: boolean;
+  staff?: boolean;
   oauth?: boolean;
   preview?: boolean;
   config?: ConfigKind | 'themes' | 'menus';
@@ -68,7 +73,9 @@ function LocaleRoot({
   return (
     <I18nProvider locale={chosen} overrides={data?.labels}>
       <Suspense fallback={<p role="status">…</p>}>
-        {oauth && valid ? (
+        {staff && valid ? (
+          <StaffPage />
+        ) : oauth && valid ? (
           <OAuthPage />
         ) : owner && valid ? (
           <OwnerArea key={owner} page={owner} />
@@ -93,6 +100,7 @@ const router = createBrowserRouter(
       <Route path="/admin/login" element={<LoginAlias />} />
       <Route path="/:locale/login" element={<LocaleRoot auth />} />
       <Route path="/:locale/admin/login" element={<LoginAlias />} />
+      <Route path="/:locale/staff" element={<LocaleRoot staff />} />
       <Route path="/:locale/admin" element={<LocaleRoot auth />} />
       <Route path="/:locale/admin/collections" element={<LocaleRoot owner="collections" />} />
       <Route path="/:locale/admin/taxonomy" element={<LocaleRoot owner="taxonomy" />} />

@@ -13,6 +13,7 @@ import (
 )
 
 type Revision struct {
+	StaffAuthor   string               `json:"staff_author,omitempty"`
 	Quiz          *learning.Definition `json:"quiz,omitempty"`
 	ID            string               `json:"revision_id"`
 	Title         string               `json:"title"`
@@ -48,7 +49,7 @@ type Draft struct {
 func (s *Service) revision(ctx context.Context, q query, id, versionID string) (Revision, error) {
 	out := Revision{Tags: []string{}, Media: []media.Record{}, Presentations: []Presentation{}}
 	var file storage.File
-	e := q.QueryRowContext(ctx, `SELECT r.id,r.title,r.summary,CASE WHEN r.slug='' THEN v.slug ELSE r.slug END,coalesce(r.source_revision_id,''),coalesce(c.key,''),coalesce(r.cover_media_id,''),r.created_at,r.markdown_path,r.sha256,r.byte_size,r.page_template FROM revisions r JOIN content_versions v ON v.id=r.version_id LEFT JOIN categories c ON c.id=r.category_id WHERE r.id=? AND r.version_id=?`, id, versionID).Scan(&out.ID, &out.Title, &out.Summary, &out.Slug, &out.SourceID, &out.CategoryKey, &out.CoverID, &out.Created, &file.Key, &file.SHA256, &file.Size, &out.PageTemplate)
+	e := q.QueryRowContext(ctx, `SELECT r.id,r.title,r.summary,CASE WHEN r.slug='' THEN v.slug ELSE r.slug END,coalesce(r.source_revision_id,''),coalesce(c.key,''),coalesce(r.cover_media_id,''),r.created_at,r.markdown_path,r.sha256,r.byte_size,r.page_template,coalesce((SELECT member_id FROM staff_revision_authorship a WHERE a.revision_id=r.id),'') FROM revisions r JOIN content_versions v ON v.id=r.version_id LEFT JOIN categories c ON c.id=r.category_id WHERE r.id=? AND r.version_id=?`, id, versionID).Scan(&out.ID, &out.Title, &out.Summary, &out.Slug, &out.SourceID, &out.CategoryKey, &out.CoverID, &out.Created, &file.Key, &file.SHA256, &file.Size, &out.PageTemplate, &out.StaffAuthor)
 	if e != nil {
 		return out, e
 	}

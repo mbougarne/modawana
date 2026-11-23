@@ -151,3 +151,27 @@ planned enrollment/recovery migration, never broadening accepted origins silentl
 Libraries checked on 2026-10-24: [go-webauthn v0.18.2](https://github.com/go-webauthn/webauthn/releases/tag/v0.18.2),
 [pquerna/otp v1.5.0](https://github.com/pquerna/otp), and
 [golang.org/x/crypto v0.58.0](https://pkg.go.dev/golang.org/x/crypto/argon2).
+
+### Invited staff
+
+The original owner can create and revoke invitations under **Security → Staff
+access** after a fresh passkey check. An invitation link expires after 24 hours
+and can enroll one separate staff passkey. The link is shown once for sharing
+with the intended person. Guests enroll and sign in at `/{locale}/staff`.
+
+| Staff preset | Available actions |
+| --- | --- |
+| Owner | List and edit Markdown article and page drafts. Publish an exact saved revision with the usual checks. |
+| Editor | List and edit Markdown article and page drafts. |
+| Store Manager | Reserved permissions for store order management when the store module is available. |
+
+Staff sessions expire after 12 hours. Revoking a member blocks their session,
+draft writes, and any outstanding publication deliveries that depend on their
+grant. Staff edits retain the separate staff author ID in revision history.
+Existing publication state remains authoritative.
+
+The original owner controls credentials, permissions, plugin activation, and
+provider secrets. The original owner’s login, passkeys, recovery codes, and
+local recovery procedure continue to use their existing routes. Restoring a
+backup revokes staff access and outstanding invitations. The owner can issue
+new invitations after completing recovery.

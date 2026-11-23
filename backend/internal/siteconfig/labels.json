@@ -7044,6 +7044,316 @@
       "ar": "محتوى جديد"
     }
   },
+  "securityEvent.staff_invited": {
+    "section": "securityEvent",
+    "description": "Interface text: securityEvent.staff_invited",
+    "placeholders": [],
+    "values": {
+      "en": "Staff invitation created",
+      "fr": "Invitation du personnel créée",
+      "ar": "أُنشئت دعوة لفريق العمل"
+    }
+  },
+  "securityEvent.staff_invite_revoked": {
+    "section": "securityEvent",
+    "description": "Interface text: securityEvent.staff_invite_revoked",
+    "placeholders": [],
+    "values": {
+      "en": "Staff invitation revoked",
+      "fr": "Invitation du personnel révoquée",
+      "ar": "أُلغيت دعوة لفريق العمل"
+    }
+  },
+  "securityEvent.staff_enrolled": {
+    "section": "securityEvent",
+    "description": "Interface text: securityEvent.staff_enrolled",
+    "placeholders": [],
+    "values": {
+      "en": "Staff passkey enrolled",
+      "fr": "Clé d’accès du personnel enregistrée",
+      "ar": "سُجّل مفتاح مرور لفريق العمل"
+    }
+  },
+  "securityEvent.staff_signed_in": {
+    "section": "securityEvent",
+    "description": "Interface text: securityEvent.staff_signed_in",
+    "placeholders": [],
+    "values": {
+      "en": "Staff member signed in",
+      "fr": "Membre du personnel connecté",
+      "ar": "سجّل عضو في الفريق الدخول"
+    }
+  },
+  "securityEvent.staff_revoked": {
+    "section": "securityEvent",
+    "description": "Interface text: securityEvent.staff_revoked",
+    "placeholders": [],
+    "values": {
+      "en": "Staff access revoked",
+      "fr": "Accès du personnel révoqué",
+      "ar": "أُلغي وصول عضو في الفريق"
+    }
+  },
+  "staff.management": {
+    "section": "staff",
+    "description": "Interface text: staff.management",
+    "placeholders": [],
+    "values": {
+      "en": "Staff access",
+      "fr": "Accès du personnel",
+      "ar": "وصول فريق العمل"
+    }
+  },
+  "staff.workspace": {
+    "section": "staff",
+    "description": "Interface text: staff.workspace",
+    "placeholders": [],
+    "values": {
+      "en": "Staff workspace",
+      "fr": "Espace du personnel",
+      "ar": "مساحة فريق العمل"
+    }
+  },
+  "staff.name": {
+    "section": "staff",
+    "description": "Interface text: staff.name",
+    "placeholders": [],
+    "values": {
+      "en": "Display name",
+      "fr": "Nom affiché",
+      "ar": "اسم العرض"
+    }
+  },
+  "staff.role": {
+    "section": "staff",
+    "description": "Interface text: staff.role",
+    "placeholders": [],
+    "values": {
+      "en": "Role",
+      "fr": "Rôle",
+      "ar": "الدور"
+    }
+  },
+  "staff.role.owner": {
+    "section": "staff",
+    "description": "Interface text: staff.role.owner",
+    "placeholders": [],
+    "values": {
+      "en": "Owner",
+      "fr": "Propriétaire",
+      "ar": "مالك"
+    }
+  },
+  "staff.role.editor": {
+    "section": "staff",
+    "description": "Interface text: staff.role.editor",
+    "placeholders": [],
+    "values": {
+      "en": "Editor",
+      "fr": "Éditeur",
+      "ar": "محرّر"
+    }
+  },
+  "staff.role.store_manager": {
+    "section": "staff",
+    "description": "Interface text: staff.role.store_manager",
+    "placeholders": [],
+    "values": {
+      "en": "Store manager",
+      "fr": "Responsable de la boutique",
+      "ar": "مدير المتجر"
+    }
+  },
+  "staff.invite": {
+    "section": "staff",
+    "description": "Interface text: staff.invite",
+    "placeholders": [],
+    "values": {
+      "en": "Create invitation",
+      "fr": "Créer une invitation",
+      "ar": "إنشاء دعوة"
+    }
+  },
+  "staff.inviteLink": {
+    "section": "staff",
+    "description": "Interface text: staff.inviteLink",
+    "placeholders": [],
+    "values": {
+      "en": "One-time invitation link",
+      "fr": "Lien d’invitation à usage unique",
+      "ar": "رابط دعوة لمرة واحدة"
+    }
+  },
+  "staff.pending": {
+    "section": "staff",
+    "description": "Interface text: staff.pending",
+    "placeholders": [],
+    "values": {
+      "en": "Invitation pending",
+      "fr": "Invitation en attente",
+      "ar": "الدعوة معلّقة"
+    }
+  },
+  "staff.revoke": {
+    "section": "staff",
+    "description": "Interface text: staff.revoke",
+    "placeholders": [],
+    "values": {
+      "en": "Revoke access",
+      "fr": "Révoquer l’accès",
+      "ar": "إلغاء الوصول"
+    }
+  },
+  "staff.revoked": {
+    "section": "staff",
+    "description": "Interface text: staff.revoked",
+    "placeholders": [],
+    "values": {
+      "en": "Access revoked.",
+      "fr": "Accès révoqué.",
+      "ar": "أُلغي الوصول."
+    }
+  },
+  "staff.failed": {
+    "section": "staff",
+    "description": "Interface text: staff.failed",
+    "placeholders": [],
+    "values": {
+      "en": "The staff action could not be completed.",
+      "fr": "L’action du personnel a échoué.",
+      "ar": "تعذّر إتمام إجراء فريق العمل."
+    }
+  },
+  "staff.loading": {
+    "section": "staff",
+    "description": "Interface text: staff.loading",
+    "placeholders": [],
+    "values": {
+      "en": "Loading staff session…",
+      "fr": "Chargement de la session…",
+      "ar": "جارٍ تحميل جلسة فريق العمل…"
+    }
+  },
+  "staff.accept": {
+    "section": "staff",
+    "description": "Interface text: staff.accept",
+    "placeholders": [],
+    "values": {
+      "en": "Accept with a passkey",
+      "fr": "Accepter avec une clé d’accès",
+      "ar": "قبول الدعوة بمفتاح مرور"
+    }
+  },
+  "staff.signIn": {
+    "section": "staff",
+    "description": "Interface text: staff.signIn",
+    "placeholders": [],
+    "values": {
+      "en": "Sign in with a passkey",
+      "fr": "Se connecter avec une clé d’accès",
+      "ar": "تسجيل الدخول بمفتاح مرور"
+    }
+  },
+  "staff.contentType": {
+    "section": "staff",
+    "description": "Interface text: staff.contentType",
+    "placeholders": [],
+    "values": {
+      "en": "Content type",
+      "fr": "Type de contenu",
+      "ar": "نوع المحتوى"
+    }
+  },
+  "staff.more": {
+    "section": "staff",
+    "description": "Interface text: staff.more",
+    "placeholders": [],
+    "values": {
+      "en": "More drafts",
+      "fr": "Autres brouillons",
+      "ar": "مسودّات أخرى"
+    }
+  },
+  "staff.first": {
+    "section": "staff",
+    "description": "Interface text: staff.first",
+    "placeholders": [],
+    "values": {
+      "en": "Back to first results",
+      "fr": "Retour aux premiers résultats",
+      "ar": "العودة إلى النتائج الأولى"
+    }
+  },
+  "staff.slug": {
+    "section": "staff",
+    "description": "Interface text: staff.slug",
+    "placeholders": [],
+    "values": {
+      "en": "New draft slug",
+      "fr": "Identifiant du nouveau brouillon",
+      "ar": "معرّف المسودّة الجديدة"
+    }
+  },
+  "staff.newDraft": {
+    "section": "staff",
+    "description": "Interface text: staff.newDraft",
+    "placeholders": [],
+    "values": {
+      "en": "New draft",
+      "fr": "Nouveau brouillon",
+      "ar": "مسودّة جديدة"
+    }
+  },
+  "staff.title": {
+    "section": "staff",
+    "description": "Interface text: staff.title",
+    "placeholders": [],
+    "values": {
+      "en": "Title",
+      "fr": "Titre",
+      "ar": "العنوان"
+    }
+  },
+  "staff.markdown": {
+    "section": "staff",
+    "description": "Interface text: staff.markdown",
+    "placeholders": [],
+    "values": {
+      "en": "Markdown",
+      "fr": "Markdown",
+      "ar": "ماركداون"
+    }
+  },
+  "staff.blocks": {
+    "section": "staff",
+    "description": "Interface text: staff.blocks",
+    "placeholders": [],
+    "values": {
+      "en": "This page uses the block editor.",
+      "fr": "Cette page utilise l’éditeur de blocs.",
+      "ar": "تستخدم هذه الصفحة محرّر الكتل."
+    }
+  },
+  "staff.saveDraft": {
+    "section": "staff",
+    "description": "Interface text: staff.saveDraft",
+    "placeholders": [],
+    "values": {
+      "en": "Save draft",
+      "fr": "Enregistrer le brouillon",
+      "ar": "حفظ المسودّة"
+    }
+  },
+  "staff.publish": {
+    "section": "staff",
+    "description": "Interface text: staff.publish",
+    "placeholders": [],
+    "values": {
+      "en": "Publish saved revision",
+      "fr": "Publier la révision enregistrée",
+      "ar": "نشر المراجعة المحفوظة"
+    }
+  },
   "owner.dashboard": {
     "section": "owner",
     "description": "Interface text: owner.dashboard",

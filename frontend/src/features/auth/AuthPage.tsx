@@ -6,6 +6,7 @@ import { siteBrand } from '../../pages/admin/settings/siteBrand';
 import { ValidationIssues } from '../configuration/ValidationIssues';
 import { OAuthConnections } from './OAuthConnections';
 import { PublisherTokens } from './PublisherTokens';
+import { StaffManagement } from './StaffManagement';
 import { OwnerWorkspace, OwnerPageHeading } from '../owner/OwnerWorkspace';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Label, Button, Field, TextInput, useI18n, type LabelKey, DEFAULT_LABELS } from '@ui';
@@ -620,6 +621,7 @@ export function AuthPage() {
               </Button>
             </section>
             <PublisherTokens csrf={state.csrf!} />
+            <StaffManagement onSession={setState} />
             <OAuthConnections csrf={state.csrf!} />
             <section className={styles.panel}>
               <h2>
