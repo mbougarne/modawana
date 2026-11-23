@@ -7,7 +7,8 @@ export type PublicThemeID = 'classic' | 'folio' | 'studio' | `pack-${string}`;
 
 export interface MenuItem {
   id: string;
-  target: 'home' | 'writing' | 'learning' | 'docs' | 'about' | 'custom';
+  target: 'home' | 'writing' | 'learning' | 'docs' | 'about' | 'page' | 'custom';
+  page_key?: string;
   label?: Localized;
   url?: string;
 }

@@ -31,13 +31,18 @@ func collectionPath(locale, kind, slug string) string {
 	return "/" + locale + "/" + section + "/" + url.PathEscape(slug)
 }
 
+// StandalonePagePath returns the canonical path for a localized standalone page.
+func StandalonePagePath(locale, slug string) string {
+	return "/" + locale + "/pages/" + url.PathEscape(slug)
+}
+
 // Canonical paths use published locale slugs and active membership only.
 func canonical(ctx context.Context, q query, key, locale, kind, slug string) (string, error) {
 	if kind == "article" {
 		return "/" + locale + "/articles/" + url.PathEscape(slug), nil
 	}
 	if kind == "page" {
-		return "/" + locale + "/pages/" + url.PathEscape(slug), nil
+		return StandalonePagePath(locale, slug), nil
 	}
 	var collectionSlug, collectionKind string
 	e := q.QueryRowContext(ctx, `SELECT l.slug,c.kind FROM content_items i JOIN collection_plan_members m ON m.item_id=i.id JOIN collection_plan_state st ON st.active_plan_id=m.plan_id JOIN collections c ON c.id=st.collection_id JOIN collection_locales l ON l.collection_id=c.id WHERE i.key=? AND l.locale=? AND l.visible=1`, key, locale).Scan(&collectionSlug, &collectionKind)

@@ -2827,6 +2827,16 @@
       "ar": "اختر وجهة متاحة في هذه القائمة."
     }
   },
+  "validation.menu_page": {
+    "section": "validation",
+    "description": "Interface text: validation.menu_page",
+    "placeholders": [],
+    "values": {
+      "en": "Choose an existing standalone page.",
+      "fr": "Choisissez une page autonome existante.",
+      "ar": "اختر صفحة مستقلة موجودة."
+    }
+  },
   "validation.range": {
     "section": "validation",
     "description": "Interface text: validation.range",
@@ -3996,6 +4006,26 @@
       "en": "Destination",
       "fr": "Destination",
       "ar": "الوجهة"
+    }
+  },
+  "config.menuPage": {
+    "section": "config",
+    "description": "Interface text: config.menuPage",
+    "placeholders": [],
+    "values": {
+      "en": "Select page",
+      "fr": "Choisir une page",
+      "ar": "اختيار صفحة"
+    }
+  },
+  "config.menuPageHelp": {
+    "section": "config",
+    "description": "Interface text: config.menuPageHelp",
+    "placeholders": [],
+    "values": {
+      "en": "Search by title or key. The link uses the published title and appears in each language where the page is published.",
+      "fr": "Recherchez par titre ou clé. Le lien reprend le titre publié et apparaît dans chaque langue où la page est publiée.",
+      "ar": "ابحث بالعنوان أو المفتاح. يستخدم الرابط العنوان المنشور ويظهر في كل لغة نُشرت بها الصفحة."
     }
   },
   "config.customMenuLink": {

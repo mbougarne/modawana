@@ -2,9 +2,10 @@ import { Button, Icon, Label, useI18n, type IconName } from '@ui';
 import type { MenuItem, SiteSettings } from '../../../api/configuration';
 import { LocalizedField, Section, TextField } from '../../../features/configuration/controls';
 import { useFieldIssue } from '../../../features/configuration/ValidationIssues';
+import { ReferencePicker } from '../../../features/owner/ReferencePicker';
 import { iconNames } from './siteBrand';
 
-const destinations = ['home', 'writing', 'learning', 'docs', 'about', 'custom'] as const;
+const destinations = ['home', 'writing', 'learning', 'docs', 'about', 'page', 'custom'] as const;
 const defaultFooter = ['writing', 'learning', 'docs'] as const;
 const defaultHeader = [...defaultFooter, 'about'] as const;
 
@@ -118,7 +119,7 @@ function MenuRow({
   onMove: (index: number) => void;
   onRemove: () => void;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const issue = useFieldIssue(path + '.target');
   return (
     <fieldset className="config-menu-item">
@@ -138,15 +139,33 @@ function MenuRow({
               value={target}
               disabled={
                 target !== 'custom' &&
+                target !== 'page' &&
                 target !== item.target &&
                 items.some((row) => row.target === target)
               }
             >
-              {t(target === 'custom' ? 'config.customMenuLink' : 'slot.' + target)}
+              {t(
+                target === 'page'
+                  ? 'owner.page'
+                  : target === 'custom'
+                    ? 'config.customMenuLink'
+                    : 'slot.' + target,
+              )}
             </option>
           ))}
         </select>
       </label>
+      {item.target === 'page' && (
+        <ReferencePicker
+          label={t('config.menuPage')}
+          help={t('config.menuPageHelp')}
+          value={item.page_key ?? ''}
+          kind="page"
+          locale={locale}
+          path={path + '.page_key'}
+          onChange={(page_key) => onChange({ ...item, page_key })}
+        />
+      )}
       {item.target === 'custom' && (
         <>
           <TextField

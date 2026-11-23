@@ -36,10 +36,11 @@ type Site struct {
 	PublicLocales []string          `json:"public_locales,omitempty"`
 }
 type MenuItem struct {
-	ID     string    `json:"id"`
-	Target string    `json:"target"`
-	Label  Localized `json:"label,omitempty"`
-	URL    string    `json:"url,omitempty"`
+	ID      string    `json:"id"`
+	Target  string    `json:"target"`
+	Label   Localized `json:"label,omitempty"`
+	URL     string    `json:"url,omitempty"`
+	PageKey string    `json:"page_key,omitempty"`
 }
 type NowRow struct {
 	ID    string    `json:"id"`

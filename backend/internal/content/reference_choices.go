@@ -27,6 +27,16 @@ func (s *Service) ReferenceChoices(ctx context.Context, locale, kind, search, co
 	if kind == "lesson" || kind == "doc" {
 		query = `SELECT i.key,r.title,i.kind,v.version FROM content_items i JOIN content_versions v ON v.item_id=i.id JOIN revisions r ON r.id=v.draft_revision_id WHERE v.locale=? AND i.kind=? AND instr(lower(i.key||' '||r.title),lower(?))>0 AND (?='' OR EXISTS(SELECT 1 FROM collection_items m JOIN collections c ON c.id=m.collection_id WHERE m.item_id=i.id AND c.key=?)) ORDER BY i.key LIMIT 6`
 		args = append(args, collection, collection)
+	} else if kind == "page" {
+		if collection != "" {
+			return out, ErrInvalid
+		}
+		query = `SELECT i.key,r.title,i.kind,v.version FROM content_items i
+			JOIN content_versions v ON v.item_id=i.id AND v.locale=coalesce(
+				(SELECT local.locale FROM content_versions local WHERE local.item_id=i.id AND local.locale=?), i.source_locale)
+			JOIN revisions r ON r.id=v.draft_revision_id AND r.version_id=v.id
+			WHERE i.kind='page' AND instr(lower(i.key||' '||r.title),lower(?))>0 ORDER BY i.key LIMIT 6`
+		args = []any{locale, search}
 	} else if kind == "learning_item" || kind == "docs_item" {
 		target := "lesson"
 		if kind == "docs_item" {

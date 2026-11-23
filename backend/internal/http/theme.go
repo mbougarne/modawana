@@ -50,14 +50,15 @@ func (s *Server) renderThemed(ctx context.Context, r *http.Request, page content
 		appearance, _ = theme.Lookup(settings.Site.PublicTheme)
 	}
 	head.ThemeCSS = template.CSS(appearance.CSS)
+	navigation := themeNavigation{locale: locale, section: current, path: page.URL, pages: settings.MenuPages, label: label}
 	view := theme.Page{
 		ThemeID: appearance.ID, Layout: appearance.Layout, BannerURL: appearance.BannerURL, Locale: locale, Direction: head.Direction, SkipLabel: label("foundation.skip"),
-		Brand: themeBrand(settings.Site, locale), Nav: themeNav(settings.Site.HeaderMenu, locale, current, false, label),
-		MenuNav: themeNav(settings.Site.HeaderMenu, locale, current, true, label), NavLabel: label("nav.main"),
+		Brand: themeBrand(settings.Site, locale), Nav: navigation.headerLinks(settings.Site.HeaderMenu, false),
+		MenuNav: navigation.headerLinks(settings.Site.HeaderMenu, true), NavLabel: label("nav.main"),
 		SearchLabel: label("nav.search"), SearchURL: "/" + locale + "/search",
 		LanguageLabel: label("foundation.language"), LanguageShort: languageShort(locale),
 		Languages: themeLanguages(page, locale, publicLocales(r.Context()), label), MenuLabel: label("nav.menu"),
-		Footer: s.themeFooter(settings, locale, label),
+		Footer: s.themeFooter(settings, navigation),
 	}
 	head.Boot = ""
 	head.Scripts = nil
@@ -261,27 +262,38 @@ func setReaderDetails(article *theme.Article, c *content.PublicContent, label fu
 	}
 }
 
-func themeNav(menu *[]siteconfig.MenuItem, locale, current string, home bool, label func(string) string) []theme.Link {
+type themeNavigation struct {
+	locale, section, path string
+	pages                 map[string]siteconfig.MenuPage
+	label                 func(string) string
+}
+
+func (n themeNavigation) headerLinks(menu *[]siteconfig.MenuItem, home bool) []theme.Link {
 	if menu != nil {
-		return themeMenu(*menu, locale, current, label)
+		return n.links(*menu)
 	}
 	items := []siteconfig.MenuItem{{Target: "writing"}, {Target: "learning"}, {Target: "docs"}, {Target: "about"}}
 	if home {
 		items = append([]siteconfig.MenuItem{{Target: "home"}}, items...)
 	}
-	return themeMenu(items, locale, current, label)
+	return n.links(items)
 }
 
-func themeMenu(items []siteconfig.MenuItem, locale, current string, label func(string) string) []theme.Link {
+func (n themeNavigation) links(items []siteconfig.MenuItem) []theme.Link {
 	out := make([]theme.Link, 0, len(items))
 	for _, item := range items {
 		switch item.Target {
+		case "page":
+			if page, ok := n.pages[item.PageKey]; ok {
+				destination := content.StandalonePagePath(n.locale, page.Slug)
+				out = append(out, theme.Link{Label: page.Title, URL: destination, Language: n.locale, Current: n.path == destination})
+			}
 		case "custom":
 			destination, ok := render.SafeLink(item.URL)
 			if !ok {
 				continue
 			}
-			language := locale
+			language := n.locale
 			text := item.Label[language]
 			if strings.TrimSpace(text) == "" {
 				language, text = "en", item.Label["en"]
@@ -296,11 +308,11 @@ func themeMenu(items []siteconfig.MenuItem, locale, current string, label func(s
 			} else if section == "home" {
 				section = ""
 			}
-			destination := "/" + locale
+			destination := "/" + n.locale
 			if section != "" {
 				destination += "/" + section
 			}
-			out = append(out, theme.Link{Label: label("slot." + item.Target), URL: destination, Current: current == section})
+			out = append(out, theme.Link{Label: n.label("slot." + item.Target), URL: destination, Current: n.section == section})
 		}
 	}
 	return out
@@ -357,7 +369,8 @@ func themeBrand(site siteconfig.Site, locale string) theme.Brand {
 	return brand
 }
 
-func (s *Server) themeFooter(settings siteconfig.Public, locale string, label func(string) string) theme.Footer {
+func (s *Server) themeFooter(settings siteconfig.Public, navigation themeNavigation) theme.Footer {
+	locale, label := navigation.locale, navigation.label
 	pick := func(v siteconfig.Localized) string {
 		if v[locale] != "" {
 			return v[locale]
@@ -376,7 +389,7 @@ func (s *Server) themeFooter(settings siteconfig.Public, locale string, label fu
 	if settings.Site.FooterMenu != nil {
 		items = *settings.Site.FooterMenu
 	}
-	footer.Links = themeMenu(items, locale, "", label)
+	footer.Links = navigation.links(items)
 	candidates := settings.Profile.Links
 	if settings.Profile.MainAction != nil {
 		candidates = append([]siteconfig.Link{*settings.Profile.MainAction}, candidates...)

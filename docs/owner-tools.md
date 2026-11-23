@@ -41,8 +41,11 @@ Open **Pages → New page** and enter a title and Markdown. In **Details**, choo
 wider content. The template is saved with the draft and takes effect when that
 revision is published. Pages support media, translations and revision history.
 
-**View published page** opens the localized URL. Add that path as a **Custom
-link** in your header or footer menu when you want a navigation entry.
+**View published page** opens the localized URL. In **Menus**, choose **Add
+link** in the header or footer, set the destination to **Page**, and search by
+title or key. Choose the page and select **Save and apply**. You can select a
+draft. The link appears in each enabled language once its version is published,
+using that version’s published title and URL.
 
 ## Collections, categories and tags
 
@@ -100,7 +103,7 @@ Visible configured GitHub, LinkedIn and RSS links also populate the footer. Foot
 contact text can replace the default email-linked call to action.
 
 Use **Menus** in Slate or **Settings** in Classic to edit the public **Header
-menu** and **Footer menu**. Add a built-in destination or a custom link, then
+menu** and **Footer menu**. Add a built-in destination, page or custom link, then
 move or remove entries. Header entries are shared with the mobile menu. Footer
 entries appear alongside configured profile and feed links. Use **Use default
 links** to restore the default navigation for one placement.

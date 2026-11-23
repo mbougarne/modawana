@@ -25,6 +25,7 @@ type Public struct {
 	Labels    Labels               `json:"labels"`
 	AboutURL  string               `json:"about_url"`
 	Versions  map[string]int64     `json:"versions"`
+	MenuPages map[string]MenuPage  `json:"-"`
 }
 
 func (s *Service) Public(ctx context.Context, locale string) (Public, error) {
@@ -50,6 +51,10 @@ func (s *Service) Public(ctx context.Context, locale string) (Public, error) {
 		return out, e
 	}
 	_ = json.Unmarshal(a.Snapshot, &out.Site)
+	out.MenuPages, e = projectMenuPages(ctx, tx, &out.Site, locale)
+	if e != nil {
+		return out, e
+	}
 	out.Theme, _, e = s.Themes.Appearance(ctx, tx, out.Site.PublicTheme)
 	if e != nil {
 		return out, e

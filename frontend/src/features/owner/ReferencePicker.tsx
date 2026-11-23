@@ -1,11 +1,14 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { Field, Button } from '../../../../ui/src/components/primitives';
 import { useI18n } from '../../../../ui/src/i18n/I18nProvider';
+import { useFieldIssue } from '../configuration/ValidationIssues';
 
 type Choice = { key: string; title: string; kind: string; version: number };
 
 export function ReferencePicker({
   label,
+  help,
+  path,
   value,
   kind,
   locale,
@@ -15,8 +18,10 @@ export function ReferencePicker({
   onChange,
 }: {
   label: string;
+  help?: string;
+  path?: string;
   value: string;
-  kind: 'learning' | 'docs' | 'lesson' | 'doc' | 'learning_item' | 'docs_item';
+  kind: 'learning' | 'docs' | 'lesson' | 'doc' | 'learning_item' | 'docs_item' | 'page';
   locale: string;
   collectionKey?: string;
   excludeKeys?: string[];
@@ -24,6 +29,7 @@ export function ReferencePicker({
   onChange: (key: string, choice?: Choice) => void;
 }) {
   const { t } = useI18n();
+  const issue = useFieldIssue(path);
   const listId = useId();
   const input = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState(value);
@@ -122,8 +128,9 @@ export function ReferencePicker({
         }
       }}
     >
-      <Field label={label} help={t('picker.help')}>
+      <Field label={label} help={help ?? t('picker.help')}>
         <input
+          {...issue}
           ref={input}
           autoComplete="off"
           name="collection-reference"
