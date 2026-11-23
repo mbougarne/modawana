@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"log/slog"
 	"regexp"
+	"slices"
 	"sync"
 )
 
@@ -34,16 +35,17 @@ type Extension interface {
 
 // Host owns every registry and dispatches to registered extensions.
 type Host struct {
-	logger    *slog.Logger
-	mu        sync.RWMutex
-	slugs     map[string]bool
-	hooks     map[string][]hookRegistration
-	jobs      []Job
-	routes    []RouteRegistration
-	sections  []SettingsRegistration
-	tools     []MCPTool
-	indexed   map[string]int
-	jobRunner *jobRunner
+	logger        *slog.Logger
+	mu            sync.RWMutex
+	slugs         map[string]bool
+	hooks         map[string][]hookRegistration
+	jobs          []Job
+	routes        []RouteRegistration
+	sections      []SettingsRegistration
+	tools         []MCPTool
+	contributions []ContributionRegistration
+	indexed       map[string]int
+	jobRunner     *jobRunner
 }
 
 // NewHost returns an empty host. A nil logger discards outcome records.
@@ -87,13 +89,14 @@ func (h *Host) Install(x Extension) error {
 		h.hooks[name] = append(h.hooks[name], registrations...)
 	}
 	for _, job := range r.jobs {
-		if h.jobRunner != nil {
+		if h.jobRunner != nil && !h.jobRunner.stopping {
 			job.stop = h.jobRunner.start(h, job)
 		}
 		h.jobs = append(h.jobs, job)
 	}
 	h.routes = append(h.routes, r.routes...)
 	h.sections = append(h.sections, r.sections...)
+	h.contributions = append(h.contributions, r.contributions...)
 	for _, tool := range r.tools {
 		h.indexed[tool.Name] = len(h.tools)
 		h.tools = append(h.tools, tool)
@@ -145,6 +148,7 @@ func (h *Host) Uninstall(slug string) {
 		}
 	}
 	h.sections = sections
+	h.contributions = slices.DeleteFunc(h.contributions, func(c ContributionRegistration) bool { return c.Extension == slug })
 	tools := h.tools[:0:0]
 	indexed := map[string]int{}
 	for _, tool := range h.tools {
@@ -158,12 +162,13 @@ func (h *Host) Uninstall(slug string) {
 
 // Registrar collects one extension's declarations during Install.
 type Registrar struct {
-	slug     string
-	hooks    map[string][]hookRegistration
-	jobs     []Job
-	routes   []RouteRegistration
-	sections []SettingsRegistration
-	tools    []MCPTool
+	slug          string
+	hooks         map[string][]hookRegistration
+	jobs          []Job
+	routes        []RouteRegistration
+	sections      []SettingsRegistration
+	tools         []MCPTool
+	contributions []ContributionRegistration
 }
 
 // Hook registers a handler for a named, versioned hook point.
@@ -185,6 +190,7 @@ func (r *Registrar) Job(j Job) error {
 		return fmt.Errorf("%w: job %q", ErrInvalid, j.Name)
 	}
 	j.slug = r.slug
+	j.health = &jobStatus{value: JobStatus{Name: j.Name, State: "idle"}}
 	if j.Timeout == 0 {
 		j.Timeout = j.Every
 	}

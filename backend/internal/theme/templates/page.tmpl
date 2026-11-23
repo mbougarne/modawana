@@ -42,6 +42,7 @@
 {{define "page-footer"}}
 <footer class="vb-footer">
 {{- with .Footer}}
+{{range .Projections}}<p dir="auto">{{.}}</p>{{end}}
 {{if .Text}}<p class="big" dir="auto">{{.Text}}</p>{{else if .Email}}<p class="big">{{.Question}} <a href="mailto:{{.Email}}">{{.SayHi}}</a></p>{{end}}
 <div class="row">
 <span class="vb-meta">{{if .Copyright}}© {{.Copyright}}{{end}}</span>

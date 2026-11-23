@@ -3,6 +3,11 @@ import { Button, Field, useI18n } from '@ui';
 import type { Locale, PageBlock, PageBlockDocument } from '../../../api/content';
 import { MediaLibrary, type UsedMedia } from '../../../features/owner/MediaLibrary';
 import {
+  contributionKey,
+  localizedContribution,
+  useExtensionCatalog,
+} from '../../../features/owner/ExtensionCatalog';
+import {
   blockColumns,
   blockKind,
   blockKinds,
@@ -94,8 +99,12 @@ export function PageBlockEditor({
 }
 
 function BlockList({ blocks, onChange, level, full, locale, focus, pickImage }: ListProps) {
-  const { t } = useI18n();
-  const [kind, setKind] = useState<BlockKind>('markdown');
+  const { t, locale: interfaceLocale } = useI18n();
+  const { items } = useExtensionCatalog();
+  const extensionBlocks = items.filter((item) => item.kind === 'builder_block');
+  const [kind, setKind] = useState<string>('markdown');
+  const selected = extensionBlocks.find((item) => contributionKey(item) === kind);
+  const selectedCore = blockKinds.find((item) => item === kind) || 'markdown';
   const update = (index: number, block: PageBlock) =>
     onChange(blocks.map((item, i) => (i === index ? block : item)));
   return (
@@ -103,6 +112,9 @@ function BlockList({ blocks, onChange, level, full, locale, focus, pickImage }: 
       <ol className="block-editor-items">
         {blocks.map((block, index) => {
           const currentKind = blockKind(block);
+          const extension = extensionBlocks.find(
+            (item) => contributionKey(item) === block.type && item.version === block.version,
+          );
           const columns = blockColumns(block);
           const change = (field: string, value: unknown) => {
             const properties = { ...block.properties, [field]: value };
@@ -136,7 +148,11 @@ function BlockList({ blocks, onChange, level, full, locale, focus, pickImage }: 
               >
                 <legend>
                   {index + 1}.{' '}
-                  {currentKind ? t('pageBlocks.' + currentKind) : t('pageBlocks.unavailable')}
+                  {currentKind
+                    ? t('pageBlocks.' + currentKind)
+                    : extension
+                      ? localizedContribution(extension.label, interfaceLocale)
+                      : t('pageBlocks.unavailable')}
                 </legend>
                 <div className="block-editor-actions">
                   {([-1, 1] as const).map((offset) => (
@@ -206,6 +222,8 @@ function BlockList({ blocks, onChange, level, full, locale, focus, pickImage }: 
                     change={change}
                     pickImage={pickImage}
                   />
+                ) : extension ? (
+                  <TextPanelFields block={block} locale={locale} change={change} />
                 ) : (
                   <p className="vb-help">{t('pageBlocks.unknownHelp')}</p>
                 )}
@@ -216,7 +234,10 @@ function BlockList({ blocks, onChange, level, full, locale, focus, pickImage }: 
       </ol>
       <div className="block-editor-actions">
         <Field label={t('pageBlocks.type')}>
-          <select value={kind} onChange={(event) => setKind(event.target.value as BlockKind)}>
+          <select
+            value={selected ? kind : selectedCore}
+            onChange={(event) => setKind(event.target.value)}
+          >
             {blockKinds
               .filter((type) => type !== 'columns' || level < 3)
               .map((type) => (
@@ -224,13 +245,25 @@ function BlockList({ blocks, onChange, level, full, locale, focus, pickImage }: 
                   {t('pageBlocks.' + type)}
                 </option>
               ))}
+            {extensionBlocks.map((item) => (
+              <option key={contributionKey(item)} value={contributionKey(item)}>
+                {localizedContribution(item.label, interfaceLocale)}
+              </option>
+            ))}
           </select>
         </Field>
         <Button
           type="button"
           disabled={full}
           onClick={() => {
-            const block = createBlock(kind);
+            const block = selected
+              ? {
+                  id: crypto.randomUUID(),
+                  type: kind,
+                  version: selected.version,
+                  properties: { text: '' },
+                }
+              : createBlock(selectedCore);
             focus(block.id);
             onChange([...blocks, block]);
           }}
@@ -239,6 +272,33 @@ function BlockList({ blocks, onChange, level, full, locale, focus, pickImage }: 
         </Button>
       </div>
     </div>
+  );
+}
+
+function TextPanelFields({
+  block,
+  locale,
+  change,
+}: {
+  block: PageBlock;
+  locale: Locale;
+  change: (field: string, value: unknown) => void;
+}) {
+  const { t } = useI18n();
+  return (
+    <>
+      {(['heading', 'text'] as const).map((key) => (
+        <Field key={key} label={t('pageBlocks.field.' + key)}>
+          <input
+            dir="auto"
+            lang={locale}
+            maxLength={key === 'heading' ? 200 : 500}
+            value={typeof block.properties[key] === 'string' ? block.properties[key] : ''}
+            onChange={(event) => change(key, event.target.value)}
+          />
+        </Field>
+      ))}
+    </>
   );
 }
 

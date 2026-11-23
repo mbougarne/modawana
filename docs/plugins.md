@@ -261,3 +261,44 @@ metadata hook. The host still controls public media access and result sanitizati
 [Notion delivery and lesson scheduling](integrations/remote-publishing.md#in-process-extensions)
 are opt-in native extensions. They reuse the publisher's scoped API,
 durable state, and longer external request budgets.
+
+### Host-rendered contributions (API 4)
+
+Declare the `contributions` capability and up to 16 entries in
+`contributions`. Each entry has `kind`, a lowercase `key`, `version` (currently
+1), a localized `label` with an English value, and a host-defined `target`.
+French and Arabic labels are optional. The host forms the contribution ID
+from the approved plugin slug and key.
+
+| Kind | Target and behavior |
+| --- | --- |
+| `builder_block` | `text_panel` adds a block to the standalone page editor. The block accepts an optional heading up to 200 characters and required text up to 500 characters. Go escapes both as plain text in preview and on published pages. |
+| `admin_navigation` | `overview` or `settings` links to the matching section of the owner’s Plugins screen. |
+| `settings` | `configuration` labels the host’s existing settings form. It requires declared plugin settings, as does the `settings` navigation target. |
+| `widget` | `extensions` shows localized plain `text` on the owner’s Plugins screen. |
+| `public_projection` | `footer` adds localized plain `text` to the host-rendered public footer. |
+| `provider_adapter` | Registers a descriptor for `payments`, `analytics`, `social`, `notifications`, or `editorial_ai`. Provider execution is defined by future integrations. |
+
+As with other capabilities, the owner approves the exact manifest and module
+checksums. A changed file set requires approval before it can replace the running
+version. APIs 1–3 remain supported. The Plugins screen shows the installed
+version, approvals, and current scheduler state, including the next scheduled run
+and consecutive failure count. Scheduler status reflects the current server process.
+
+When reviewing a disable, **Affected pages** scans current draft and published
+page revisions in batches. Disabling removes the contributions from the host
+registry. Saved blocks stay in their revisions, display an unavailable message,
+and require an active matching contract to publish again. Re-enabling a matching
+contract restores rendering.
+
+For a reference plugin, run:
+
+```sh
+npm ci --prefix examples/plugins/typescript
+npm run build:contributions --prefix examples/plugins/typescript
+```
+
+Copy `build/plugins/editorial-notes/` into the server's plugin directory, approve it,
+and enable it. Add an **Editorial note** block on any standalone page, enter text,
+then save and preview it. The example also supplies an owner navigation link, a
+settings section, and a widget.

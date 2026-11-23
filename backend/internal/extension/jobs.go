@@ -24,8 +24,49 @@ type Job struct {
 	// Run does the work and reports the outcome the host records.
 	Run func(ctx context.Context) error
 
-	slug string
-	stop context.CancelFunc
+	slug   string
+	stop   context.CancelFunc
+	health *jobStatus
+}
+
+// JobStatus contains only owner-visible scheduler metadata.
+type JobStatus struct {
+	Name                string    `json:"name"`
+	State               string    `json:"state"`
+	NextRunAt           time.Time `json:"next_run_at,omitzero"`
+	ConsecutiveFailures int       `json:"consecutive_failures"`
+}
+
+type jobStatus struct {
+	mu    sync.Mutex
+	value JobStatus
+}
+
+func (j Job) setStatus(state string, delay time.Duration, failures int) {
+	var next time.Time
+	if delay > 0 {
+		next = time.Now().Add(delay).UTC()
+	}
+	j.health.mu.Lock()
+	defer j.health.mu.Unlock()
+	j.health.value = JobStatus{j.Name, state, next, failures}
+}
+
+func (h *Host) JobStatuses(slug string) []JobStatus {
+	var out []JobStatus
+	if h == nil {
+		return out
+	}
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	for _, job := range h.jobs {
+		if job.slug == slug {
+			job.health.mu.Lock()
+			out = append(out, job.health.value)
+			job.health.mu.Unlock()
+		}
+	}
+	return out
 }
 
 // Jobs returns the registered jobs in installation order.
@@ -36,12 +77,14 @@ func (h *Host) Jobs() []Job {
 }
 
 type jobRunner struct {
-	ctx context.Context
-	wg  sync.WaitGroup
+	ctx      context.Context
+	wg       sync.WaitGroup
+	stopping bool // guarded by Host.mu
 }
 
 func (r *jobRunner) start(h *Host, job Job) context.CancelFunc {
 	ctx, stop := context.WithCancel(r.ctx)
+	job.setStatus("scheduled", job.Every, 0)
 	r.wg.Add(1)
 	go func() {
 		defer r.wg.Done()
@@ -65,14 +108,18 @@ func (h *Host) RunJobs(ctx context.Context) {
 	h.mu.Unlock()
 	<-ctx.Done()
 	h.mu.Lock()
-	h.jobRunner = nil
+	runner.stopping = true
 	h.mu.Unlock()
 	runner.wg.Wait()
+	h.mu.Lock()
+	h.jobRunner = nil
+	h.mu.Unlock()
 }
 
 func (h *Host) runJob(ctx context.Context, job Job) {
 	delay := job.Every
-	failed := false
+	failures := 0
+	defer func() { job.setStatus("idle", 0, failures) }()
 	timer := time.NewTimer(delay)
 	defer timer.Stop()
 	for {
@@ -84,16 +131,20 @@ func (h *Host) runJob(ctx context.Context, job Job) {
 		if ctx.Err() != nil {
 			return
 		}
+		job.setStatus("running", 0, failures)
 		started := time.Now()
 		err := runJobOnce(ctx, job)
 		if ctx.Err() != nil {
 			return
 		}
-		delay = nextJobDelay(delay, job, err != nil, failed)
-		failed = err != nil
+		delay = nextJobDelay(delay, job, err != nil, failures > 0)
 		if err != nil {
+			failures++
+			job.setStatus("backoff", delay, failures)
 			h.logger.Error("extension job failed", "extension", job.slug, "job", job.Name, "duration_ms", time.Since(started).Milliseconds(), "retry_in", delay.String(), "reason", err.Error())
 		} else {
+			failures = 0
+			job.setStatus("scheduled", delay, failures)
 			h.logger.Debug("extension job completed", "extension", job.slug, "job", job.Name, "duration_ms", time.Since(started).Milliseconds())
 		}
 		timer.Reset(delay)

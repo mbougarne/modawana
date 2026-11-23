@@ -16,11 +16,13 @@ import (
 	"slices"
 	"strings"
 	"unicode"
+
+	"github.com/mbougarne/modawana/backend/internal/extension"
 )
 
 // HostAPIVersion is the newest host API this binary serves. Manifests
 // requiring a newer version are refused at install time.
-const HostAPIVersion = 3
+const HostAPIVersion = 4
 
 // manifestSchemaVersion is the manifest document schema this binary parses.
 const manifestSchemaVersion = 1
@@ -33,7 +35,7 @@ const maxRoutes = 16
 var ErrManifest = errors.New("invalid plugin manifest")
 
 // Capabilities accepted by this host.
-var supportedCapabilities = []string{"hooks", "routes", "storage", "settings", "jobs", "http_fetch", "secrets", "mcp_tools"}
+var supportedCapabilities = []string{"hooks", "routes", "storage", "settings", "jobs", "http_fetch", "secrets", "mcp_tools", "contributions"}
 
 var slugPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{0,63}$`)
 var hookNamePattern = regexp.MustCompile(`^[a-z0-9_]+(\.[a-z0-9_]+)+$`)
@@ -50,22 +52,23 @@ var routeMethods = map[string]bool{"GET": true, "HEAD": true, "POST": true, "PUT
 // Manifest is the versioned plugin declaration the owner approves. Parsing is
 // strict: unknown fields, duplicates, and undeclared capability use are refused.
 type Manifest struct {
-	SchemaVersion  int             `json:"schema_version"`
-	HostAPIVersion int             `json:"host_api_version"`
-	Slug           string          `json:"slug"`
-	Name           string          `json:"name"`
-	Version        string          `json:"version"`
-	Description    string          `json:"description,omitempty"`
-	Module         string          `json:"module"`
-	Capabilities   []string        `json:"capabilities"`
-	Hooks          []ManifestHook  `json:"hooks,omitempty"`
-	Routes         []ManifestRoute `json:"routes,omitempty"`
-	Settings       []SettingField  `json:"settings,omitempty"`
-	Jobs           []ManifestJob   `json:"jobs,omitempty"`
-	MCPTools       []ManifestTool  `json:"mcp_tools,omitempty"`
-	HTTPSHosts     []string        `json:"https_hosts,omitempty"`
-	Secrets        []NamedSecret   `json:"secrets,omitempty"`
-	Migrations     []Migration     `json:"migrations,omitempty"`
+	SchemaVersion  int                      `json:"schema_version"`
+	HostAPIVersion int                      `json:"host_api_version"`
+	Slug           string                   `json:"slug"`
+	Name           string                   `json:"name"`
+	Version        string                   `json:"version"`
+	Description    string                   `json:"description,omitempty"`
+	Module         string                   `json:"module"`
+	Capabilities   []string                 `json:"capabilities"`
+	Hooks          []ManifestHook           `json:"hooks,omitempty"`
+	Routes         []ManifestRoute          `json:"routes,omitempty"`
+	Settings       []SettingField           `json:"settings,omitempty"`
+	Jobs           []ManifestJob            `json:"jobs,omitempty"`
+	MCPTools       []ManifestTool           `json:"mcp_tools,omitempty"`
+	HTTPSHosts     []string                 `json:"https_hosts,omitempty"`
+	Secrets        []NamedSecret            `json:"secrets,omitempty"`
+	Migrations     []Migration              `json:"migrations,omitempty"`
+	Contributions  []extension.Contribution `json:"contributions,omitempty"`
 }
 
 // ManifestHook declares one hook subscription and its contract version.
@@ -144,7 +147,10 @@ func (m Manifest) validate(directory string) error {
 	if err := m.validateStageTwo(); err != nil {
 		return err
 	}
-	return m.validateTools()
+	if err := m.validateTools(); err != nil {
+		return err
+	}
+	return m.validateContributions()
 }
 
 func (m Manifest) validateCapabilities() error {
@@ -234,4 +240,22 @@ func AddedCapabilities(approved, next Manifest) []string {
 		}
 	}
 	return added
+}
+
+func (m Manifest) validateContributions() error {
+	if m.Capability("contributions") != (len(m.Contributions) > 0) ||
+		(len(m.Contributions) > 0 && m.HostAPIVersion < 4) {
+		return fmt.Errorf("%w: contributions require host API 4 and the contributions capability", ErrManifest)
+	}
+	if err := extension.ValidateContributions(m.Slug, m.Contributions); err != nil {
+		return fmt.Errorf("%w: %s", ErrManifest, err)
+	}
+	for _, contribution := range m.Contributions {
+		if (contribution.Kind == extension.Settings ||
+			(contribution.Kind == extension.AdminNavigation && contribution.Target == "settings")) &&
+			len(m.Settings) == 0 {
+			return fmt.Errorf("%w: settings contributions require declared settings", ErrManifest)
+		}
+	}
+	return nil
 }

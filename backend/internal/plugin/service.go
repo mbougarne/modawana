@@ -68,12 +68,13 @@ type Status struct {
 	// State is installed, changed (files differ from the approved checksums),
 	// missing (no files on disk), available (files but no approval yet), or
 	// invalid (files present but rejected; Reason says why).
-	State             string          `json:"state"`
-	Running           bool            `json:"running"`
-	Capabilities      []string        `json:"capabilities"`
-	NextManifest      json.RawMessage `json:"next_manifest,omitempty"`
-	AddedCapabilities []string        `json:"added_capabilities,omitempty"`
-	Reason            string          `json:"reason,omitempty"`
+	State             string                `json:"state"`
+	Running           bool                  `json:"running"`
+	Capabilities      []string              `json:"capabilities"`
+	NextManifest      json.RawMessage       `json:"next_manifest,omitempty"`
+	AddedCapabilities []string              `json:"added_capabilities,omitempty"`
+	Reason            string                `json:"reason,omitempty"`
+	JobStatus         []extension.JobStatus `json:"job_status,omitempty"`
 }
 
 func (s *Service) logger() *slog.Logger {
@@ -142,6 +143,9 @@ func (s *Service) List(ctx context.Context) ([]Status, error) {
 	for _, record := range installed {
 		known[record.Slug] = true
 		status := Status{Install: record, State: "installed", Running: s.running(record.Slug)}
+		if status.Running {
+			status.JobStatus = s.Host.JobStatuses(record.Slug)
+		}
 		var approved Manifest
 		if err = json.Unmarshal(record.Manifest, &approved); err == nil {
 			status.Capabilities = approved.Capabilities
@@ -156,6 +160,8 @@ func (s *Service) List(ctx context.Context) ([]Status, error) {
 			status.NextManifest = json.RawMessage(directory.RawManifest)
 			status.CandidateChecksum = fileSetChecksum(directory.Files)
 			status.AddedCapabilities = AddedCapabilities(approved, directory.Manifest)
+		case record.Enabled && !status.Running:
+			status.Reason = "approved plugin could not be started"
 		}
 		out = append(out, status)
 	}
@@ -172,7 +178,7 @@ func (s *Service) List(ctx context.Context) ([]Status, error) {
 		directory, readErr := ReadDirectory(s.Dir, slug)
 		if readErr != nil {
 			status.State = "invalid"
-			status.Reason = readErr.Error()
+			status.Reason = "plugin files were rejected"
 		} else {
 			status.Name = directory.Manifest.Name
 			status.Version = directory.Manifest.Version
@@ -575,6 +581,11 @@ func (x *wasmExtension) Register(r *extension.Registrar) error {
 		}
 	}
 
+	for _, contribution := range x.plugin.manifest.Contributions {
+		if err := r.Contribution(contribution, x.plugin.enabled.Load); err != nil {
+			return err
+		}
+	}
 	for _, tool := range x.plugin.manifest.MCPTools {
 		if err := r.MCPTool(x.mcpTool(tool)); err != nil {
 			return err

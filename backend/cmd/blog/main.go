@@ -170,6 +170,7 @@ func run() int {
 	defer stop()
 	identities := learning.NewIdentity(database, cfg.LearningIdleDays, cfg.LearningMaxIdentities)
 	host := extension.NewHost(logger)
+	contents.Extensions = host
 	runtime, err := plugin.NewRuntime(ctx, database)
 	if err != nil {
 		logger.Error("plugin runtime initialization failed")

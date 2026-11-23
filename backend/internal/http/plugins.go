@@ -33,6 +33,10 @@ func pluginError(w http.ResponseWriter, e error) {
 // mutation's transaction, like other sensitive owner operations.
 func (d *Domain) pluginRoutes(w http.ResponseWriter, r *http.Request) bool {
 	p := r.URL.Path
+	if p == "/api/v1/extension-contributions" || strings.HasPrefix(p, "/api/v1/plugin-usage/") {
+		d.extensionRead(w, r)
+		return true
+	}
 	if strings.HasPrefix(p, "/api/v1/plugin-configuration/") {
 		d.pluginConfiguration(w, r, strings.TrimPrefix(p, "/api/v1/plugin-configuration/"))
 		return true
@@ -190,4 +194,31 @@ func (d *Domain) pluginConfiguration(w http.ResponseWriter, r *http.Request, suf
 	default:
 		writeError(w, MethodNotAllowed)
 	}
+}
+
+func (d *Domain) extensionRead(w http.ResponseWriter, r *http.Request) {
+	if _, err := d.Auth.OwnerRequest(r); err != nil {
+		domainError(w, err)
+		return
+	}
+	if r.Method != http.MethodGet {
+		writeError(w, MethodNotAllowed)
+		return
+	}
+	if r.URL.Path == "/api/v1/extension-contributions" {
+		writeJSON(w, http.StatusOK, map[string]any{"items": d.extensions().Contributions("")})
+		return
+	}
+	slug := strings.TrimPrefix(r.URL.Path, "/api/v1/plugin-usage/")
+	cursor := r.URL.Query().Get("cursor")
+	if d.Content == nil || slug == "" || strings.Contains(slug, "/") || len(slug) > 64 || len(cursor) > 32 {
+		writeError(w, InvalidFields)
+		return
+	}
+	page, err := d.Content.PageUses(r.Context(), slug, cursor)
+	if err != nil {
+		domainError(w, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, page)
 }

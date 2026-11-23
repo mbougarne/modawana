@@ -4,6 +4,8 @@ import { useResource } from '../../pages/public/api';
 import { ResourceState } from '../../pages/public/ResourceState';
 import { authenticatedTransfer } from '../auth/reauthenticate';
 
+import type { Contribution } from './ExtensionCatalog';
+
 type SettingValue = string | number | boolean;
 type Labels = Partial<Record<'en' | 'ar' | 'fr', string>>;
 
@@ -12,6 +14,7 @@ export type PluginManifest = {
   secrets?: { name: string; label: Labels }[];
   jobs?: { name: string; every_seconds: number }[];
   https_hosts?: string[];
+  contributions?: Contribution[];
   mcp_tools?: { name: string }[];
 };
 

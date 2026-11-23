@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "host_api_version": 4,
+  "slug": "editorial-notes",
+  "name": "Editorial notes",
+  "description": "Host-rendered text panels for standalone pages.",
+  "version": "0.1.0",
+  "module": "plugin.wasm",
+  "capabilities": ["contributions", "settings"],
+  "settings": [
+    {
+      "name": "internal_note",
+      "label": { "en": "Internal note", "fr": "Note interne", "ar": "ملاحظة داخلية" },
+      "type": "string",
+      "default": ""
+    }
+  ],
+  "contributions": [
+    {
+      "kind": "builder_block",
+      "key": "notice",
+      "version": 1,
+      "target": "text_panel",
+      "label": { "en": "Editorial note", "fr": "Note éditoriale", "ar": "ملاحظة تحريرية" }
+    },
+    {
+      "kind": "admin_navigation",
+      "key": "preferences",
+      "version": 1,
+      "target": "settings",
+      "label": { "en": "Editorial notes", "fr": "Notes éditoriales", "ar": "ملاحظات تحريرية" }
+    },
+    {
+      "kind": "settings",
+      "key": "configuration",
+      "version": 1,
+      "target": "configuration",
+      "label": { "en": "Editorial preferences", "fr": "Préférences éditoriales", "ar": "التفضيلات التحريرية" }
+    },
+    {
+      "kind": "widget",
+      "key": "guide",
+      "version": 1,
+      "target": "extensions",
+      "label": { "en": "Editorial notes guide", "fr": "Guide des notes éditoriales", "ar": "دليل الملاحظات التحريرية" },
+      "text": {
+        "en": "Add an Editorial note block to a standalone page to highlight a short message.",
+        "fr": "Ajoutez un bloc Note éditoriale à une page pour mettre en valeur un court message.",
+        "ar": "أضف كتلة ملاحظة تحريرية إلى صفحة مستقلة لإبراز رسالة قصيرة."
+      }
+    }
+  ]
+}
