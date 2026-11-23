@@ -178,6 +178,101 @@ func TestThemedMathIncludesIslandOnly(t *testing.T) {
 	}
 }
 
+func TestPublicMenuRevisions(t *testing.T) {
+	ctx := t.Context()
+	content, owner := newThemeContent(t)
+	cfg := &siteconfig.Service{DB: content.DB, Files: content.Files}
+	assets, err := LoadAssets(buildThemeFixture(t, false))
+	if err != nil {
+		t.Fatal(err)
+	}
+	h := New(Options{Assets: assets, SiteConfig: cfg, Domain: &Domain{Content: content, SiteConfig: cfg}})
+	page := func(locale string) string {
+		t.Helper()
+		w := get(t, h, http.MethodGet, "/"+locale)
+		if w.Code != http.StatusOK {
+			t.Fatal(w.Code, w.Body.String())
+		}
+		return w.Body.String()
+	}
+	ordered := func(html string, snippets ...string) {
+		t.Helper()
+		for _, snippet := range snippets {
+			after := strings.Index(html, snippet)
+			if after < 0 {
+				t.Fatalf("missing %q in order in %s", snippet, html)
+			}
+			html = html[after+len(snippet):]
+		}
+	}
+	legacy := page("en")
+	ordered(legacy, `class="vb-nav public-nav"`, `href="/en/writing"`, `href="/en/learn"`, `href="/en/docs"`, `href="/en/about"`, `id="navigation-menu"`, `href="/en"`)
+	initial, err := cfg.Get(ctx, "site")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var settings siteconfig.Site
+	if err := json.Unmarshal(initial.Snapshot, &settings); err != nil {
+		t.Fatal(err)
+	}
+	settings.HeaderMenu = &[]siteconfig.MenuItem{
+		{ID: "external", Target: "custom", Label: siteconfig.Localized{"en": "Research & notes", "ar": "ملاحظات البحث"}, URL: "https://example.org/notes"},
+		{ID: "home", Target: "home"},
+	}
+	settings.FooterMenu = &[]siteconfig.MenuItem{
+		{ID: "contact", Target: "custom", Label: siteconfig.Localized{"en": "Contact"}, URL: "/en/contact"},
+		{ID: "about", Target: "about"},
+	}
+	input := func(version int64) siteconfig.Input {
+		t.Helper()
+		snapshot, err := json.Marshal(settings)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return siteconfig.Input{ExpectedVersion: &version, Snapshot: snapshot}
+	}
+	draft := input(initial.Version)
+	preview, err := cfg.Preview(ctx, "site", draft)
+	if err != nil || len(preview.Required) != 1 || preview.Required[0].Path != "header_menu.external.label" {
+		t.Fatal(preview, err)
+	}
+	if _, err := cfg.Apply(ctx, owner, "site", draft); !errors.Is(err, siteconfig.ErrReview) {
+		t.Fatalf("expected a translation review, got %v", err)
+	}
+	if strings.Contains(page("ar"), "example.org/notes") {
+		t.Fatal("preview exposed unapplied links")
+	}
+	draft.Reviews = []siteconfig.Review{preview.Required[0].Review}
+	saved, err := cfg.Apply(ctx, owner, "site", draft)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, locale := range []string{"en", "ar", "fr"} {
+		body := page(locale)
+		link := `href="https://example.org/notes" lang="en" dir="auto">Research &amp; notes</a>`
+		if locale == "ar" {
+			link = `href="https://example.org/notes" lang="ar" dir="auto">ملاحظات البحث</a>`
+		}
+		home := `href="/` + locale + `" aria-current="page"`
+		ordered(body, `class="vb-nav public-nav"`, link, home, `id="navigation-menu"`, link, home,
+			`<footer class="vb-footer">`, `href="/en/contact" lang="en" dir="auto">Contact</a>`, `href="/`+locale+`/about"`)
+		footer := strings.SplitN(body, `<footer class="vb-footer">`, 2)[1]
+		if strings.Contains(footer, `href="/`+locale+`/writing"`) || strings.Contains(footer, "example.org/notes") {
+			t.Fatal("header or default menu leaked into customized footer", locale)
+		}
+	}
+	settings.HeaderMenu = &[]siteconfig.MenuItem{}
+	settings.FooterMenu = nil
+	if _, err := cfg.Apply(ctx, owner, "site", input(saved.Version)); err != nil {
+		t.Fatal(err)
+	}
+	body := page("en")
+	if strings.Contains(body, `class="vb-nav public-nav"`) || strings.Contains(body, `id="navigation-menu"`) {
+		t.Fatal("an explicitly empty header must stay empty")
+	}
+	ordered(body, `<footer class="vb-footer">`, `href="/en/writing"`, `href="/en/learn"`, `href="/en/docs"`)
+}
+
 func TestThemedErrorsAndMissingIsland(t *testing.T) {
 	h := themeServer(t, false)
 	if w := get(t, h, http.MethodGet, "/en/articles/math"); w.Code != 200 ||

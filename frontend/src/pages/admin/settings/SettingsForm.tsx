@@ -109,9 +109,7 @@ export function SettingsForm({
             ))}
           </ul>
         </Section>
-        {theme === 'classic' && (
-          <MenuSettings value={s.menu_icons} onChange={(icons) => change('menu_icons', icons)} />
-        )}
+        {theme === 'classic' && <MenuSettings value={s} onChange={onChange} />}
       </div>
       <aside
         className="config-panel config-live-preview"

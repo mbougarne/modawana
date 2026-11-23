@@ -157,7 +157,7 @@ func translations(kind string, snapshot json.RawMessage) map[string]map[string]j
 		}
 		return out
 	}
-	if kind != "profile" {
+	if kind != "profile" && kind != "site" {
 		return out
 	}
 	var root any

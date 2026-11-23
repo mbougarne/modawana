@@ -109,7 +109,7 @@ export function LocalizedField({
 }) {
   const { t } = useI18n();
   return (
-    <fieldset className="config-localized">
+    <fieldset className="config-localized" data-config-path={path}>
       <legend>
         <Label name={name} />
       </legend>

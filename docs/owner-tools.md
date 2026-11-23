@@ -89,6 +89,12 @@ controls the primary Home/About button; choosing an icon only changes its symbol
 Visible configured GitHub, LinkedIn and RSS links also populate the footer. Footer
 contact text can replace the default email-linked call to action.
 
+Use **Menus** in Slate or **Settings** in Classic to edit the public **Header
+menu** and **Footer menu**. Add a built-in destination or a custom link, then
+move or remove entries. Header entries are shared with the mobile menu. Footer
+entries appear alongside configured profile and feed links. Use **Use default
+links** to restore the default navigation for one placement.
+
 Use **Transfer** for [draft-only import/export](api/portability.md), and **Security**
 for [passkeys/recovery](owner-security.md), publisher tokens and connected publishing apps.
 Technical details: [content API](api/content.md), [learning](api/learning.md),

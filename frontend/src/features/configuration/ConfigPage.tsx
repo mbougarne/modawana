@@ -216,10 +216,7 @@ export function ConfigPage({ page }: { page: ConfigKind | 'themes' | 'menus' }) 
                     }
                   />
                 ) : page === 'menus' ? (
-                  <MenuSettings
-                    value={(working as SiteSettings).menu_icons}
-                    onChange={(menu_icons) => edit({ ...(working as SiteSettings), menu_icons })}
-                  />
+                  <MenuSettings value={working as SiteSettings} onChange={edit} />
                 ) : kind === 'settings' ? (
                   <SettingsForm
                     value={working as SiteSettings}

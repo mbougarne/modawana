@@ -10,6 +10,7 @@
 }
 .public-tools {
   flex-shrink: 0;
+  margin-inline-start: auto;
 }
 .public-nav a {
   display: inline-flex;
@@ -17,10 +18,17 @@
   justify-content: center;
   gap: var(--space-2);
   min-block-size: var(--target);
+  max-inline-size: 100%;
 }
 .public-nav {
   flex-wrap: wrap;
   justify-content: center;
+  min-inline-size: 0;
+}
+.public-nav a,
+.public-menu a,
+.public-site .vb-footer nav a {
+  overflow-wrap: anywhere;
 }
 .public-menu {
   position: absolute;
@@ -64,9 +72,6 @@
   background: var(--sunk);
 }
 @media (max-width: 760px) {
-  .public-tools {
-    margin-inline-start: auto;
-  }
   .public-header > .vb-brand {
     max-inline-size: 40%;
   }

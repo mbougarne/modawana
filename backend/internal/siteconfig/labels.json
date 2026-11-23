@@ -2807,6 +2807,16 @@
       "ar": "اختر مستند التعريف المنشور أو امسح الاختيار."
     }
   },
+  "validation.menu_target": {
+    "section": "validation",
+    "description": "Interface text: validation.menu_target",
+    "placeholders": [],
+    "values": {
+      "en": "Choose a destination that is available in this menu.",
+      "fr": "Choisissez une destination disponible dans ce menu.",
+      "ar": "اختر وجهة متاحة في هذه القائمة."
+    }
+  },
   "validation.range": {
     "section": "validation",
     "description": "Interface text: validation.range",
@@ -3876,6 +3886,86 @@
       "ar": "القوائم"
     }
   },
+  "config.headerMenu": {
+    "section": "config",
+    "description": "Interface text: config.headerMenu",
+    "placeholders": [],
+    "values": {
+      "en": "Header menu",
+      "fr": "Menu d’en-tête",
+      "ar": "قائمة الترويسة"
+    }
+  },
+  "config.footerMenu": {
+    "section": "config",
+    "description": "Interface text: config.footerMenu",
+    "placeholders": [],
+    "values": {
+      "en": "Footer menu",
+      "fr": "Menu de pied de page",
+      "ar": "قائمة التذييل"
+    }
+  },
+  "config.headerMenuHelp": {
+    "section": "config",
+    "description": "Interface text: config.headerMenuHelp",
+    "placeholders": [],
+    "values": {
+      "en": "These links appear in the header and the mobile menu.",
+      "fr": "Ces liens apparaissent dans l’en-tête et le menu mobile.",
+      "ar": "تظهر هذه الروابط في الترويسة وقائمة الهاتف."
+    }
+  },
+  "config.footerMenuHelp": {
+    "section": "config",
+    "description": "Interface text: config.footerMenuHelp",
+    "placeholders": [],
+    "values": {
+      "en": "These links appear in the footer alongside your profile and feed links.",
+      "fr": "Ces liens apparaissent en pied de page avec ceux de votre profil et de votre flux.",
+      "ar": "تظهر هذه الروابط في التذييل بجانب روابط الملف الشخصي وخلاصة الموقع."
+    }
+  },
+  "config.menuEmpty": {
+    "section": "config",
+    "description": "Interface text: config.menuEmpty",
+    "placeholders": [],
+    "values": {
+      "en": "This menu has no links.",
+      "fr": "Ce menu ne contient aucun lien.",
+      "ar": "لا تحتوي هذه القائمة على روابط."
+    }
+  },
+  "config.menuTarget": {
+    "section": "config",
+    "description": "Interface text: config.menuTarget",
+    "placeholders": [],
+    "values": {
+      "en": "Destination",
+      "fr": "Destination",
+      "ar": "الوجهة"
+    }
+  },
+  "config.customMenuLink": {
+    "section": "config",
+    "description": "Interface text: config.customMenuLink",
+    "placeholders": [],
+    "values": {
+      "en": "Custom link",
+      "fr": "Lien personnalisé",
+      "ar": "رابط مخصص"
+    }
+  },
+  "config.useDefaultMenu": {
+    "section": "config",
+    "description": "Interface text: config.useDefaultMenu",
+    "placeholders": [],
+    "values": {
+      "en": "Use default links",
+      "fr": "Utiliser les liens par défaut",
+      "ar": "استخدام الروابط الافتراضية"
+    }
+  },
   "workspace.themesHelp": {
     "section": "workspace",
     "description": "Interface text: workspace.themesHelp",
@@ -3891,9 +3981,9 @@
     "description": "Interface text: workspace.menusHelp",
     "placeholders": [],
     "values": {
-      "en": "Choose icons for the public navigation items.",
-      "fr": "Choisissez les icônes des liens de navigation du site public.",
-      "ar": "اختر أيقونات عناصر التنقل في الموقع العام."
+      "en": "Manage the links in your public header and footer.",
+      "fr": "Gérez les liens de l’en-tête et du pied de page de votre site.",
+      "ar": "أدِر روابط الترويسة والتذييل في موقعك العام."
     }
   },
   "ownerAppearance.title": {

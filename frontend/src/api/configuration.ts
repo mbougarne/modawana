@@ -5,6 +5,13 @@ export type Localized = Partial<Record<Locale, string>>;
 
 export type PublicThemeID = 'classic' | 'folio' | 'studio' | `pack-${string}`;
 
+export interface MenuItem {
+  id: string;
+  target: 'home' | 'writing' | 'learning' | 'docs' | 'about' | 'custom';
+  label?: Localized;
+  url?: string;
+}
+
 export interface SiteSettings {
   public_theme?: PublicThemeID;
   logo_mode: 'wordmark' | 'monogram' | 'image';
@@ -15,6 +22,8 @@ export interface SiteSettings {
   primary: string;
   secondary: string;
   menu_icons: Record<string, string>;
+  header_menu?: MenuItem[];
+  footer_menu?: MenuItem[];
 }
 
 export interface ProfileLink {

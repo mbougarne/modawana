@@ -31,6 +31,14 @@ type Site struct {
 	Primary     string            `json:"primary"`
 	Secondary   string            `json:"secondary"`
 	MenuIcons   map[string]string `json:"menu_icons"`
+	HeaderMenu  *[]MenuItem       `json:"header_menu,omitempty"`
+	FooterMenu  *[]MenuItem       `json:"footer_menu,omitempty"`
+}
+type MenuItem struct {
+	ID     string    `json:"id"`
+	Target string    `json:"target"`
+	Label  Localized `json:"label,omitempty"`
+	URL    string    `json:"url,omitempty"`
 }
 type NowRow struct {
 	ID    string    `json:"id"`

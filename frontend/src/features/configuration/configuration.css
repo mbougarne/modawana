@@ -51,6 +51,35 @@
   max-inline-size: 20rem;
   margin: 0;
 }
+.config-menu-editor,
+.config-menu-items,
+.owner-workspace .config-menu-item {
+  display: grid;
+  gap: var(--space-3);
+  min-inline-size: 0;
+}
+.config-menu-editor > p,
+.config-menu-items {
+  margin: 0;
+}
+.config-menu-items {
+  padding: 0;
+  list-style: none;
+}
+.owner-workspace .config-menu-item {
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+}
+.config-menu-item legend {
+  padding-inline: var(--space-2);
+  color: var(--ink-muted);
+}
+.config-menu-item > .config-actions,
+.config-menu-editor > .config-actions {
+  justify-content: start;
+}
 .config-page textarea {
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);
