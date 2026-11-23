@@ -20,6 +20,7 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/outbox"
 	"github.com/mbougarne/modawana/backend/internal/plugin"
 	"github.com/mbougarne/modawana/backend/internal/siteconfig"
+	"github.com/mbougarne/modawana/backend/internal/webhook"
 )
 
 var uploadHTTPGate = make(chan struct{}, 1)
@@ -33,6 +34,7 @@ type Domain struct {
 	Extensions *extension.Host
 	Plugins    *plugin.Service
 	Deliveries *outbox.Worker
+	Webhooks   *webhook.Inbox
 
 	builtinOnce sync.Once
 }
@@ -105,6 +107,9 @@ func domainError(w http.ResponseWriter, e error) {
 	}
 }
 func (d *Domain) Handle(w http.ResponseWriter, r *http.Request) bool {
+	if d.Webhooks != nil && d.webhookRoutes(w, r) {
+		return true
+	}
 	if d.Content != nil && d.mcpRoutes(w, r) {
 		return true
 	}
