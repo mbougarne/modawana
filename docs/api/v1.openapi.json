@@ -8047,6 +8047,22 @@
                 "video"
               ]
             }
+          },
+          "header_menu": {
+            "type": "array",
+            "maxItems": 12,
+            "items": {
+              "$ref": "#/components/schemas/MenuItem"
+            },
+            "description": "Ordered links shared by the public header and mobile menu. Omit for defaults. / روابط مرتبة مشتركة بين الترويسة العامة وقائمة الهاتف. يؤدي غياب الحقل إلى استخدام الروابط الافتراضية."
+          },
+          "footer_menu": {
+            "type": "array",
+            "maxItems": 12,
+            "items": {
+              "$ref": "#/components/schemas/MenuItem"
+            },
+            "description": "Ordered public footer navigation links. Omit for defaults. / روابط تنقّل عامة مرتبة في التذييل. يؤدي غياب الحقل إلى استخدام الروابط الافتراضية."
           }
         },
         "required": [
@@ -8059,6 +8075,73 @@
           "secondary",
           "menu_icons"
         ]
+      },
+      "MenuItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,79}$"
+          },
+          "target": {
+            "enum": [
+              "home",
+              "writing",
+              "learning",
+              "docs",
+              "about",
+              "custom"
+            ]
+          },
+          "label": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "en": {
+                "type": "string",
+                "maxLength": 80,
+                "minLength": 1
+              },
+              "ar": {
+                "type": "string",
+                "maxLength": 80
+              },
+              "fr": {
+                "type": "string",
+                "maxLength": 80
+              }
+            },
+            "required": [
+              "en"
+            ]
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 2048,
+            "description": "Custom links accept a site-relative path, an HTTPS URL or a mailto address. / تقبل الروابط المخصصة مساراً محلياً أو عنوان HTTPS أو عنوان mailto."
+          }
+        },
+        "required": [
+          "id",
+          "target"
+        ],
+        "if": {
+          "properties": {
+            "target": {
+              "const": "custom"
+            }
+          },
+          "required": [
+            "target"
+          ]
+        },
+        "then": {
+          "required": [
+            "label",
+            "url"
+          ]
+        }
       },
       "ProfileLink": {
         "type": "object",

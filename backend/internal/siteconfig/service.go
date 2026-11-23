@@ -51,6 +51,9 @@ func validate(kind string, b json.RawMessage) (json.RawMessage, []mediaRef, erro
 		if json.Unmarshal(b, &supplied) != nil {
 			return nil, nil, ErrInvalid
 		}
+		if kind == "site" && (string(supplied["header_menu"]) == "null" || string(supplied["footer_menu"]) == "null") {
+			return nil, nil, ErrInvalid
+		}
 		for key := range required {
 			value, ok := supplied[key]
 			if !ok && kind == "site" && key == "public_theme" {

@@ -20,9 +20,10 @@ var templates = template.Must(template.ParseFS(files, "templates/*.tmpl"))
 
 // Link is one resolved navigation or tag destination.
 type Link struct {
-	Label   string
-	URL     string
-	Current bool
+	Label    string
+	URL      string
+	Current  bool
+	Language string
 }
 
 // Language is one entry of the language menu. URL points at the published
@@ -108,7 +109,7 @@ type Page struct {
 	SkipLabel     string
 	Brand         Brand
 	Nav           []Link
-	MenuNav       []Link // the phone menu adds the home entry
+	MenuNav       []Link // the default phone menu adds the home entry
 	NavLabel      string
 	SearchLabel   string
 	SearchURL     string

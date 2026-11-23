@@ -3,9 +3,11 @@ package siteconfig
 import (
 	"context"
 	"encoding/json"
+	"strconv"
 	"strings"
 	"unicode"
 
+	"github.com/mbougarne/modawana/backend/internal/render"
 	"github.com/mbougarne/modawana/backend/internal/theme"
 )
 
@@ -49,8 +51,51 @@ func siteIssues(s Site) []FieldIssue {
 			add("menu_icons."+slot, "icon")
 		}
 	}
+	for _, menu := range []struct {
+		path  string
+		items *[]MenuItem
+	}{{"header_menu", s.HeaderMenu}, {"footer_menu", s.FooterMenu}} {
+		if menu.items != nil {
+			issues = append(issues, menuIssues(menu.path, *menu.items)...)
+		}
+	}
 	if s.LogoMode == "image" && s.LogoID == "" {
 		add("logo_media_id", "logo_image")
+	}
+	return issues
+}
+
+func menuIssues(path string, items []MenuItem) []FieldIssue {
+	if len(items) > 12 {
+		return []FieldIssue{{path, "limit"}}
+	}
+	var issues []FieldIssue
+	seen := map[string]bool{}
+	targets := map[string]bool{}
+	for i, item := range items {
+		row := path + "." + strconv.Itoa(i)
+		if !stableID.MatchString(item.ID) || seen[item.ID] {
+			issues = append(issues, FieldIssue{row + ".id", "id"})
+		}
+		seen[item.ID] = true
+		switch item.Target {
+		case "home", "writing", "learning", "docs", "about":
+			if targets[item.Target] || item.URL != "" || len(item.Label) != 0 {
+				issues = append(issues, FieldIssue{row + ".target", "menu_target"})
+			}
+			targets[item.Target] = true
+		case "custom":
+			if _, ok := render.SafeLink(item.URL); !ok || !safeURL(item.URL) {
+				issues = append(issues, FieldIssue{row + ".url", "url"})
+			}
+			if strings.TrimSpace(item.Label["en"]) == "" {
+				issues = append(issues, FieldIssue{row + ".label.en", "required"})
+			} else if !localized(item.Label, 80) {
+				issues = append(issues, FieldIssue{row + ".label", "text"})
+			}
+		default:
+			issues = append(issues, FieldIssue{row + ".target", "menu_target"})
+		}
 	}
 	return issues
 }

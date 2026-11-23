@@ -52,8 +52,8 @@ func (s *Server) renderThemed(ctx context.Context, r *http.Request, page content
 	head.ThemeCSS = template.CSS(appearance.CSS)
 	view := theme.Page{
 		ThemeID: appearance.ID, Layout: appearance.Layout, BannerURL: appearance.BannerURL, Locale: locale, Direction: head.Direction, SkipLabel: label("foundation.skip"),
-		Brand: themeBrand(settings.Site, locale), Nav: themeNav(locale, current, false, label),
-		MenuNav: themeNav(locale, current, true, label), NavLabel: label("nav.main"),
+		Brand: themeBrand(settings.Site, locale), Nav: themeNav(settings.Site.HeaderMenu, locale, current, false, label),
+		MenuNav: themeNav(settings.Site.HeaderMenu, locale, current, true, label), NavLabel: label("nav.main"),
 		SearchLabel: label("nav.search"), SearchURL: "/" + locale + "/search",
 		LanguageLabel: label("foundation.language"), LanguageShort: languageShort(locale),
 		Languages: themeLanguages(page, locale, label), MenuLabel: label("nav.menu"),
@@ -249,14 +249,47 @@ func (s *Server) themeReader(ctx context.Context, c *content.PublicContent, sett
 	return &article, nil
 }
 
-func themeNav(locale, current string, home bool, label func(string) string) []theme.Link {
-	sections := []struct{ path, key string }{{"writing", "slot.writing"}, {"learn", "slot.learning"}, {"docs", "slot.docs"}, {"about", "slot.about"}}
-	out := []theme.Link{}
-	if home {
-		out = append(out, theme.Link{Label: label("slot.home"), URL: "/" + locale, Current: current == ""})
+func themeNav(menu *[]siteconfig.MenuItem, locale, current string, home bool, label func(string) string) []theme.Link {
+	if menu != nil {
+		return themeMenu(*menu, locale, current, label)
 	}
-	for _, s := range sections {
-		out = append(out, theme.Link{Label: label(s.key), URL: "/" + locale + "/" + s.path, Current: current == s.path})
+	items := []siteconfig.MenuItem{{Target: "writing"}, {Target: "learning"}, {Target: "docs"}, {Target: "about"}}
+	if home {
+		items = append([]siteconfig.MenuItem{{Target: "home"}}, items...)
+	}
+	return themeMenu(items, locale, current, label)
+}
+
+func themeMenu(items []siteconfig.MenuItem, locale, current string, label func(string) string) []theme.Link {
+	out := make([]theme.Link, 0, len(items))
+	for _, item := range items {
+		switch item.Target {
+		case "custom":
+			destination, ok := render.SafeLink(item.URL)
+			if !ok {
+				continue
+			}
+			language := locale
+			text := item.Label[language]
+			if strings.TrimSpace(text) == "" {
+				language, text = "en", item.Label["en"]
+			}
+			if strings.TrimSpace(text) != "" {
+				out = append(out, theme.Link{Label: text, URL: destination, Language: language})
+			}
+		case "home", "writing", "learning", "docs", "about":
+			section := item.Target
+			if section == "learning" {
+				section = "learn"
+			} else if section == "home" {
+				section = ""
+			}
+			destination := "/" + locale
+			if section != "" {
+				destination += "/" + section
+			}
+			out = append(out, theme.Link{Label: label("slot." + item.Target), URL: destination, Current: current == section})
+		}
 	}
 	return out
 }
@@ -326,12 +359,12 @@ func (s *Server) themeFooter(settings siteconfig.Public, locale string, label fu
 		Email:     settings.Profile.PublicEmail,
 		Copyright: pick(settings.Profile.Copyright),
 		NavLabel:  label("footer.links"),
-		Links: []theme.Link{
-			{Label: label("slot.writing"), URL: "/" + locale + "/writing"},
-			{Label: label("slot.learning"), URL: "/" + locale + "/learn"},
-			{Label: label("slot.docs"), URL: "/" + locale + "/docs"},
-		},
 	}
+	items := []siteconfig.MenuItem{{Target: "writing"}, {Target: "learning"}, {Target: "docs"}}
+	if settings.Site.FooterMenu != nil {
+		items = *settings.Site.FooterMenu
+	}
+	footer.Links = themeMenu(items, locale, "", label)
 	candidates := settings.Profile.Links
 	if settings.Profile.MainAction != nil {
 		candidates = append([]siteconfig.Link{*settings.Profile.MainAction}, candidates...)

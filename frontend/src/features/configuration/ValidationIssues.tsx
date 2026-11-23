@@ -20,6 +20,8 @@ const fields: Record<string, string> = {
   logo_media_id: 'logo',
   favicon_media_id: 'favicon',
   menu_icons: 'menuIcons',
+  header_menu: 'headerMenu',
+  footer_menu: 'footerMenu',
   portrait_media_id: 'portrait',
   banner_media_id: 'banner',
   public_email: 'publicEmail',
@@ -72,7 +74,8 @@ export function ValidationIssues({
     if (root === 'menu_icons') {
       return t('config.menuIcons') + ' · ' + t('slot.' + parts[1]);
     }
-    const nested = /^(now|links|experience)$/.test(root) && /^\d+$/.test(parts[1] || '');
+    const nested =
+      /^(now|links|experience|header_menu|footer_menu)$/.test(root) && /^\d+$/.test(parts[1] || '');
     const labels = [t('config.' + (fields[root] || root))];
     if (nested) {
       labels.push(t('config.row', { n: Number(parts[1]) + 1 }));
@@ -86,7 +89,9 @@ export function ValidationIssues({
             : 'linkLabel'
           : sub === 'text'
             ? 'rowText'
-            : sub;
+            : sub === 'target'
+              ? 'menuTarget'
+              : sub;
       labels.push(sub === 'id' ? t('validation.rowIdentity') : t('config.' + key));
     }
     const lang = parts.at(-1);
@@ -104,6 +109,7 @@ export function ValidationIssues({
     'month',
     'email',
     'reference',
+    'menu_target',
     'id',
     'required',
     'url',
@@ -148,14 +154,20 @@ export function ValidationIssues({
     if (root === 'now') {
       n = issue.path.includes('.label') ? 80 : 160;
     }
-    if (root === 'links' || root === 'main_action') {
+    if (['links', 'main_action', 'header_menu', 'footer_menu'].includes(root)) {
       n = 80;
     }
     if (root === 'experience') {
       n = issue.path.includes('.description') ? 500 : 120;
     }
     if (issue.code === 'limit') {
-      n = ({ now: 3, links: 10, experience: 20 } as Record<string, number>)[root] || 20;
+      n =
+        (
+          { now: 3, links: 10, experience: 20, header_menu: 12, footer_menu: 12 } as Record<
+            string,
+            number
+          >
+        )[root] || 20;
     }
     if (issue.code === 'media') {
       n = root === 'portrait_media_id' ? 2 : root === 'banner_media_id' ? 10 : 1;

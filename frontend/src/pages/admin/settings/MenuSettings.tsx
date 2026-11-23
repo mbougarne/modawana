@@ -1,9 +1,190 @@
-import { Icon, useI18n, type IconName } from '@ui';
-import type { SiteSettings } from '../../../api/configuration';
-import { Section } from '../../../features/configuration/controls';
+import { Button, Icon, Label, useI18n, type IconName } from '@ui';
+import type { MenuItem, SiteSettings } from '../../../api/configuration';
+import { LocalizedField, Section, TextField } from '../../../features/configuration/controls';
+import { useFieldIssue } from '../../../features/configuration/ValidationIssues';
 import { iconNames } from './siteBrand';
 
+const destinations = ['home', 'writing', 'learning', 'docs', 'about', 'custom'] as const;
+const defaultFooter = ['writing', 'learning', 'docs'] as const;
+const defaultHeader = [...defaultFooter, 'about'] as const;
+
 export function MenuSettings({
+  value,
+  onChange,
+}: {
+  value: SiteSettings;
+  onChange: (settings: SiteSettings) => void;
+}) {
+  return (
+    <>
+      <NavigationMenu
+        path="header_menu"
+        name="config.headerMenu"
+        value={value.header_menu}
+        onChange={(header_menu) => onChange({ ...value, header_menu })}
+      />
+      <NavigationMenu
+        path="footer_menu"
+        name="config.footerMenu"
+        value={value.footer_menu}
+        onChange={(footer_menu) => onChange({ ...value, footer_menu })}
+      />
+      <MenuIcons
+        value={value.menu_icons}
+        onChange={(menu_icons) => onChange({ ...value, menu_icons })}
+      />
+    </>
+  );
+}
+
+function NavigationMenu({
+  path,
+  name,
+  value,
+  onChange,
+}: {
+  path: 'header_menu' | 'footer_menu';
+  name: string;
+  value: MenuItem[] | undefined;
+  onChange: (items: MenuItem[] | undefined) => void;
+}) {
+  const { t } = useI18n();
+  const issue = useFieldIssue(path);
+  const defaults = path === 'header_menu' ? defaultHeader : defaultFooter;
+  const items = value ?? defaults.map((target) => ({ id: target, target }));
+
+  return (
+    <Section name={name}>
+      <div className="config-menu-editor" {...issue}>
+        <p>{t(path === 'header_menu' ? 'config.headerMenuHelp' : 'config.footerMenuHelp')}</p>
+        {items.length === 0 && <p>{t('config.menuEmpty')}</p>}
+        {items.length > 0 && (
+          <ol className="config-menu-items">
+            {items.map((item, index) => (
+              <li key={item.id}>
+                <MenuRow
+                  item={item}
+                  path={`${path}.${index}`}
+                  items={items}
+                  index={index}
+                  onChange={(next) => onChange(items.map((row, i) => (i === index ? next : row)))}
+                  onMove={(to) => {
+                    const next = [...items];
+                    [next[to], next[index]] = [next[index], next[to]];
+                    onChange(next);
+                  }}
+                  onRemove={() => onChange(items.filter((_, i) => i !== index))}
+                />
+              </li>
+            ))}
+          </ol>
+        )}
+        <div className="config-actions">
+          <Button
+            type="button"
+            disabled={items.length >= 12}
+            onClick={() => onChange([...items, { id: crypto.randomUUID(), target: 'custom' }])}
+          >
+            <Label name="config.addLink" />
+          </Button>
+          <Button
+            type="button"
+            variant="quiet"
+            disabled={!value}
+            onClick={() => onChange(undefined)}
+          >
+            <Label name="config.useDefaultMenu" />
+          </Button>
+        </div>
+      </div>
+    </Section>
+  );
+}
+
+function MenuRow({
+  item,
+  path,
+  items,
+  index,
+  onChange,
+  onMove,
+  onRemove,
+}: {
+  item: MenuItem;
+  path: string;
+  items: MenuItem[];
+  index: number;
+  onChange: (item: MenuItem) => void;
+  onMove: (index: number) => void;
+  onRemove: () => void;
+}) {
+  const { t } = useI18n();
+  const issue = useFieldIssue(path + '.target');
+  return (
+    <fieldset className="config-menu-item">
+      <legend>{t('config.row', { n: index + 1 })}</legend>
+      <label className="config-field">
+        <Label name="config.menuTarget" />
+        <select
+          {...issue}
+          value={item.target}
+          onChange={(event) =>
+            onChange({ id: item.id, target: event.target.value as MenuItem['target'] })
+          }
+        >
+          {destinations.map((target) => (
+            <option
+              key={target}
+              value={target}
+              disabled={
+                target !== 'custom' &&
+                target !== item.target &&
+                items.some((row) => row.target === target)
+              }
+            >
+              {t(target === 'custom' ? 'config.customMenuLink' : 'slot.' + target)}
+            </option>
+          ))}
+        </select>
+      </label>
+      {item.target === 'custom' && (
+        <>
+          <TextField
+            name="config.url"
+            path={path + '.url'}
+            value={item.url ?? ''}
+            max={2048}
+            onChange={(url) => onChange({ ...item, url })}
+          />
+          <LocalizedField
+            name="config.linkLabel"
+            path={path + '.label'}
+            value={item.label ?? {}}
+            max={80}
+            onChange={(label) => onChange({ ...item, label })}
+          />
+        </>
+      )}
+      <div className="config-actions">
+        <Button type="button" disabled={index === 0} onClick={() => onMove(index - 1)}>
+          <Label name="config.up" />
+        </Button>
+        <Button
+          type="button"
+          disabled={index === items.length - 1}
+          onClick={() => onMove(index + 1)}
+        >
+          <Label name="config.down" />
+        </Button>
+        <Button type="button" variant="quiet" onClick={onRemove}>
+          <Label name="config.remove" />
+        </Button>
+      </div>
+    </fieldset>
+  );
+}
+
+function MenuIcons({
   value,
   onChange,
 }: {
