@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/mbougarne/modawana/backend/internal/access"
+	"github.com/mbougarne/modawana/backend/internal/siteconfig"
 )
 
 // PageRoute is the public contract shared by HTML delivery and SPA navigation.
@@ -42,6 +43,13 @@ func canonical(ctx context.Context, q query, key, locale, kind, slug string) (st
 		return "/" + locale + "/articles/" + url.PathEscape(slug), nil
 	}
 	if kind == "page" {
+		front, _, err := siteconfig.FrontPage(ctx, q, locale)
+		if err != nil {
+			return "", err
+		}
+		if key == front {
+			return "/" + locale, nil
+		}
 		return StandalonePagePath(locale, slug), nil
 	}
 	var collectionSlug, collectionKind string
@@ -70,6 +78,21 @@ func (s *Service) ResolvePage(ctx context.Context, path string) (PageRoute, erro
 	}
 	out.Locale = parts[0]
 	out.URL = path
+	if len(parts) == 1 {
+		_, frontSlug, err := siteconfig.FrontPage(ctx, s.DB, out.Locale)
+		if err != nil {
+			return out, err
+		}
+		if frontSlug != "" {
+			front, err := s.ResolvePage(ctx, "/"+out.Locale+"/pages/"+frontSlug)
+			if err == nil && front.URL == path {
+				return front, nil
+			}
+			if err != nil && !errors.Is(err, sql.ErrNoRows) {
+				return out, err
+			}
+		}
+	}
 	if len(parts) == 1 || len(parts) == 2 && (parts[1] == "about" || parts[1] == "writing" || parts[1] == "search" || parts[1] == "learn" || parts[1] == "docs") {
 		out.Kind = "home"
 		suffix := ""
@@ -168,7 +191,8 @@ func (s *Service) ResolvePage(ctx context.Context, path string) (PageRoute, erro
 		if err := s.DB.QueryRowContext(ctx, "SELECT count(*) FROM content_route_aliases a JOIN content_items i ON i.id=a.item_id WHERE a.path=? AND i.key=? AND a.locale=?", path, c.Key, c.Locale).Scan(&alias); err != nil {
 			return out, err
 		}
-		if !legacyDoc && alias != 1 {
+		frontAlias := c.Kind == "page" && decoded == "/"+out.Locale && path == "/"+out.Locale+"/pages/"+c.Slug
+		if !frontAlias && !legacyDoc && alias != 1 {
 			return out, sql.ErrNoRows
 		}
 	}

@@ -4340,6 +4340,36 @@
       "ar": "القوائم"
     }
   },
+  "config.frontPages": {
+    "section": "config",
+    "description": "Interface text: config.frontPages",
+    "placeholders": [],
+    "values": {
+      "en": "Front pages",
+      "fr": "Pages d’accueil",
+      "ar": "الصفحات الرئيسية"
+    }
+  },
+  "config.frontPagesHelp": {
+    "section": "config",
+    "description": "Interface text: config.frontPagesHelp",
+    "placeholders": [],
+    "values": {
+      "en": "Choose a standalone page for each language. The default home appears when no published page is selected.",
+      "fr": "Choisissez une page autonome par langue. L’accueil par défaut s’affiche sans page publiée sélectionnée.",
+      "ar": "اختر صفحة مستقلة لكل لغة. تظهر الصفحة الرئيسية الافتراضية عند عدم اختيار صفحة منشورة."
+    }
+  },
+  "config.addSubmenuLink": {
+    "section": "config",
+    "description": "Interface text: config.addSubmenuLink",
+    "placeholders": [],
+    "values": {
+      "en": "Add submenu link",
+      "fr": "Ajouter un lien au sous-menu",
+      "ar": "إضافة رابط إلى القائمة الفرعية"
+    }
+  },
   "config.headerMenu": {
     "section": "config",
     "description": "Interface text: config.headerMenu",

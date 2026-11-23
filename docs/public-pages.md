@@ -228,3 +228,36 @@ the staged file and uses Classic if the pack was selected. Coordinated backups
 retain approved matching pack files and restore verifies their checksums again.
 Content transfer carries the settings reference. Stage and approve the pack at
 the destination before applying that revision.
+
+### Theme pack API 2
+
+API 2 replaces the single layout with a `layouts` object keyed by `home`,
+`page`, `article`, or `storefront`. Each layout has a `slots` array with one
+`header`, `content`, and `footer`. It can include one `banner` and select a
+PNG filename through the `banner` field. Views without an entry use the host
+layout. The storefront slot contract is available for the store module.
+
+```json
+{
+  "api_version": 2,
+  "name": "Editorial",
+  "layouts": {
+    "home": { "slots": ["header", "content", "footer"] },
+    "article": { "slots": ["header", "content", "footer"] }
+  },
+  "tokens": { "content_width": "wide", "typeface": "serif" }
+}
+```
+
+Choose from the host tokens `content_width` (narrow, standard, wide),
+`section_spacing` (compact, comfortable, spacious), `radius` (square, soft,
+round), `typeface` (system, serif), and `surface` (paper, surface). API 2
+accepts up to four named base64 PNGs in the optional `assets` object, within
+the same per-image and manifest limits. The approval checksum pins the
+layouts, tokens, and image bytes together. The host owns the full document
+and serves approved images at their checksum-qualified URLs.
+
+The private theme preview defaults to the current home for its language.
+Add a URL-encoded `path` query parameter for a published page or article in
+that language to inspect its layout with the proposed pack. The preview and
+versioned Apply workflow work with both pack API versions.

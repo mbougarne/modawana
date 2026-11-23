@@ -16,8 +16,31 @@ export function MenuSettings({
   value: SiteSettings;
   onChange: (settings: SiteSettings) => void;
 }) {
+  const { t } = useI18n();
   return (
     <>
+      <Section name="config.frontPages">
+        <p>{t('config.frontPagesHelp')}</p>
+        {(['en', 'ar', 'fr'] as const).map((locale) => (
+          <ReferencePicker
+            key={locale}
+            label={t('language.' + locale)}
+            value={value.front_pages?.[locale] ?? ''}
+            kind="page"
+            locale={locale}
+            path={'front_pages.' + locale}
+            onChange={(key) => {
+              const front_pages = { ...value.front_pages };
+              if (key) {
+                front_pages[locale] = key;
+              } else {
+                delete front_pages[locale];
+              }
+              onChange({ ...value, front_pages });
+            }}
+          />
+        ))}
+      </Section>
       <NavigationMenu
         path="header_menu"
         name="config.headerMenu"
@@ -53,37 +76,19 @@ function NavigationMenu({
   const issue = useFieldIssue(path);
   const defaults = path === 'header_menu' ? defaultHeader : defaultFooter;
   const items = value ?? defaults.map((target) => ({ id: target, target }));
+  const capacity =
+    12 - items.reduce((total, item: MenuItem) => total + 1 + (item.children?.length ?? 0), 0);
 
   return (
     <Section name={name}>
       <div className="config-menu-editor" {...issue}>
         <p>{t(path === 'header_menu' ? 'config.headerMenuHelp' : 'config.footerMenuHelp')}</p>
         {items.length === 0 && <p>{t('config.menuEmpty')}</p>}
-        {items.length > 0 && (
-          <ol className="config-menu-items">
-            {items.map((item, index) => (
-              <li key={item.id}>
-                <MenuRow
-                  item={item}
-                  path={`${path}.${index}`}
-                  items={items}
-                  index={index}
-                  onChange={(next) => onChange(items.map((row, i) => (i === index ? next : row)))}
-                  onMove={(to) => {
-                    const next = [...items];
-                    [next[to], next[index]] = [next[index], next[to]];
-                    onChange(next);
-                  }}
-                  onRemove={() => onChange(items.filter((_, i) => i !== index))}
-                />
-              </li>
-            ))}
-          </ol>
-        )}
+        <MenuItems items={items} onChange={onChange} path={path} capacity={capacity} />
         <div className="config-actions">
           <Button
             type="button"
-            disabled={items.length >= 12}
+            disabled={capacity <= 0}
             onClick={() => onChange([...items, { id: crypto.randomUUID(), target: 'custom' }])}
           >
             <Label name="config.addLink" />
@@ -99,6 +104,75 @@ function NavigationMenu({
         </div>
       </div>
     </Section>
+  );
+}
+
+function MenuItems({
+  items,
+  path,
+  onChange,
+  capacity,
+  nested = false,
+}: {
+  items: MenuItem[];
+  path: string;
+  onChange: (items: MenuItem[]) => void;
+  capacity: number;
+  nested?: boolean;
+}) {
+  const { t } = useI18n();
+  if (items.length === 0) {
+    return null;
+  }
+  return (
+    <ol className="config-menu-items">
+      {items.map((item, index) => {
+        const update = (next: MenuItem) =>
+          onChange(items.map((row, i) => (i === index ? next : row)));
+        const children = item.children || [];
+        return (
+          <li key={item.id}>
+            <MenuRow
+              item={item}
+              path={`${path}.${index}`}
+              items={items}
+              index={index}
+              onChange={update}
+              onMove={(to) => {
+                const next = [...items];
+                [next[to], next[index]] = [next[index], next[to]];
+                onChange(next);
+              }}
+              onRemove={() => onChange(items.filter((_, i) => i !== index))}
+            />
+            {!nested && (
+              <div className="config-menu-children">
+                <MenuItems
+                  items={children}
+                  path={`${path}.${index}.children`}
+                  onChange={(children) => update({ ...item, children })}
+                  capacity={capacity}
+                  nested
+                />
+                <Button
+                  type="button"
+                  variant="quiet"
+                  disabled={capacity <= 0}
+                  onClick={() =>
+                    update({
+                      ...item,
+                      children: [...children, { id: crypto.randomUUID(), target: 'custom' }],
+                    })
+                  }
+                >
+                  {t('config.addSubmenuLink')}
+                </Button>
+              </div>
+            )}
+          </li>
+        );
+      })}
+    </ol>
   );
 }
 
@@ -130,7 +204,11 @@ function MenuRow({
           {...issue}
           value={item.target}
           onChange={(event) =>
-            onChange({ id: item.id, target: event.target.value as MenuItem['target'] })
+            onChange({
+              id: item.id,
+              children: item.children,
+              target: event.target.value as MenuItem['target'],
+            })
           }
         >
           {destinations.map((target) => (

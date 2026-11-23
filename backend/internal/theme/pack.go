@@ -34,17 +34,21 @@ func IsPack(id string) bool { return packID.MatchString(id) }
 func PackPath(id string) string { return path.Join("themes", id, "theme.json") }
 
 type manifest struct {
-	Version int    `json:"api_version"`
-	Name    string `json:"name"`
-	Layout  string `json:"layout"`
-	CSS     string `json:"css"`
-	Banner  []byte `json:"banner_png,omitempty"`
+	Version int                       `json:"api_version"`
+	Name    string                    `json:"name"`
+	Layout  string                    `json:"layout"`
+	CSS     string                    `json:"css"`
+	Banner  []byte                    `json:"banner_png,omitempty"`
+	Layouts map[string]layoutManifest `json:"layouts,omitempty"`
+	Assets  map[string][]byte         `json:"assets,omitempty"`
+	Tokens  map[string]string         `json:"tokens,omitempty"`
 }
 
 type Pack struct {
 	Appearance
 	Name, Checksum string
 	BannerPNG      []byte
+	assets         map[string][]byte
 	Raw            []byte
 }
 
@@ -89,17 +93,21 @@ func ReadVerifiedPack(dataRoot, id, checksum string) (Pack, error) {
 
 func parsePack(id string, raw []byte) (Pack, error) {
 	var m manifest
-	if bundle.Decode(raw, &m) != nil || m.Version != 1 || strings.TrimSpace(m.Name) != m.Name ||
+	if bundle.Decode(raw, &m) != nil || (m.Version != 1 && m.Version != 2) || strings.TrimSpace(m.Name) != m.Name ||
 		m.Name == "" || len(m.Name) > 120 || strings.ContainsFunc(m.Name, unicode.IsControl) {
 		return Pack{}, ErrPack
 	}
 	sum := sha256.Sum256(raw)
 	checksum := hex.EncodeToString(sum[:])
+	if m.Version == 2 {
+		return parsePackV2(id, checksum, m, raw)
+	}
+	if m.Layouts != nil || m.Assets != nil || m.Tokens != nil {
+		return Pack{}, ErrPack
+	}
 	appearance := Appearance{ID: id}
 	if len(m.Banner) > 0 {
-		config, err := png.DecodeConfig(bytes.NewReader(m.Banner))
-		if err != nil || len(m.Banner) > maxBannerBytes || config.Width < 1 || config.Width > 1600 ||
-			config.Height < 1 || config.Height > 800 {
+		if !validBanner(m.Banner) {
 			return Pack{}, ErrPack
 		}
 		appearance.BannerURL = "/theme-assets/" + id + "/" + checksum + "/banner.png"
@@ -114,6 +122,21 @@ func parsePack(id string, raw []byte) (Pack, error) {
 	}
 	appearance.Layout, appearance.CSS = layout, css
 	return Pack{Appearance: appearance, Name: m.Name, Checksum: checksum, BannerPNG: m.Banner, Raw: raw}, nil
+}
+
+func validBanner(raw []byte) bool {
+	if len(raw) == 0 || len(raw) > maxBannerBytes {
+		return false
+	}
+	config, err := png.DecodeConfig(bytes.NewReader(raw))
+	return err == nil && config.Width >= 1 && config.Width <= 1600 && config.Height >= 1 && config.Height <= 800
+}
+
+func (p Pack) Asset(name string) []byte {
+	if name == "banner.png" && len(p.BannerPNG) != 0 {
+		return p.BannerPNG
+	}
+	return p.assets[name]
 }
 
 // parseLayout compiles an allowlisted sequence of host partials. Pack source

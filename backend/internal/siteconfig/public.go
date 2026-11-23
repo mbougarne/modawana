@@ -51,6 +51,15 @@ func (s *Service) Public(ctx context.Context, locale string) (Public, error) {
 		return out, e
 	}
 	_ = json.Unmarshal(a.Snapshot, &out.Site)
+	for selectedLocale := range out.Site.FrontPages {
+		key, _, err := FrontPage(ctx, tx, selectedLocale)
+		if err != nil {
+			return out, err
+		}
+		if key == "" || !slices.Contains(out.Site.visibleLocales(), selectedLocale) {
+			delete(out.Site.FrontPages, selectedLocale)
+		}
+	}
 	out.MenuPages, e = projectMenuPages(ctx, tx, &out.Site, locale)
 	if e != nil {
 		return out, e

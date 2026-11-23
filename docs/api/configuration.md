@@ -45,7 +45,18 @@ Profile includes EN/AR/FR name (100 characters), headline (200), bio (320), stic
 
 There are at most three Now rows (label 80/text 160), ten links plus one main action (label 80/URL 2048), and twenty experience entries (role/organization 120/description 500). Row IDs are stable, bounded and unique. Months use YYYY-MM; date order is validated. Links allow HTTPS, local absolute paths and simple mailto addresses, rejecting controls, credentials and protocol-relative URLs. Public email is at most 254 characters. Home limits are 1–20. Empty/disabled sections stay hidden. The About picker lists documents published in the editing locale; public About resolution requires publication in the requested locale and never exposes a draft or falls back to another language.
 
-`header_menu` and `footer_menu` are independent ordered arrays in site settings with up to 12 links each. An omitted array uses the default navigation and an empty array removes the links for that placement. A built-in destination uses its localized interface label and URL. A custom destination takes a local path, HTTPS URL or mailto address and a label in English with optional reviewed French and Arabic translations. Missing translations use the English label. Custom paths are used as entered. A page destination has `target: "page"` and a `page_key` for an existing standalone page. The owner reference search supports `kind=page`. The public site document includes the entry only when the requested language is enabled and has a published revision. Public navigation uses that revision’s title and localized URL. Menu edits use the same Preview, Save and apply, revision history and restore workflow as the rest of site settings.
+`header_menu` and `footer_menu` are independent ordered arrays in site settings with up to 12 links each, including children. An omitted array uses the default navigation and an empty array removes the links for that placement. A built-in destination uses its localized interface label and URL. A custom destination takes a local path, HTTPS URL or mailto address and a label in English with optional reviewed French and Arabic translations. Missing translations use the English label. Custom paths are used as entered. A page destination has `target: "page"` and a `page_key` for an existing standalone page. The owner reference search supports `kind=page`. The public site document includes the entry only when the requested language is enabled and has a published revision. Public navigation uses that revision’s title and localized URL. Menu edits use the same Preview, Save and apply, revision history and restore workflow as the rest of site settings.
+
+Each menu item may contain a `children` array for one submenu level. The
+children follow the same rules for destination, translation, and publication
+visibility as their parents. An unavailable parent page hides its submenu.
+
+Use `front_pages` to map EN, AR, or FR locale codes to standalone page keys.
+When the selected page is published in that language, the locale root is the
+canonical URL, and the original standalone URL redirects to it. The locale
+uses the default home when its selection is cleared or unpublished. Manage
+front pages and nested menus through the versioned **Menus** settings.
+
 
 The optional `public_locales` field contains one or more distinct supported locale
 codes (`en`, `ar`, `fr`). Historical snapshots without it expose all languages.

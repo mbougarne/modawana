@@ -41,11 +41,22 @@ func TestThemePackApprovalPreviewSelectionAndFallback(t *testing.T) {
 	}
 	writePack := func(name string) {
 		t.Helper()
-		raw, err := json.Marshal(map[string]any{
+		manifest := map[string]any{
 			"api_version": 1, "name": name,
 			"layout": `{{template "banner" .}}{{template "header" .}}{{template "content" .}}{{template "footer" .}}`,
 			"css":    ".vb-title { letter-spacing: 0.02em; }", "banner_png": pngBytes.Bytes(),
-		})
+		}
+		if name == "Edited" {
+			manifest = map[string]any{
+				"api_version": 2, "name": name,
+				"layouts": map[string]any{"home": map[string]any{
+					"slots": []string{"header", "content", "banner", "footer"}, "banner": "hero.png",
+				}},
+				"tokens": map[string]string{"content_width": "wide"},
+				"assets": map[string][]byte{"hero.png": pngBytes.Bytes()},
+			}
+		}
+		raw, err := json.Marshal(manifest)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -155,8 +166,21 @@ func TestThemePackApprovalPreviewSelectionAndFallback(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if w := get(t, h, http.MethodGet, "/ar"); w.Code != 200 || !strings.Contains(w.Body.String(), `data-public-theme="`+id+`"`) {
-		t.Fatal("the approved update did not resume the applied theme")
+	hero := "/theme-assets/" + id + "/" + reapproved.Checksum + "/hero.png"
+	if w := get(t, h, http.MethodGet, "/ar"); w.Code != 200 ||
+		!strings.Contains(w.Body.String(), `data-public-theme="`+id+`"`) || !strings.Contains(w.Body.String(), hero) ||
+		!strings.Contains(w.Body.String(), "max-inline-size:88rem") {
+		t.Fatal("the approved API 2 update did not resume the applied theme", w.Code)
+	}
+	if w := previewRequest(); w.Code != 200 || !strings.Contains(w.Body.String(), hero) {
+		t.Fatal("updated preview missed the versioned home asset", w.Code)
+	}
+	if w := get(t, h, http.MethodGet, hero); w.Code != 200 || !bytes.Equal(w.Body.Bytes(), pngBytes.Bytes()) {
+		t.Fatal("approved API 2 asset is unavailable", w.Code)
+	}
+	previewPath += "&path=/ar/admin/settings"
+	if w := previewRequest(); w.Code != 422 {
+		t.Fatal("preview accepted a reserved route", w.Code)
 	}
 	if err := packs.Remove(ctx, id, approved.Revision, check); !errors.Is(err, db.ErrVersionConflict) {
 		t.Fatal("stale removal accepted", err)

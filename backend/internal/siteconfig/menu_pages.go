@@ -21,18 +21,21 @@ type menuPageRef struct {
 
 func pageMenuRefs(site Site) []menuPageRef {
 	var refs []menuPageRef
-	for _, menu := range []struct {
-		path  string
-		items *[]MenuItem
-	}{{"header_menu", site.HeaderMenu}, {"footer_menu", site.FooterMenu}} {
-		if menu.items == nil {
-			continue
-		}
-		for i, item := range *menu.items {
+	var visit func(string, []MenuItem)
+	visit = func(path string, items []MenuItem) {
+		for i, item := range items {
+			row := path + "." + strconv.Itoa(i)
 			if item.Target == "page" {
-				refs = append(refs, menuPageRef{path: menu.path + "." + strconv.Itoa(i) + ".page_key", key: item.PageKey})
+				refs = append(refs, menuPageRef{path: row + ".page_key", key: item.PageKey})
 			}
+			visit(row+".children", item.Children)
 		}
+	}
+	if site.HeaderMenu != nil {
+		visit("header_menu", *site.HeaderMenu)
+	}
+	if site.FooterMenu != nil {
+		visit("footer_menu", *site.FooterMenu)
 	}
 	return refs
 }
@@ -100,12 +103,20 @@ func projectMenuPages(ctx context.Context, q query, site *Site, locale string) (
 			return nil, err
 		}
 	}
+	var publishedMenu func([]MenuItem) []MenuItem
+	publishedMenu = func(items []MenuItem) []MenuItem {
+		items = slices.DeleteFunc(items, func(item MenuItem) bool {
+			_, published := pages[item.PageKey]
+			return item.Target == "page" && !published
+		})
+		for i := range items {
+			items[i].Children = publishedMenu(items[i].Children)
+		}
+		return items
+	}
 	for _, menu := range []*[]MenuItem{site.HeaderMenu, site.FooterMenu} {
 		if menu != nil {
-			*menu = slices.DeleteFunc(*menu, func(item MenuItem) bool {
-				_, published := pages[item.PageKey]
-				return item.Target == "page" && !published
-			})
+			*menu = publishedMenu(*menu)
 		}
 	}
 	return pages, nil

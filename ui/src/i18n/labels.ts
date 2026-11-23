@@ -1117,6 +1117,17 @@ export const DEFAULT_LABELS = {
   'config.primary': l('Primary colour', 'Couleur principale', 'اللون الأساسي'),
   'owner.themes': l('Themes', 'Thèmes', 'السمات'),
   'owner.menus': l('Menus', 'Menus', 'القوائم'),
+  'config.frontPages': l('Front pages', 'Pages d’accueil', 'الصفحات الرئيسية'),
+  'config.frontPagesHelp': l(
+    'Choose a standalone page for each language. The default home appears when no published page is selected.',
+    'Choisissez une page autonome par langue. L’accueil par défaut s’affiche sans page publiée sélectionnée.',
+    'اختر صفحة مستقلة لكل لغة. تظهر الصفحة الرئيسية الافتراضية عند عدم اختيار صفحة منشورة.',
+  ),
+  'config.addSubmenuLink': l(
+    'Add submenu link',
+    'Ajouter un lien au sous-menu',
+    'إضافة رابط إلى القائمة الفرعية',
+  ),
   'config.headerMenu': l('Header menu', 'Menu d’en-tête', 'قائمة الترويسة'),
   'config.publicLanguages': l('Public languages', 'Langues du site public', 'لغات الموقع العام'),
   'config.publicLanguagesHelp': l(

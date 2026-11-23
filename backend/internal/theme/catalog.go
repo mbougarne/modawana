@@ -18,6 +18,7 @@ var studioCSS string
 type Appearance struct {
 	ID, CSS, BannerURL string
 	Layout             []string
+	views              map[string]viewLayout
 }
 
 func Lookup(id string) (Appearance, bool) {
@@ -31,4 +32,13 @@ func Lookup(id string) (Appearance, bool) {
 	default:
 		return Appearance{ID: Classic}, false
 	}
+}
+
+// ForView selects an optional per-route layout while preserving the common
+// appearance and the same host-owned template renderer.
+func (a Appearance) ForView(kind string) Appearance {
+	if view, ok := a.views[kind]; ok {
+		a.Layout, a.BannerURL = view.slots, view.bannerURL
+	}
+	return a
 }
