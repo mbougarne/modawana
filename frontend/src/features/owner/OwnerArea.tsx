@@ -11,14 +11,15 @@ import { MediaLibrary } from './MediaLibrary';
 export function OwnerArea({
   page,
 }: {
-  page: 'posts' | 'editor' | 'media' | 'collections' | 'taxonomy' | 'transfer' | 'plugins';
+  page:
+    'posts' | 'pages' | 'editor' | 'media' | 'collections' | 'taxonomy' | 'transfer' | 'plugins';
 }) {
   const { t } = useI18n();
   return (
     <OwnerFrame current={page === 'editor' ? 'posts' : page}>
       {(csrf) =>
-        page === 'posts' ? (
-          <OwnerPosts csrf={csrf} />
+        page === 'posts' || page === 'pages' ? (
+          <OwnerPosts csrf={csrf} pagesOnly={page === 'pages'} />
         ) : page === 'editor' ? (
           <EditorPage csrf={csrf} />
         ) : page === 'transfer' ? (

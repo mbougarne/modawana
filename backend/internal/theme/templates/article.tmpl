@@ -1,4 +1,5 @@
 {{define "public-article"}}
+{{if .PageTemplate}}{{template "public-standalone" .}}{{else}}
 <article class="public-reader public-reader-{{.Kind}}">
 <header class="vb-art-head">
 {{if .Position}}<span class="vb-sticker blue">{{.Position}}</span>{{end}}
@@ -18,5 +19,18 @@
 {{if .Tags}}<div class="vb-tags public-tags">{{range .Tags}}<a href="{{.URL}}"><bdi>{{.Label}}</bdi></a>{{end}}</div>{{end}}
 {{if .WrittenBy}}<aside class="vb-author"><span class="vb-avatar" aria-hidden="true" dir="ltr">{{if .PortraitURL}}<img src="{{.PortraitURL}}" alt="">{{else}}{{.Monogram}}{{end}}</span><div><b>{{.WrittenBy}}</b><p>{{range .Bio}}{{if .Bold}}<b>{{.Text}}</b>{{else}}{{.Text}}{{end}}{{end}}</p><a class="vb-link" href="{{.MoreURL}}">{{.MoreLabel}} {{.Arrow}}</a></div></aside>{{end}}
 {{end}}
+</article>
+{{end}}
+{{end}}
+
+{{define "public-standalone"}}
+<article class="public-reader public-reader-page" data-page-template="{{.PageTemplate}}">
+<header class="vb-art-head">
+<h1 class="vb-title">{{.Title}}</h1>
+{{if .Summary}}<p class="vb-lead">{{.Summary}}</p>{{end}}
+</header>
+{{if .StaleNotice}}<p class="public-notice">{{.StaleNotice}}</p>{{end}}
+{{if .CoverURL}}<img class="public-cover" src="{{.CoverURL}}" alt=""{{if .CoverWidth}} width="{{.CoverWidth}}" height="{{.CoverHeight}}"{{end}}>{{end}}
+{{.Body}}
 </article>
 {{end}}

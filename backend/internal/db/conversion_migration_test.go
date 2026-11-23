@@ -34,11 +34,14 @@ func TestTypeConversionMigrationPreservesPublishedRows(t *testing.T) {
 	if err = migrate(context.Background(), d, migrations.Files); err != nil {
 		t.Fatal(err)
 	}
-	var item, revision, kind string
-	d.QueryRow("SELECT i.id,i.kind,v.published_revision_id FROM content_items i JOIN content_versions v ON v.item_id=i.id WHERE v.id=?", versionID).Scan(&item, &kind, &revision)
-	if item != itemID || kind != "article" || revision != revisionID {
+	var existingID, revision, kind string
+	d.QueryRow("SELECT i.id,i.kind,v.published_revision_id FROM content_items i JOIN content_versions v ON v.item_id=i.id WHERE v.id=?", versionID).Scan(&existingID, &kind, &revision)
+	if existingID != itemID || kind != "article" || revision != revisionID {
 		t.Fatal("upgrade changed existing published identity")
 	}
 	reject(t, d, "UPDATE content_items SET kind='lesson' WHERE id=?", itemID)
 	reject(t, d, "UPDATE content_items SET source_locale='fr' WHERE id=?", itemID)
+	pageID, _, _ := item(t, d, "page", "en")
+	reject(t, d, "UPDATE content_items SET kind='article' WHERE id=?", pageID)
+	reject(t, d, "DELETE FROM content_items WHERE id=?", itemID)
 }

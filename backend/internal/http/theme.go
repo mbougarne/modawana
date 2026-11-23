@@ -80,7 +80,7 @@ func (s *Server) renderThemed(ctx context.Context, r *http.Request, page content
 	}
 	var err error
 	switch page.Kind {
-	case "article":
+	case "article", "page":
 		view.Article, err = s.themeReader(ctx, page.Content, settings, &head, label)
 	case "home":
 		view.Home, head.ExtraCSS, err = s.themeHome(ctx, settings, locale, label)
@@ -169,6 +169,14 @@ func (s *Server) themeReader(ctx context.Context, c *content.PublicContent, sett
 	if err != nil {
 		return nil, err
 	}
+	if c.Kind == "page" {
+		view := &theme.Article{Kind: c.Kind, Title: c.Title, Summary: c.Summary, Body: body, PageTemplate: c.PageTemplate}
+		if view.PageTemplate == "" {
+			view.PageTemplate = "standard"
+		}
+		setReaderDetails(view, c, label)
+		return view, nil
+	}
 	var category *content.Term
 	tags := []theme.Link{}
 	if c.CategoryKey != "" || len(c.Tags) > 0 {
@@ -227,15 +235,7 @@ func (s *Server) themeReader(ctx context.Context, c *content.PublicContent, sett
 		// means porting the SPA's plural-rule selection first.
 		article.ReadingEstimate = interpolate(label("public.readTime"), map[string]string{"n": strconv.Itoa(c.ReadingMinutes)})
 	}
-	if c.Stale {
-		article.StaleNotice = label("public.stale")
-	}
-	for _, m := range c.Media {
-		if m.ID == c.CoverID && m.Kind == "image" {
-			article.CoverURL = m.URL
-			article.CoverWidth, article.CoverHeight = m.Width, m.Height
-		}
-	}
+	setReaderDetails(&article, c, label)
 	if c.Kind == "lesson" || hasQuizControls(c) {
 		article.Learning = &theme.LearningMount{Key: c.Key, Locale: locale, Kind: c.Kind}
 	}
@@ -247,6 +247,18 @@ func (s *Server) themeReader(ctx context.Context, c *content.PublicContent, sett
 		article.Arrow = themeArrow(locale)
 	}
 	return &article, nil
+}
+
+func setReaderDetails(article *theme.Article, c *content.PublicContent, label func(string) string) {
+	if c.Stale {
+		article.StaleNotice = label("public.stale")
+	}
+	for _, m := range c.Media {
+		if m.ID == c.CoverID && m.Kind == "image" {
+			article.CoverURL = m.URL
+			article.CoverWidth, article.CoverHeight = m.Width, m.Height
+		}
+	}
 }
 
 func themeNav(menu *[]siteconfig.MenuItem, locale, current string, home bool, label func(string) string) []theme.Link {

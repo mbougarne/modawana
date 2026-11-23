@@ -59,6 +59,7 @@ type BioSegment struct {
 // Article is the reader view of one published item or a locked lesson teaser.
 type Article struct {
 	Kind, Position  string
+	PageTemplate    string
 	Locked          *LockedLesson
 	Learning        *LearningMount
 	StickerLabel    string

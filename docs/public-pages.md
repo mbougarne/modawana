@@ -19,6 +19,7 @@ Replace `en` with `ar` or `fr` for the other explicit language routes.
 | `/en/about` | Applied professional profile/contact and optional published About Markdown |
 | `/en/writing`, `/en/search` | Published metadata, URL filters and cursor pagination |
 | `/en/articles/{slug}` | Published article |
+| `/en/pages/{slug}` | Published standalone page using its saved template |
 | `/en/learn`, `/en/docs` | Nonempty visible active learning paths or documentation guides |
 | `/en/learn/{path}`, `/en/docs/{guide}` | Ordered active public outline |
 | `/en/learn/{path}/{slug}`, `/en/docs/{guide}/{slug}` | Published member with previous/next navigation |
@@ -61,6 +62,9 @@ without key, slug, URL or draft title. Public positions hide private gaps. Open/
 states, grading and completion are server decisions. `ReaderLearning` connects
 quizzes, prerequisite links, mark-as-read and browser-progress reset to the
 [learning API](api/learning.md); an explicit interaction creates the browser identity.
+
+Published standalone pages appear in Search and the sitemap. Writing archives
+and RSS list posts and other dated content. Page templates share the site's theme.
 
 ## Server-rendered public pages
 

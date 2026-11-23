@@ -25,6 +25,7 @@ const { ThemeProvider } = require('../.test-output/ui/src/theme/ThemeProvider');
 const { DEFAULT_LABELS } = require('../.test-output/ui/src/i18n/labels');
 const pages = [
   'posts',
+  'pages',
   'collections',
   'taxonomy',
   'media',
@@ -202,9 +203,10 @@ test('The admin theme switches in place, persists between pages and stays indepe
       const sidebar = posts.el.querySelector('.owner-workspace');
       assert.equal(sidebar.dataset.adminTheme, 'slate');
       assert.equal(sidebar.dir, 'rtl');
+      const settingsIndex = pages.indexOf('settings');
       assert.deepEqual(
         [...sidebar.querySelectorAll('.owner-navigation a')].map((a) => a.pathname),
-        [...pages.slice(0, 4), 'themes', 'menus', ...pages.slice(4)].map(
+        [...pages.slice(0, settingsIndex), 'themes', 'menus', ...pages.slice(settingsIndex)].map(
           (page) => '/ar/admin/' + page,
         ),
       );

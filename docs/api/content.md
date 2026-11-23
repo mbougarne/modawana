@@ -56,6 +56,14 @@ It copies the old source linkage but never inherits translation review. A publis
 slug remains stable even when restoring a revision with an earlier draft slug.
 History files stay immutable; do not edit them directly.
 
+A standalone page has `kind: "page"` and an optional `page_template` of
+`standard` (the default) or `landing`. The template belongs to the immutable
+revision and is included in draft reads, history restoration and portable export.
+Publish a page at `/{locale}/pages/{slug}` using the regular owner publication
+endpoint. The owner list and public Search accept `kind=page`. Pages support
+translation reviews and media. Quiz, collection assignment, taxonomy and
+content-type conversion are available for their applicable post types.
+
 ## Review and publication
 
 `POST /content/{key}/{locale}/publish` requires `{expected_version,revision_id}`

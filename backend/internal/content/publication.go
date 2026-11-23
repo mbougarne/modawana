@@ -168,6 +168,7 @@ type PublicMedia struct {
 type PublicContent struct {
 	Learning       *ReaderLearning `json:"learning,omitempty"`
 	ReadingMinutes int             `json:"reading_minutes,omitempty"`
+	PageTemplate   string          `json:"page_template,omitempty"`
 	Key            string          `json:"key"`
 	Kind           string          `json:"kind"`
 	Locale         string          `json:"locale"`
@@ -304,6 +305,7 @@ func (s *Service) Public(ctx context.Context, locale, slug string, p access.Prin
 	}
 	out.ReadingMinutes = readingMinutes(r.Markdown)
 	out.Markdown = r.Markdown
+	out.PageTemplate = r.PageTemplate
 	out.Presentations = r.Presentations
 	out.CoverID = r.CoverID
 	out.CategoryKey = r.CategoryKey

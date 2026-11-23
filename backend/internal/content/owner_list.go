@@ -20,7 +20,7 @@ type OwnerEntry struct {
 
 func (s *Service) OwnerList(ctx context.Context, locale, kind, status, search, cursor string) ([]OwnerEntry, string, error) {
 	out := []OwnerEntry{}
-	if !localeOK(locale) || (kind != "" && kind != "article" && kind != "lesson" && kind != "doc") || (status != "" && status != "draft" && status != "published" && status != "changed") || !strOK(search, 200, true) || (cursor != "" && !keyPattern.MatchString(cursor)) {
+	if !localeOK(locale) || (kind != "" && !validKind(kind)) || (status != "" && status != "draft" && status != "published" && status != "changed") || !strOK(search, 200, true) || (cursor != "" && !keyPattern.MatchString(cursor)) {
 		return nil, "", ErrInvalid
 	}
 	rows, e := s.DB.QueryContext(ctx, `SELECT i.key,i.kind,i.source_locale,v.locale,r.title,v.slug,CASE WHEN v.published_revision_id IS NULL THEN 'draft' WHEN v.published_revision_id=v.draft_revision_id THEN 'published' ELSE 'changed' END AS state,v.version,v.draft_revision_id,coalesce(v.published_revision_id,'') FROM content_items i JOIN content_versions v ON v.item_id=i.id JOIN revisions r ON r.id=v.draft_revision_id WHERE v.locale=? AND i.key>? AND (?='' OR i.kind=?) AND (?='' OR state=?) AND (instr(lower(r.title),lower(?))>0 OR instr(lower(i.key),lower(?))>0) ORDER BY i.key LIMIT 51`, locale, cursor, kind, kind, status, status, strings.TrimSpace(search), strings.TrimSpace(search))

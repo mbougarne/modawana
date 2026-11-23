@@ -72,7 +72,7 @@ func (s *Service) changeTypeIn(ctx context.Context, tx *sql.Tx, owner, key, loca
 	if !keyPattern.MatchString(key) || !localeOK(locale) || in.ExpectedVersion == nil || *in.ExpectedVersion < 1 {
 		return out, ErrInvalid
 	}
-	if (in.Kind != "article" && in.Kind != "lesson" && in.Kind != "doc") || in.Kind == in.FromKind {
+	if !validKind(in.Kind) || in.Kind == "page" || in.FromKind == "page" || in.Kind == in.FromKind {
 		return out, typeIssue("kind", "conversion_kind")
 	}
 	err := func() error {

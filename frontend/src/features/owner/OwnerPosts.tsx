@@ -6,11 +6,15 @@ import { ResourceState } from '../../pages/public/ResourceState';
 
 import { BulkPublication, type OwnerEntry } from './BulkPublication';
 
-export function OwnerPosts({ csrf }: { csrf: string }) {
+export function OwnerPosts({ csrf, pagesOnly = false }: { csrf: string; pagesOnly?: boolean }) {
   const { locale, t } = useI18n();
   const [params, setParams] = useSearchParams();
   const q = new URLSearchParams(params);
   q.set('locale', locale);
+  if (pagesOnly) {
+    q.set('kind', 'page');
+  }
+  const title = t(pagesOnly ? 'owner.pages' : 'owner.posts');
   const r = useResource<{ items: OwnerEntry[]; next_cursor: string }>('/api/v1/content?' + q);
   const selectionQuery = new URLSearchParams(q);
   selectionQuery.delete('cursor');
@@ -26,9 +30,15 @@ export function OwnerPosts({ csrf }: { csrf: string }) {
   }
   return (
     <>
-      <OwnerPageHeading title={t('owner.posts')} description={t('workspace.postsHelp')}>
-        <Link className="vb-btn vb-btn-primary" to={`/${locale}/admin/new`}>
-          {t('owner.new')}
+      <OwnerPageHeading
+        title={title}
+        description={t(pagesOnly ? 'workspace.pagesHelp' : 'workspace.postsHelp')}
+      >
+        <Link
+          className="vb-btn vb-btn-primary"
+          to={`/${locale}/admin/new${pagesOnly ? '?kind=page' : ''}`}
+        >
+          {t(pagesOnly ? 'owner.newPage' : 'owner.new')}
         </Link>
       </OwnerPageHeading>
       <form
@@ -50,11 +60,11 @@ export function OwnerPosts({ csrf }: { csrf: string }) {
               name="q"
               maxLength={200}
               defaultValue={params.get('q') || ''}
-              placeholder={t('workspace.searchPosts')}
+              placeholder={t(pagesOnly ? 'workspace.searchPages' : 'workspace.searchPosts')}
             />
           </span>
         </label>
-        {(['kind', 'status'] as const).map((k) => (
+        {(pagesOnly ? ['status'] : ['kind', 'status']).map((k) => (
           <label key={k}>
             {t('owner.' + k)}
             <select
@@ -64,7 +74,7 @@ export function OwnerPosts({ csrf }: { csrf: string }) {
             >
               <option value="">{t('owner.all')}</option>
               {(k === 'kind'
-                ? ['article', 'lesson', 'doc']
+                ? ['article', 'lesson', 'doc', 'page']
                 : ['draft', 'published', 'changed']
               ).map((v) => (
                 <option key={v} value={v}>
@@ -99,7 +109,7 @@ export function OwnerPosts({ csrf }: { csrf: string }) {
         onApplied={r.retry}
       >
         {(selected, toggle) => (
-          <ul className="owner-list owner-post-list" aria-label={t('owner.posts')}>
+          <ul className="owner-list owner-post-list" aria-label={title}>
             {(r.data?.items ?? []).map((item) => (
               <li key={item.key}>
                 <label>
