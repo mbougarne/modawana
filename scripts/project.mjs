@@ -1,10 +1,9 @@
 import { spawn } from 'node:child_process';
 import { mkdirSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { tmpdir } from 'node:os';
-import { createHash } from 'node:crypto';
 import { createServer as createHTTPServer, request } from 'node:http';
 import { createServer as createHTTPSServer } from 'node:https';
+import { developmentDataRoot } from './development-data.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 const command = process.argv[2];
@@ -13,12 +12,7 @@ function developmentEnv(secure) {
   return {
     ...process.env,
     BLOG_ENV: 'development',
-    BLOG_DATA_ROOT:
-      process.env.BLOG_DATA_ROOT ||
-      resolve(
-        tmpdir(),
-        'modawana-dev-' + createHash('sha256').update(root).digest('hex').slice(0, 12),
-      ),
+    BLOG_DATA_ROOT: developmentDataRoot(process.env.BLOG_DATA_ROOT),
     BLOG_LISTEN_ADDR: process.env.BLOG_LISTEN_ADDR || '127.0.0.1:8082',
     BLOG_BASE_URL: origin,
     BLOG_RP_ID: 'localhost',
@@ -37,6 +31,7 @@ function run(bin, args, cwd = root, env = process.env) {
 }
 async function startDevelopment(secure) {
   const env = developmentEnv(secure);
+  console.log('Modawana data directory: ' + env.BLOG_DATA_ROOT);
   const options = {};
   if (secure) {
     if (!env.BLOG_DEV_TLS_CERT || !env.BLOG_DEV_TLS_KEY) {
@@ -137,6 +132,7 @@ try {
       await run('node', [
         '--test',
         'scripts/publish.test.mjs',
+        'scripts/development-data.test.mjs',
         'scripts/smoke-policy.test.mjs',
         'scripts/quality.test.mjs',
       ]);

@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -99,7 +101,19 @@ func (s *Service) beginPasskey(ctx context.Context, flowRaw, ownerRaw, mode stri
 		if f.Kind != "anonymous" {
 			return nil, ErrAuth
 		}
-		opts, data, e = wa.BeginDiscoverableLogin(webauthn.WithUserVerification(protocol.VerificationRequired), webauthn.WithLoginOrigin(s.Config.BaseURL))
+		loginOptions := []webauthn.LoginOption{webauthn.WithUserVerification(protocol.VerificationRequired), webauthn.WithLoginOrigin(s.Config.BaseURL)}
+		if s.Config.Environment == "development" {
+			user, err := loadUser(ctx, s.DB, "")
+			if err != nil && !errors.Is(err, ErrAuth) {
+				return nil, err
+			}
+			if len(user.Credentials) > 0 {
+				opts, data, e = wa.BeginLogin(user, loginOptions...)
+			}
+		}
+		if data == nil && e == nil {
+			opts, data, e = wa.BeginDiscoverableLogin(loginOptions...)
+		}
 	}
 	if e != nil {
 		return nil, ErrAuth
@@ -206,11 +220,18 @@ func (s *Service) finishRegister(r *http.Request, label string) error {
 	}
 	return tx.Commit()
 }
+func (s *Service) rejectPasskey(reason string) error {
+	if s.Config.Environment == "development" {
+		slog.Warn("development passkey rejected", "reason", reason)
+	}
+	return ErrAuth
+}
+
 func (s *Service) finishLogin(r *http.Request) (string, error) {
 	ctx := r.Context()
 	f, data, e := s.claim(ctx, cookie(r, flowCookie), "login")
 	if e != nil || f.Kind != "anonymous" {
-		return "", ErrAuth
+		return "", s.rejectPasskey("missing or expired login challenge")
 	}
 	tx, e := s.DB.BeginTx(ctx, nil)
 	if e != nil {
@@ -225,19 +246,31 @@ func (s *Service) finishLogin(r *http.Request) (string, error) {
 	if e != nil {
 		return "", e
 	}
-	credential, e := wa.FinishDiscoverableLogin(func(id, handle []byte) (webauthn.User, error) {
-		if !same(string(handle), u.ID) {
-			return nil, ErrAuth
-		}
-		for _, c := range u.Credentials {
-			if same(string(c.ID), string(id)) {
-				return u, nil
+	var credential *webauthn.Credential
+	if len(data.UserID) > 0 {
+		credential, e = wa.FinishLogin(u, data, r)
+	} else {
+		credential, e = wa.FinishDiscoverableLogin(func(id, handle []byte) (webauthn.User, error) {
+			if !same(string(handle), u.ID) {
+				return nil, ErrAuth
 			}
+			for _, c := range u.Credentials {
+				if same(string(c.ID), string(id)) {
+					return u, nil
+				}
+			}
+			return nil, ErrAuth
+		}, data, r)
+	}
+	if e != nil {
+		var unknown *protocol.ErrorUnknownCredential
+		if errors.As(e, &unknown) {
+			return "", s.rejectPasskey("credential is not registered with this data directory")
 		}
-		return nil, ErrAuth
-	}, data, r)
-	if e != nil || credential.Authenticator.CloneWarning {
-		return "", ErrAuth
+		return "", s.rejectPasskey("credential assertion did not verify")
+	}
+	if credential.Authenticator.CloneWarning {
+		return "", s.rejectPasskey("credential counter did not advance")
 	}
 	key := base64.RawURLEncoding.EncodeToString(credential.ID)
 	encoded, e := json.Marshal(credential)

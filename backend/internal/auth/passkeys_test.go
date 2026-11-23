@@ -223,3 +223,56 @@ func TestWrongRPChallengeExpiryAndRevocation(t *testing.T) {
 		}
 	}
 }
+
+func TestLocalPasskeyLoginUsesEnrolledCredentialsAfterRestart(t *testing.T) {
+	s := fixture(t)
+	s.Config.Environment = "development"
+	s.Config.BaseURL = "http://localhost:18081"
+	s.Config.RPID = "localhost"
+	s.Config.WebAuthnOrigins = []string{s.Config.BaseURL}
+	owner, key, id := enrolled(t, s)
+	ctx := t.Context()
+
+	restarted := New(s.DB, s.Config)
+	restarted.Now = s.Now
+	begin := func(service *Service, name string) (string, []protocol.CredentialDescriptor) {
+		t.Helper()
+		flow, err := service.Start(ctx, name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		options, err := service.beginPasskey(ctx, flow, "", "login")
+		if err != nil {
+			t.Fatal(err)
+		}
+		return flow, options.(*protocol.CredentialAssertion).Response.AllowedCredentials
+	}
+	flow, choices := begin(restarted, "wrong-local-key")
+	if len(choices) != 1 || b64(choices[0].CredentialID) != b64(id) {
+		t.Fatal("the local picker did not select the registered credential")
+	}
+	other, otherID := simulatedKey(t)
+	body := loginBody(t, restarted, flow, owner, other, otherID, restarted.Config.BaseURL, "webauthn.get", 5, 1)
+	if _, err := restarted.finishLogin(request(body, flow, "")); !errors.Is(err, ErrAuth) {
+		t.Fatal("unregistered credential was accepted", err)
+	}
+
+	flow, _ = begin(restarted, "enrolled-local-key")
+	// An allowlisted assertion can omit the optional user handle.
+	body = loginBody(t, restarted, flow, "", key, id, restarted.Config.BaseURL, "webauthn.get", 5, 1)
+	raw, err := restarted.finishLogin(request(body, flow, ""))
+	if err != nil {
+		t.Fatal("stored credential failed after restart", err)
+	}
+	if session, err := restarted.Session(ctx, raw, false); err != nil || session.Owner != owner {
+		t.Fatal("no owner session for stored credential", err)
+	}
+
+	restarted.Config.Environment = "production"
+	restarted.Config.BaseURL = "https://blog.example"
+	restarted.Config.RPID = "blog.example"
+	restarted.Config.WebAuthnOrigins = []string{restarted.Config.BaseURL}
+	if _, publicChoices := begin(restarted, "discoverable-production"); len(publicChoices) != 0 {
+		t.Fatal("production options exposed the owner's credential list")
+	}
+}

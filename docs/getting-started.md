@@ -8,15 +8,22 @@ Use the versions pinned in `.node-version`, `frontend/package.json`, and
 
 ```sh
 node scripts/project.mjs install
-export BLOG_DATA_ROOT="$HOME/.local/share/modawana-dev"
 node scripts/project.mjs dev
 ```
 
 The development proxy listens on `127.0.0.1:3000` and forwards requests to Go on
 `127.0.0.1:8082`. Open `http://localhost:3000/en`, `/ar`, or `/fr`. Ctrl+C stops
-the development server. Keep the data root absolute, private, and outside the
-checkout. Without `BLOG_DATA_ROOT`, the launcher uses a checkout-specific temporary
-directory which the operating system can clear. Use the same data root in every terminal.
+the development server. The launcher prints the active data directory. By default,
+all local checkouts and the setup and recovery commands use `$HOME/.local/share/modawana-dev`.
+Set `BLOG_DATA_ROOT` to use a different absolute, private directory outside the
+checkout. Use that same override in every terminal for that installation.
+
+If startup lists earlier temporary databases, use the existing directory as
+`BLOG_DATA_ROOT`. To adopt the persistent default, stop the earlier preview and
+move its complete data directory to the default path while that path is unused.
+Keep any separately configured `BLOG_AUTH_KEY_FILE` available. Existing owner
+credentials live in the database. Use the regular passkey sign-in on subsequent
+starts. The local passkey picker uses the credentials enrolled in the active database.
 
 The development command builds Webpack assets before starting Go. Restart the command after editing Go, templates, or frontend
 assets to load the changes.

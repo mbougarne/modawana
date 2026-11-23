@@ -29,7 +29,6 @@
 git clone https://github.com/mbougarne/modawana.git
 cd modawana
 node scripts/project.mjs install
-export BLOG_DATA_ROOT="$HOME/.local/share/modawana-dev"
 node scripts/project.mjs dev
 ```
 
@@ -37,7 +36,6 @@ node scripts/project.mjs dev
 ثم في نافذة طرفية أخرى ومن مجلد المشروع نفسه:
 
 ```sh
-export BLOG_DATA_ROOT="$HOME/.local/share/modawana-dev"
 node scripts/project.mjs bootstrap
 ```
 
