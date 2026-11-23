@@ -33,7 +33,9 @@ type Public struct {
 	Locales       []string `json:"locales"`
 }
 
-func (c Config) Public() Public { return Public{"v1", "en", []string{"en", "ar", "fr"}} }
+func SupportedLocales() []string { return []string{"en", "ar", "fr"} }
+
+func (c Config) Public() Public { return Public{"v1", "en", SupportedLocales()} }
 
 // Load accepts an environment lookup so tests never depend on operator secrets.
 func Load(get func(string) string, cwd string) (Config, error) {

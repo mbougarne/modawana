@@ -11,7 +11,7 @@ func (d *Domain) attemptRoutes(w http.ResponseWriter, r *http.Request) bool {
 		return false
 	}
 	parts := strings.Split(strings.TrimPrefix(r.URL.Path, "/api/v1/learning/content/"), "/")
-	if len(parts) != 3 {
+	if len(parts) != 3 || hiddenLocale(r.Context(), parts[1]) {
 		writeError(w, NotFound)
 		return true
 	}
@@ -26,7 +26,7 @@ func (d *Domain) attemptRoutes(w http.ResponseWriter, r *http.Request) bool {
 		if e != nil {
 			domainError(w, e)
 		} else {
-			writeJSON(w, 200, out)
+			writeJSON(w, 200, localizeReaderLearning(r.Context(), out))
 		}
 		return true
 	}
@@ -64,7 +64,7 @@ func (d *Domain) attemptRoutes(w http.ResponseWriter, r *http.Request) bool {
 		if e != nil {
 			domainError(w, e)
 		} else {
-			writeJSON(w, 200, out)
+			writeJSON(w, 200, localizeReaderLearning(r.Context(), out))
 		}
 	}
 	return true

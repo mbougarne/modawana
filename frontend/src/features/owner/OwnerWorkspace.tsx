@@ -7,6 +7,7 @@ import { Icon, type IconName } from '../../../../ui/src/components/Icon';
 import { OwnerLanguageMenu } from './OwnerLanguageMenu';
 import { OwnerAppearanceContext, useOwnerAppearance } from './OwnerAppearance';
 import { call } from '../auth/api';
+import { usePublicConfiguration } from '../configuration/PublicConfiguration';
 
 const pages = [
   ['posts', 'ul'],
@@ -103,6 +104,10 @@ export function OwnerWorkspace({
     (languagePath ??
       (location.pathname.replace(/^\/(en|ar|fr)(?=\/|$)/, '') || '/admin/' + current)) +
     location.search;
+  const { data: configuration } = usePublicConfiguration();
+  const siteHref =
+    configuration?.site.public_locales?.includes(locale) === false ? '/' : `/${locale}`;
+
   async function signOut() {
     setSigningOut(true);
     setFailed(false);
@@ -142,13 +147,13 @@ export function OwnerWorkspace({
                   <Icon name="plus" size={16} />
                   {t('owner.new')}
                 </Link>
-                <a href={`/${locale}`}>{t('auth.viewSite')}</a>
+                <a href={siteHref}>{t('auth.viewSite')}</a>
               </nav>
             )}
             <div className="config-actions workspace-actions">
               <OwnerLanguageMenu path={path} />
               {!slate && (
-                <Button href={'/' + locale} size="sm">
+                <Button href={siteHref} size="sm">
                   {t('auth.viewSite')}
                 </Button>
               )}

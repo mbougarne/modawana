@@ -80,6 +80,11 @@
 .config-menu-editor > .config-actions {
   justify-content: start;
 }
+.config-language-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
 .config-page textarea {
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-sm);

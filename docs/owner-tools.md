@@ -95,6 +95,10 @@ move or remove entries. Header entries are shared with the mobile menu. Footer
 entries appear alongside configured profile and feed links. Use **Use default
 links** to restore the default navigation for one placement.
 
+In **Settings → Public languages**, select the languages visitors can browse and
+choose **Save and apply**. Keep at least one visible. Hidden translations stay
+available in the dashboard and return to their public URLs when re-enabled.
+
 Use **Transfer** for [draft-only import/export](api/portability.md), and **Security**
 for [passkeys/recovery](owner-security.md), publisher tokens and connected publishing apps.
 Technical details: [content API](api/content.md), [learning](api/learning.md),

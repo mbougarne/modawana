@@ -11,7 +11,7 @@ func (d *Domain) collectionRoutes(w http.ResponseWriter, r *http.Request) bool {
 	p := r.URL.Path
 	if strings.HasPrefix(p, "/api/v1/public/collections/") && r.Method == "GET" {
 		parts := strings.Split(strings.TrimPrefix(p, "/api/v1/public/collections/"), "/")
-		if len(parts) != 2 {
+		if len(parts) != 2 || hiddenLocale(r.Context(), parts[0]) {
 			writeError(w, NotFound)
 			return true
 		}

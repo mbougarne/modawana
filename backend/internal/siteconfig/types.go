@@ -22,17 +22,18 @@ var ErrReview = errors.New("translation review required")
 
 type Localized map[string]string
 type Site struct {
-	PublicTheme string            `json:"public_theme"`
-	LogoMode    string            `json:"logo_mode"`
-	Wordmark    string            `json:"wordmark"`
-	Monogram    string            `json:"monogram"`
-	LogoID      string            `json:"logo_media_id"`
-	FaviconID   string            `json:"favicon_media_id"`
-	Primary     string            `json:"primary"`
-	Secondary   string            `json:"secondary"`
-	MenuIcons   map[string]string `json:"menu_icons"`
-	HeaderMenu  *[]MenuItem       `json:"header_menu,omitempty"`
-	FooterMenu  *[]MenuItem       `json:"footer_menu,omitempty"`
+	PublicTheme   string            `json:"public_theme"`
+	LogoMode      string            `json:"logo_mode"`
+	Wordmark      string            `json:"wordmark"`
+	Monogram      string            `json:"monogram"`
+	LogoID        string            `json:"logo_media_id"`
+	FaviconID     string            `json:"favicon_media_id"`
+	Primary       string            `json:"primary"`
+	Secondary     string            `json:"secondary"`
+	MenuIcons     map[string]string `json:"menu_icons"`
+	HeaderMenu    *[]MenuItem       `json:"header_menu,omitempty"`
+	FooterMenu    *[]MenuItem       `json:"footer_menu,omitempty"`
+	PublicLocales []string          `json:"public_locales,omitempty"`
 }
 type MenuItem struct {
 	ID     string    `json:"id"`

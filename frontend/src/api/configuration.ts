@@ -24,6 +24,7 @@ export interface SiteSettings {
   menu_icons: Record<string, string>;
   header_menu?: MenuItem[];
   footer_menu?: MenuItem[];
+  public_locales?: Locale[];
 }
 
 export interface ProfileLink {

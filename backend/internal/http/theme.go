@@ -56,7 +56,7 @@ func (s *Server) renderThemed(ctx context.Context, r *http.Request, page content
 		MenuNav: themeNav(settings.Site.HeaderMenu, locale, current, true, label), NavLabel: label("nav.main"),
 		SearchLabel: label("nav.search"), SearchURL: "/" + locale + "/search",
 		LanguageLabel: label("foundation.language"), LanguageShort: languageShort(locale),
-		Languages: themeLanguages(page, locale, label), MenuLabel: label("nav.menu"),
+		Languages: themeLanguages(page, locale, publicLocales(r.Context()), label), MenuLabel: label("nav.menu"),
 		Footer: s.themeFooter(settings, locale, label),
 	}
 	head.Boot = ""
@@ -297,9 +297,9 @@ func themeMenu(items []siteconfig.MenuItem, locale, current string, label func(s
 // themeLanguages mirrors the SPA language menu without JavaScript: published
 // translations link to the alternative, and missing translations offer the
 // explicit home page in that site language, never silently falling back.
-func themeLanguages(page content.PageRoute, locale string, label func(string) string) []theme.Language {
+func themeLanguages(page content.PageRoute, locale string, locales []string, label func(string) string) []theme.Language {
 	out := []theme.Language{}
-	for _, l := range []string{"en", "ar", "fr"} {
+	for _, l := range locales {
 		dir := "ltr"
 		if l == "ar" {
 			dir = "rtl"

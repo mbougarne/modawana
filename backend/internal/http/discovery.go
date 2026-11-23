@@ -17,8 +17,24 @@ func (d *Domain) PublicDiscovery(ctx context.Context, filter content.Filter) (co
 
 func (d *Domain) discoveryRoutes(w http.ResponseWriter, r *http.Request) bool {
 	p := r.URL.Path
-	if (p == "/api/v1/public/content" || p == "/api/v1/public/search") && r.Method == "GET" {
+	aboutDocuments := p == "/api/v1/owner/about-documents"
+	if (p == "/api/v1/public/content" || p == "/api/v1/public/search" || aboutDocuments) && r.Method == "GET" {
 		q := r.URL.Query()
+		locale, kind := q.Get("locale"), q.Get("kind")
+		if aboutDocuments {
+			if d.Auth == nil {
+				writeError(w, Unauthenticated)
+				return true
+			}
+			if _, err := d.Auth.OwnerRequest(r); err != nil {
+				domainError(w, err)
+				return true
+			}
+			kind = "doc"
+		} else if hiddenLocale(r.Context(), locale) {
+			writeError(w, NotFound)
+			return true
+		}
 		limit := 0
 		var e error
 		if q.Has("limit") {
@@ -28,7 +44,7 @@ func (d *Domain) discoveryRoutes(w http.ResponseWriter, r *http.Request) bool {
 				return true
 			}
 		}
-		out, e := d.PublicDiscovery(d.ReaderContext(r), content.Filter{Locale: q.Get("locale"), Kind: q.Get("kind"), Category: q.Get("category"), Tag: q.Get("tag"), Query: q.Get("q"), Cursor: q.Get("cursor"), Limit: limit})
+		out, e := d.PublicDiscovery(d.ReaderContext(r), content.Filter{Locale: locale, Kind: kind, Category: q.Get("category"), Tag: q.Get("tag"), Query: q.Get("q"), Cursor: q.Get("cursor"), Limit: limit})
 		if e != nil {
 			domainError(w, e)
 		} else {
@@ -37,7 +53,12 @@ func (d *Domain) discoveryRoutes(w http.ResponseWriter, r *http.Request) bool {
 		return true
 	}
 	if p == "/api/v1/public/taxonomy" && r.Method == "GET" {
-		out, e := d.Content.Taxonomy(r.Context(), r.URL.Query().Get("locale"), false)
+		locale := r.URL.Query().Get("locale")
+		if hiddenLocale(r.Context(), locale) {
+			writeError(w, NotFound)
+			return true
+		}
+		out, e := d.Content.Taxonomy(r.Context(), locale, false)
 		if e != nil {
 			domainError(w, e)
 		} else {
