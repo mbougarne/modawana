@@ -7696,6 +7696,153 @@
           }
         }
       }
+    },
+    "/api/v1/owner/analytics": {
+      "get": {
+        "operationId": "analyticsReport",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Analytics response / استجابة الإحصاءات",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsReport"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "analyticsUpdate",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalyticsSettings"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Analytics response / استجابة الإحصاءات",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsSettings"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/public/analytics-choice": {
+      "post": {
+        "operationId": "analyticsChoice",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Origin",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "choice",
+                  "return"
+                ],
+                "properties": {
+                  "choice": {
+                    "type": "string",
+                    "enum": [
+                      "allow",
+                      "decline"
+                    ]
+                  },
+                  "return": {
+                    "type": "string",
+                    "maxLength": 512
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "303": {
+            "description": "Return to the localized public path / العودة إلى المسار العام",
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -11961,6 +12108,134 @@
           },
           "requires_image": {
             "type": "boolean"
+          }
+        }
+      },
+      "AnalyticsSettings": {
+        "type": "object",
+        "required": [
+          "version",
+          "enabled",
+          "consent",
+          "retention_days",
+          "exclusions"
+        ],
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "consent": {
+            "type": "string",
+            "enum": [
+              "opt_in",
+              "unless_declined"
+            ]
+          },
+          "retention_days": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 90
+          },
+          "exclusions": {
+            "type": "array",
+            "maxItems": 64,
+            "items": {
+              "type": "string",
+              "maxLength": 514
+            }
+          }
+        }
+      },
+      "AnalyticsReport": {
+        "type": "object",
+        "required": [
+          "settings",
+          "totals",
+          "days",
+          "pages"
+        ],
+        "properties": {
+          "settings": {
+            "$ref": "#/components/schemas/AnalyticsSettings"
+          },
+          "totals": {
+            "type": "object",
+            "required": [
+              "page_views",
+              "leads"
+            ],
+            "properties": {
+              "page_views": {
+                "type": "integer",
+                "minimum": 0,
+                "format": "int64"
+              },
+              "leads": {
+                "type": "integer",
+                "minimum": 0,
+                "format": "int64"
+              }
+            }
+          },
+          "days": {
+            "type": "array",
+            "maxItems": 90,
+            "items": {
+              "type": "object",
+              "required": [
+                "day",
+                "page_views",
+                "leads"
+              ],
+              "properties": {
+                "day": {
+                  "type": "string",
+                  "format": "date"
+                },
+                "page_views": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "format": "int64"
+                },
+                "leads": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "format": "int64"
+                }
+              }
+            }
+          },
+          "pages": {
+            "type": "array",
+            "maxItems": 30,
+            "items": {
+              "type": "object",
+              "required": [
+                "path",
+                "page_views",
+                "leads"
+              ],
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "maxLength": 512
+                },
+                "page_views": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "format": "int64"
+                },
+                "leads": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "format": "int64"
+                }
+              }
+            }
           }
         }
       }

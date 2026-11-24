@@ -44,6 +44,12 @@
 {{- with .Footer}}
 {{range .Projections}}<p dir="auto">{{.}}</p>{{end}}
 {{if .Text}}<p class="big" dir="auto">{{.Text}}</p>{{else if .Email}}<p class="big">{{.Question}} <a href="mailto:{{.Email}}">{{.SayHi}}</a></p>{{end}}
+{{with .Analytics}}<form method="post" action="{{.Action}}" aria-label="{{.Label}}">
+<input type="hidden" name="return" value="{{.ReturnPath}}">
+{{if .Note}}<p class="vb-meta">{{.Note}}</p>{{end}}
+{{if .Allow}}<button class="vb-btn vb-btn-quiet vb-btn-sm" type="submit" name="choice" value="allow">{{.Allow}}</button>{{end}}
+{{if .Decline}}<button class="vb-btn vb-btn-quiet vb-btn-sm" type="submit" name="choice" value="decline">{{.Decline}}</button>{{end}}
+</form>{{end}}
 <div class="row">
 <span class="vb-meta">{{if .Copyright}}© {{.Copyright}}{{end}}</span>
 {{if .Links}}<nav aria-label="{{.NavLabel}}">

@@ -57,13 +57,13 @@ func (s *Service) Allow(ctx context.Context, source string) error {
 	return nil
 }
 
-func (s *Service) Submit(ctx context.Context, retryKey string, in Submission, check Binding) error {
+func (s *Service) Submit(ctx context.Context, retryKey string, in Submission, check Binding) (bool, error) {
 	if !media.ID.MatchString(retryKey) || !media.ID.MatchString(in.Revision) || !in.Reference.Valid() || check == nil {
-		return ErrInvalid
+		return false, ErrInvalid
 	}
 	data, err := json.Marshal(in)
 	if err != nil {
-		return err
+		return false, err
 	}
 	mac := hmac.New(sha256.New, []byte(retryKey))
 	_, _ = mac.Write(data)
@@ -72,52 +72,55 @@ func (s *Service) Submit(ctx context.Context, retryKey string, in Submission, ch
 	now := time.Now()
 	tx, err := s.DB.BeginTx(ctx, nil)
 	if err != nil {
-		return err
+		return false, err
 	}
 	defer tx.Rollback()
 	var previous string
 	err = tx.QueryRowContext(ctx, "SELECT fingerprint FROM lead_idempotency WHERE key_hash=? AND expires_at>?", key, now.Unix()).Scan(&previous)
 	if err == nil {
 		if hmac.Equal([]byte(previous), []byte(fingerprint)) {
-			return nil
+			return false, nil
 		}
-		return ErrConflict
+		return false, ErrConflict
 	}
 	if !errors.Is(err, sql.ErrNoRows) {
-		return err
+		return false, err
 	}
 	if err := check(ctx, tx, in); err != nil {
-		return err
+		return false, err
 	}
 	form, err := Visible(ctx, tx, in.Reference)
 	if err != nil {
-		return err
+		return false, err
 	}
 	if !form.validateSubmission(in.Values, in.Consent) {
-		return ErrInvalid
+		return false, ErrInvalid
 	}
 	values, err := json.Marshal(in.Values)
 	if err != nil {
-		return err
+		return false, err
 	}
 	id, err := db.NewID()
 	if err != nil {
-		return err
+		return false, err
 	}
 	if _, err := tx.ExecContext(ctx, `INSERT INTO leads(id,form_key,form_version,locale,page_key,payload,consent,created_at,expires_at)
 		VALUES(?,?,?,?,?,?,?,?,?)`, id, in.Key, in.Version, in.Locale, in.Page, string(values), form.Consent, now.Unix(),
 		now.AddDate(0, 0, form.RetentionDays).Unix()); err != nil {
-		return err
+		return false, err
 	}
 	if _, err := tx.ExecContext(ctx, `INSERT INTO lead_idempotency(key_hash,fingerprint,expires_at) VALUES(?,?,?)
 		ON CONFLICT(key_hash) DO UPDATE SET fingerprint=excluded.fingerprint,expires_at=excluded.expires_at`,
 		key, fingerprint, now.AddDate(0, 0, 7).Unix()); err != nil {
-		return err
+		return false, err
 	}
 	if err := outbox.RecordLead(ctx, tx, id, now); err != nil {
-		return err
+		return false, err
 	}
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func PrepareNotification(ctx context.Context, job outbox.Delivery) (outbox.Effect, error) {

@@ -18,6 +18,7 @@
 - [إضافات WebAssembly](plugins.ar.md): مجلدات الإضافات المعزولة وبياناتها واعتماد المالك.
 - [توصيل الدروس إلى المدونة وNotion](integrations/lesson-delivery.ar.md): النشر المتزامن للوجهات المستقلة وإعادة المحاولة بأمان.
 - [النشر على الشبكات الاجتماعية](integrations/social-publishing.ar.md)
+- [إحصاءات الموقع](integrations/analytics.ar.md)
 - [جدولة نشر الدروس](integrations/remote-publishing.md): التوليد الآلي الاختياري للدروس ونموذج خدمة معطل افتراضياً.
 
 ## المرجع التقني للتطوير

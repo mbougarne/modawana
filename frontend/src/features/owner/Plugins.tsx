@@ -88,28 +88,39 @@ export function Plugins({ csrf }: { csrf: string }) {
     }
   }
   const items = resource.data?.items || [];
-  const socialProviders = catalog.filter(
-    (entry) => entry.extension === 'social-publishing' && entry.kind === 'provider_adapter',
-  );
+  const nativeModules = [
+    { slug: 'social-publishing', page: 'social' },
+    { slug: 'analytics', page: 'analytics' },
+  ].flatMap((module) => {
+    const adapters = catalog.filter(
+      (entry) => entry.extension === module.slug && entry.kind === 'provider_adapter',
+    );
+    return adapters.length > 0 ? [{ ...module, adapters }] : [];
+  });
   return (
     <>
       <OwnerPageHeading title={t('owner.plugins')} description={t('workspace.pluginsHelp')} />
       <ResourceState resource={resource} />
-      {socialProviders.length > 0 && (
-        <section id="extension-social-publishing" tabIndex={-1} className="owner-panel owner-form">
+      {nativeModules.map(({ slug, page, adapters }) => (
+        <section
+          key={slug}
+          id={'extension-' + slug}
+          tabIndex={-1}
+          className="owner-panel owner-form"
+        >
           <h2>
-            <Link to={`/${locale}/admin/social`}>{t('owner.social')}</Link>
+            <Link to={`/${locale}/admin/${page}`}>{t('owner.' + page)}</Link>
           </h2>
           <ul>
-            {socialProviders.map((provider) => (
-              <li key={provider.key}>
-                <bdi>{localizedContribution(provider.label, locale)}</bdi>
+            {adapters.map((adapter) => (
+              <li key={adapter.key}>
+                <bdi>{localizedContribution(adapter.label, locale)}</bdi>
               </li>
             ))}
           </ul>
         </section>
-      )}
-      {resource.data && items.length === 0 && socialProviders.length === 0 && (
+      ))}
+      {resource.data && items.length === 0 && nativeModules.length === 0 && (
         <p>{t('plugins.empty')}</p>
       )}
       {items.map((item) => {

@@ -1,12 +1,15 @@
 package httpserver
 
 import (
+	"context"
+	"database/sql"
 	"errors"
 	"mime"
 	"net/http"
 	"strconv"
 	"strings"
 
+	"github.com/mbougarne/modawana/backend/internal/analytics"
 	"github.com/mbougarne/modawana/backend/internal/forms"
 )
 
@@ -86,9 +89,25 @@ func (d *Domain) leadSubmission(w http.ResponseWriter, r *http.Request) {
 	in := forms.Submission{Reference: forms.Reference{Key: values.Get("form"), Version: version},
 		Locale: values.Get("locale"), Page: values.Get("page"), Revision: values.Get("revision"),
 		Block: values.Get("block"), Values: fields, Consent: values.Get("consent") == "yes"}
-	if err := d.Forms.Submit(r.Context(), values.Get("retry"), in, d.Content.CheckPublishedForm); err != nil {
+	check := d.Content.CheckPublishedForm
+	var analyticsPath string
+	privacy := requestPrivacy(r)
+	if d.Analytics != nil && d.Analytics.Settings().Allows(privacy) {
+		check = func(ctx context.Context, tx *sql.Tx, in forms.Submission) error {
+			if err := d.Content.CheckPublishedForm(ctx, tx, in); err != nil {
+				return err
+			}
+			analyticsPath, _ = d.Content.AnalyticsFormPath(ctx, tx, in)
+			return nil
+		}
+	}
+	created, err := d.Forms.Submit(r.Context(), values.Get("retry"), in, check)
+	if err != nil {
 		formError(w, err)
 		return
+	}
+	if created && analyticsPath != "" {
+		d.Analytics.Record(analytics.LeadSubmitted, analyticsPath, privacy)
 	}
 	writeJSON(w, http.StatusOK, map[string]bool{"accepted": true})
 }

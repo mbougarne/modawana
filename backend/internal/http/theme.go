@@ -69,6 +69,7 @@ func (s *Server) renderThemed(ctx context.Context, r *http.Request, page content
 		Languages: themeLanguages(page, locale, publicLocales(r.Context()), label), MenuLabel: label("nav.menu"),
 		Footer: s.themeFooter(settings, navigation),
 	}
+	view.Footer.Analytics = head.Analytics
 	head.Boot = ""
 	head.Scripts = nil
 	if page.Kind != "article" {

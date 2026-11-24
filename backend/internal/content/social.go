@@ -5,15 +5,14 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/mbougarne/modawana/backend/internal/media"
-
 	"github.com/mbougarne/modawana/backend/internal/access"
+	"github.com/mbougarne/modawana/backend/internal/media"
 	"github.com/mbougarne/modawana/backend/internal/siteconfig"
 )
 
-// SocialRevision resolves a public link in the same transaction that will
-// record a scheduled send or authorize a delivery. No draft files are read.
-func (s *Service) SocialRevision(ctx context.Context, tx *sql.Tx, key, locale, revision string) (string, error) {
+// PublicRevisionPath checks an exact published revision and anonymous access
+// in the caller's transaction. No draft files are read.
+func (s *Service) PublicRevisionPath(ctx context.Context, tx *sql.Tx, key, locale, revision string) (string, error) {
 	visible, err := siteconfig.LocaleVisibleIn(ctx, tx, locale)
 	if err != nil {
 		return "", err
@@ -118,7 +117,7 @@ func (s *Service) SocialCandidates(ctx context.Context, locale, cursor string) (
 		out.Next = batch[len(batch)-1].Key
 	}
 	for _, item := range batch {
-		_, err := s.SocialRevision(ctx, tx, item.Key, locale, item.Revision)
+		_, err := s.PublicRevisionPath(ctx, tx, item.Key, locale, item.Revision)
 		if err == nil {
 			out.Items = append(out.Items, item)
 		} else if !errors.Is(err, sql.ErrNoRows) {

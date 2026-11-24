@@ -42,6 +42,18 @@ func (s *Service) CheckPublishedForm(ctx context.Context, tx *sql.Tx, in forms.S
 	return nil
 }
 
+// AnalyticsFormPath is used only for the accepted submission's public route.
+func (s *Service) AnalyticsFormPath(ctx context.Context, tx *sql.Tx, in forms.Submission) (string, error) {
+	var unlisted bool
+	if err := tx.QueryRowContext(ctx, `SELECT coalesce(json_extract(seo,'$.no_index'),0) FROM revisions WHERE id=?`, in.Revision).Scan(&unlisted); err != nil {
+		return "", err
+	}
+	if unlisted {
+		return "", sql.ErrNoRows
+	}
+	return s.PublicRevisionPath(ctx, tx, in.Page, in.Locale, in.Revision)
+}
+
 func validateFormPublication(ctx context.Context, tx *sql.Tx, refs blockReferences) error {
 	for _, form := range refs.forms {
 		if _, err := forms.Visible(ctx, tx, form); err != nil {
