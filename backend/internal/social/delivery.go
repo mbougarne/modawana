@@ -91,7 +91,7 @@ func (s *Service) check(ctx context.Context, id string, dispatch bool) (queuedPo
 		return p, c, "", err
 	}
 	now := time.Now()
-	if p.first > 0 && !now.Before(time.UnixMilli(p.first).Add(replayWindow)) {
+	if p.first > 0 && !now.Before(time.UnixMilli(p.first).Add(s.provider.ReplayWindow())) {
 		return p, c, "replay_window_expired", nil
 	}
 	path, err := s.Content.SocialRevision(ctx, tx, p.key, p.locale, p.revision)
@@ -126,9 +126,9 @@ func (s *Service) providerFailure(p queuedPost, err error, send bool) (outbox.Ef
 		return stopped(p, "access_revoked", true), nil
 	}
 	if failure.status == 0 || failure.status == http.StatusTooManyRequests || failure.status >= 500 {
-		deadline := time.Now().Add(replayWindow)
+		deadline := time.Now().Add(s.provider.ReplayWindow())
 		if p.first > 0 {
-			deadline = time.UnixMilli(p.first).Add(replayWindow)
+			deadline = time.UnixMilli(p.first).Add(s.provider.ReplayWindow())
 		}
 		if (send || p.first > 0) && !failure.retry.Before(deadline) {
 			return finish(p, "uncertain", "replay_window_expired", Receipt{}, false), nil

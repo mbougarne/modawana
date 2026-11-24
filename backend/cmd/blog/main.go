@@ -188,12 +188,17 @@ func run() int {
 	runtime.SetKeySource(cfg.ReadAuthKey)
 	plugins := &plugin.Service{DB: database, Dir: filepath.Join(cfg.DataRoot, "plugins"), Host: host, Runtime: runtime, Logger: logger, Maintenance: func() bool { return operations.Maintenance(cfg.DataRoot) }}
 	leadForms := &forms.Service{DB: database}
-	socialPublishing, err := social.Open(cfg, database, contents, social.MastodonConfig{
+	adapter, err := social.NewMastodon(social.MastodonConfig{
 		Instance: os.Getenv("BLOG_MASTODON_ORIGIN"), ClientID: os.Getenv("BLOG_MASTODON_CLIENT_ID"),
 		ClientSecretFile: os.Getenv("BLOG_MASTODON_CLIENT_SECRET_FILE"),
-	})
+	}, cfg.BaseURL, cfg.DataRoot)
 	if err != nil {
 		logger.Error("social publishing configuration rejected")
+		return 1
+	}
+	socialPublishing, err := social.Open(cfg, database, contents, adapter)
+	if err != nil {
+		logger.Error("social publishing requires the installation auth key")
 		return 1
 	}
 	deliveries := &outbox.Worker{DB: database, Paused: plugins.Maintenance, Logger: logger,
@@ -202,6 +207,9 @@ func run() int {
 				return forms.PrepareNotification(ctx, job)
 			}
 			if job.PluginID == "" && job.Event.Name == outbox.SocialScheduled {
+				if !host.Installed(social.Slug) {
+					return nil, outbox.ErrUnavailable
+				}
 				return socialPublishing.Prepare(ctx, job)
 			}
 			return plugins.PrepareEvent(ctx, job)

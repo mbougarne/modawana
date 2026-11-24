@@ -49,7 +49,11 @@ type Domain struct {
 // to install eagerly, before the job runner starts: the runner only picks up
 // jobs registered before it runs.
 func (d *Domain) Builtins() []extension.Extension {
-	return []extension.Extension{socialCards{}, publisherTools{domain: d}}
+	modules := []extension.Extension{socialCards{}, publisherTools{domain: d}}
+	if d.Social != nil {
+		modules = append(modules, d.Social)
+	}
+	return modules
 }
 
 // extensions installs the built-in publisher MCP tools exactly once when the

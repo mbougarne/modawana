@@ -29,7 +29,7 @@ func socialError(w http.ResponseWriter, err error) {
 
 func (d *Domain) socialRoutes(w http.ResponseWriter, r *http.Request) bool {
 	path := r.URL.Path
-	if path != socialAPI && !strings.HasPrefix(path, socialAPI+"/") {
+	if (path != socialAPI && !strings.HasPrefix(path, socialAPI+"/")) || !d.extensions().Installed(social.Slug) {
 		return false
 	}
 	if d.Auth == nil {

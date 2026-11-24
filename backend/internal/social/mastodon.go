@@ -1,11 +1,8 @@
-// Package social connects the owner to an approved provider and delivers
-// explicitly scheduled links to exact published revisions.
 package social
 
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"io"
 	"net/http"
 	"net/url"
@@ -19,16 +16,12 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/mbougarne/modawana/backend/internal/extension"
 	"github.com/mbougarne/modawana/backend/internal/publichttp"
 )
 
-const CallbackPath = "/api/v1/owner/social/callback"
 const mastodonScopes = "profile write:statuses"
-const replayWindow = 45 * time.Minute
-
-var ErrInvalid = errors.New("invalid social publishing request")
-var ErrUnavailable = errors.New("social connection unavailable")
-var ErrConflict = errors.New("social operation conflicts with saved state")
+const mastodonReplayWindow = 45 * time.Minute
 
 var numericID = regexp.MustCompile(`^[0-9]{1,32}$`)
 var mastodonName = regexp.MustCompile(`^[A-Za-z0-9_]{1,64}$`)
@@ -42,32 +35,17 @@ type MastodonConfig struct {
 	Instance, ClientID, ClientSecretFile string
 }
 
-type Account struct {
-	ID   string `json:"id"`
-	Name string `json:"username"`
-	URL  string `json:"url"`
-}
-
-type Receipt struct {
-	ID      string  `json:"id"`
-	URL     string  `json:"url"`
-	Account Account `json:"account"`
-}
-
-type provider interface {
-	Instance() string
-	AuthorizationURL(string, string) string
-	Exchange(context.Context, string, string) (string, error)
-	Verify(context.Context, string) (Account, error)
-	Send(context.Context, string, string, string) (Receipt, error)
-}
-
 type mastodon struct {
 	instance, callback, clientID, secretFile string
 	client                                   *http.Client
 }
 
-func newMastodon(c MastodonConfig, baseURL, dataRoot string) (*mastodon, error) {
+// NewMastodon constructs the adapter when the operator configures an instance.
+// A zero configuration leaves Social Publishing without a provider.
+func NewMastodon(c MastodonConfig, baseURL, dataRoot string) (Provider, error) {
+	if c == (MastodonConfig{}) {
+		return nil, nil
+	}
 	u, err := url.Parse(c.Instance)
 	if err != nil || !strings.HasPrefix(baseURL, "https://") || u.Scheme != "https" || u.Host == "" || u.User != nil || u.Path != "" ||
 		u.ForceQuery || u.RawQuery != "" || u.Fragment != "" || u.Host != u.Hostname() ||
@@ -109,20 +87,22 @@ func (m *mastodon) readSecret() (string, error) {
 	return secret, nil
 }
 
-func (m *mastodon) Instance() string { return m.instance }
+func (m *mastodon) Descriptor() extension.Contribution {
+	return extension.Contribution{
+		Kind: extension.ProviderAdapter, Key: "mastodon", Version: 1, Target: "social",
+		Label: extension.LocalizedText{"en": "Mastodon", "fr": "Mastodon", "ar": "ماستودون"},
+	}
+}
+
+func (m *mastodon) Instance() string            { return m.instance }
+func (m *mastodon) ReplayWindow() time.Duration { return mastodonReplayWindow }
+func (m *mastodon) MaxTextLength() int          { return 500 }
 
 func (m *mastodon) AuthorizationURL(state, challenge string) string {
 	q := url.Values{"response_type": {"code"}, "client_id": {m.clientID}, "redirect_uri": {m.callback}, "scope": {mastodonScopes},
 		"state": {state}, "code_challenge": {challenge}, "code_challenge_method": {"S256"}}
 	return m.instance + "/oauth/authorize?" + q.Encode()
 }
-
-type providerError struct {
-	status int
-	retry  time.Time
-}
-
-func (e *providerError) Error() string { return "Mastodon request failed" }
 
 func (m *mastodon) call(ctx context.Context, method, path, token, id string, values url.Values, out any) error {
 	var body io.Reader
@@ -181,6 +161,9 @@ func (m *mastodon) Exchange(ctx context.Context, code, verifier string) (string,
 	}
 	q := url.Values{"grant_type": {"authorization_code"}, "code": {code}, "code_verifier": {verifier},
 		"client_id": {m.clientID}, "client_secret": {secret}, "redirect_uri": {m.callback}}
+	if !validOAuthValue(code) || !validOAuthValue(verifier) {
+		return "", ErrInvalid
+	}
 	if err := m.call(ctx, http.MethodPost, "/oauth/token", "", "", q, &out); err != nil {
 		return "", err
 	}

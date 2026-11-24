@@ -8,13 +8,21 @@ import (
 
 	"github.com/mbougarne/modawana/backend/internal/auth"
 	"github.com/mbougarne/modawana/backend/internal/config"
+	"github.com/mbougarne/modawana/backend/internal/extension"
 	"github.com/mbougarne/modawana/backend/internal/social"
 )
 
 func TestSocialOwnerBoundaryAndOAuthReturn(t *testing.T) {
 	cfg := config.Config{BaseURL: "https://blog.example"}
 	account := auth.New(nil, cfg)
-	server := New(Options{Config: cfg, Auth: account, Domain: &Domain{Auth: account, Social: &social.Service{}}})
+	host := extension.NewHost(nil)
+	domain := &Domain{Auth: account, Extensions: host, Social: &social.Service{}}
+	for _, module := range domain.Builtins() {
+		if err := host.Install(module); err != nil {
+			t.Fatal(err)
+		}
+	}
+	server := New(Options{Config: cfg, Auth: account, Domain: domain})
 	for _, tc := range []struct{ method, path string }{
 		{http.MethodGet, socialAPI},
 		{http.MethodGet, socialAPI + "/connection"},
@@ -43,5 +51,11 @@ func TestSocialOwnerBoundaryAndOAuthReturn(t *testing.T) {
 	if len(cookies) != 1 || cookies[0].Name != socialCookie || !cookies[0].Secure || !cookies[0].HttpOnly ||
 		cookies[0].SameSite != http.SameSiteLaxMode || cookies[0].Path != "/" || cookies[0].MaxAge != -1 {
 		t.Fatal("the callback did not remove the short-lived browser proof")
+	}
+	host.Uninstall(social.Slug)
+	w = httptest.NewRecorder()
+	server.ServeHTTP(w, httptest.NewRequest(http.MethodGet, cfg.BaseURL+socialAPI, nil))
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("unregistered module served a route (%d)", w.Code)
 	}
 }

@@ -2,6 +2,11 @@
 
 [العربية](social-publishing.ar.md) · [Documentation](../README.md)
 
+Social Publishing is an optional first-party extension shipped with Modawana.
+It owns the editor, schedule, and delivery history. Mastodon is its first
+provider adapter and appears under **Social publishing** on the Plugins screen
+when configured.
+
 ## Configure the connection
 
 1. On a Mastodon 4.3 or later instance, register an OAuth application with only

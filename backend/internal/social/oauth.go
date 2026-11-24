@@ -13,37 +13,11 @@ import (
 	"errors"
 	"time"
 
-	"github.com/mbougarne/modawana/backend/internal/config"
-	"github.com/mbougarne/modawana/backend/internal/content"
 	"github.com/mbougarne/modawana/backend/internal/db"
 	"github.com/mbougarne/modawana/backend/internal/locale"
 )
 
 const oauthLifetime = 10 * time.Minute
-
-type Service struct {
-	DB       *sql.DB
-	Content  *content.Service
-	baseURL  string
-	key      func() ([]byte, error)
-	provider provider
-}
-
-func Open(cfg config.Config, database *sql.DB, contents *content.Service, mastodonCfg MastodonConfig) (*Service, error) {
-	s := &Service{DB: database, Content: contents, baseURL: cfg.BaseURL, key: cfg.ReadAuthKey}
-	if mastodonCfg == (MastodonConfig{}) {
-		return s, nil
-	}
-	p, err := newMastodon(mastodonCfg, cfg.BaseURL, cfg.DataRoot)
-	if err != nil {
-		return nil, err
-	}
-	if _, err := cfg.ReadAuthKey(); err != nil {
-		return nil, ErrUnavailable
-	}
-	s.provider = p
-	return s, nil
-}
 
 type Connection struct {
 	ID        string `json:"id"`
@@ -90,6 +64,14 @@ func randomProof() string {
 	var value [32]byte
 	rand.Read(value[:])
 	return base64.RawURLEncoding.EncodeToString(value[:])
+}
+
+func validProof(value string) bool {
+	if len(value) != 43 {
+		return false
+	}
+	_, err := base64.RawURLEncoding.Strict().DecodeString(value)
+	return err == nil
 }
 
 func digest(value string) string {
@@ -181,7 +163,7 @@ func (s *Service) Complete(ctx context.Context, state, browser, code string, che
 	if s.provider == nil {
 		return "", ErrUnavailable
 	}
-	if len(state) != 43 || len(browser) != 43 || !oauthValue.MatchString(state) || !oauthValue.MatchString(browser) || !validOAuthValue(code) {
+	if !validProof(state) || !validProof(browser) || code == "" || len(code) > 2048 {
 		return "", ErrInvalid
 	}
 	instance, hash := s.provider.Instance(), digest(state)

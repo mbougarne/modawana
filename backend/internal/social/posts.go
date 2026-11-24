@@ -67,7 +67,7 @@ func (s *Service) previewIn(ctx context.Context, tx *sql.Tx, in Draft) (Preview,
 		return out, err
 	}
 	body := strings.TrimSpace(in.Text) + "\n\n" + s.baseURL + path
-	if utf8.RuneCountInString(body) > 500 {
+	if utf8.RuneCountInString(body) > s.provider.MaxTextLength() {
 		return out, ErrInvalid
 	}
 	return Preview{Body: body, Path: path, Connection: conn.ID, Destination: conn.Account + "@" + strings.TrimPrefix(conn.Instance, "https://")}, nil

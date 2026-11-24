@@ -20,6 +20,7 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/access"
 	"github.com/mbougarne/modawana/backend/internal/content"
 	"github.com/mbougarne/modawana/backend/internal/db"
+	"github.com/mbougarne/modawana/backend/internal/extension"
 	"github.com/mbougarne/modawana/backend/internal/outbox"
 	"github.com/mbougarne/modawana/backend/internal/storage"
 )
@@ -72,13 +73,13 @@ func fixture(t *testing.T) (*Service, *mastodon, string, content.Result) {
 	if err := os.WriteFile(secret, []byte("test_secret\n"), 0600); err != nil {
 		t.Fatal(err)
 	}
-	p, err := newMastodon(MastodonConfig{testOrigin, "test_client", secret}, "https://blog.example", root)
+	adapter, err := NewMastodon(MastodonConfig{testOrigin, "test_client", secret}, "https://blog.example", root)
 	if err != nil {
 		t.Fatal(err)
 	}
-	s := &Service{DB: database, Content: contents, provider: p, baseURL: "https://blog.example",
+	s := &Service{DB: database, Content: contents, provider: adapter, baseURL: "https://blog.example",
 		key: func() ([]byte, error) { return bytes.Repeat([]byte{42}, 32), nil }}
-	return s, p, owner, published
+	return s, adapter.(*mastodon), owner, published
 }
 
 func newID(t *testing.T) string {
@@ -224,6 +225,29 @@ func waitFor(t *testing.T, s *Service, want string) Post {
 	return Post{}
 }
 
+func TestModuleRegistersOnlyConfiguredProvider(t *testing.T) {
+	host := extension.NewHost(nil)
+	if err := host.Install(&Service{}); err != nil {
+		t.Fatal(err)
+	}
+	if len(host.Contributions(extension.ProviderAdapter)) != 0 {
+		t.Fatal("unconfigured module contributed a provider")
+	}
+	host.Uninstall(Slug)
+	s, _, _, _ := fixture(t)
+	if err := host.Install(s); err != nil {
+		t.Fatal(err)
+	}
+	items := host.Contributions(extension.ProviderAdapter)
+	if len(items) != 1 || items[0].Extension != Slug || items[0].Target != "social" || items[0].Key != "mastodon" {
+		t.Fatalf("wrong provider contribution: %+v", items)
+	}
+	host.Uninstall(Slug)
+	if host.Installed(Slug) || len(host.Contributions(extension.ProviderAdapter)) != 0 {
+		t.Fatal("unregistered module retained a provider contribution")
+	}
+}
+
 func TestDeliveryReconcilesLostResponseAcrossWorkerRestart(t *testing.T) {
 	s, p, _, published := fixture(t)
 	var operationID, body string
@@ -323,7 +347,7 @@ func TestExpiredReplayCannotDispatch(t *testing.T) {
 		return nil, errors.New("unexpected request")
 	})
 	in, _ := schedule(t, s, connection, published.RevisionID, "")
-	if _, err := s.DB.Exec("UPDATE social_posts SET first_dispatch_at=? WHERE id=?", time.Now().Add(-replayWindow-time.Minute).UnixMilli(), in.ID); err != nil {
+	if _, err := s.DB.Exec("UPDATE social_posts SET first_dispatch_at=? WHERE id=?", time.Now().Add(-mastodonReplayWindow-time.Minute).UnixMilli(), in.ID); err != nil {
 		t.Fatal(err)
 	}
 	runWorker(t, s)
