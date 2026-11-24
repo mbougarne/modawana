@@ -24,17 +24,20 @@ type Draft struct {
 }
 
 type Preview struct {
-	Body        string `json:"body"`
-	Path        string `json:"path"`
-	Connection  string `json:"connection_id"`
-	Destination string `json:"destination"`
+	Body               string `json:"body"`
+	Path               string `json:"path"`
+	Connection         string `json:"connection_id"`
+	Destination        string `json:"destination"`
+	Image              string `json:"image,omitempty"`
+	provider, instance string
 }
 
 type Schedule struct {
 	Draft
-	ID   string `json:"id"`
-	Path string `json:"path"`
-	At   string `json:"scheduled_at,omitempty"`
+	ID    string `json:"id"`
+	Path  string `json:"path"`
+	Image string `json:"image,omitempty"`
+	At    string `json:"scheduled_at,omitempty"`
 }
 
 func (s *Service) Preview(ctx context.Context, in Draft) (Preview, error) {
@@ -48,29 +51,53 @@ func (s *Service) Preview(ctx context.Context, in Draft) (Preview, error) {
 
 func (s *Service) previewIn(ctx context.Context, tx *sql.Tx, in Draft) (Preview, error) {
 	var out Preview
-	if s.provider == nil {
-		return out, ErrUnavailable
-	}
 	if !media.ID.MatchString(in.Connection) || !media.ID.MatchString(in.Revision) || !locale.Valid(in.Locale) || len(in.Key) > 120 ||
 		!utf8.ValidString(in.Text) || strings.TrimSpace(in.Text) == "" || strings.ContainsFunc(in.Text, func(r rune) bool { return unicode.IsControl(r) && r != '\n' }) {
 		return out, ErrInvalid
 	}
-	conn, err := readConnection(ctx, tx, s.provider.Instance())
-	if errors.Is(err, sql.ErrNoRows) || err == nil && conn.ID != in.Connection {
+	conn, err := readConnection(ctx, tx, "id", in.Connection)
+	if errors.Is(err, sql.ErrNoRows) {
 		return out, ErrUnavailable
 	}
 	if err != nil {
 		return out, err
+	}
+	provider := s.providers[conn.Provider]
+	if provider == nil || provider.Instance() != conn.Instance {
+		return out, ErrUnavailable
 	}
 	path, err := s.Content.SocialRevision(ctx, tx, in.Key, in.Locale, in.Revision)
 	if err != nil {
 		return out, err
 	}
-	body := strings.TrimSpace(in.Text) + "\n\n" + s.baseURL + path
-	if utf8.RuneCountInString(body) > s.provider.MaxTextLength() {
+	link := s.baseURL + path
+	body := strings.TrimSpace(in.Text) + "\n\n" + link
+	if !validPostLength(provider, strings.TrimSpace(in.Text), link, body) {
 		return out, ErrInvalid
 	}
-	return Preview{Body: body, Path: path, Connection: conn.ID, Destination: conn.Account + "@" + strings.TrimPrefix(conn.Instance, "https://")}, nil
+	var image string
+	if _, required := provider.(mediaPublisher); required {
+		cover, err := s.Content.SocialCover(ctx, tx, in.Revision)
+		if errors.Is(err, sql.ErrNoRows) {
+			return out, ErrImage
+		}
+		if err != nil {
+			return out, err
+		}
+		image = s.baseURL + cover
+	}
+	name := conn.Account
+	if conn.Provider == "mastodon" {
+		name += "@" + strings.TrimPrefix(conn.Instance, "https://")
+	}
+	return Preview{Body: body, Path: path, Connection: conn.ID, Destination: name, Image: image, provider: conn.Provider, instance: conn.Instance}, nil
+}
+
+func validPostLength(provider Provider, text, link, body string) bool {
+	if p, ok := provider.(interface{ ValidLength(string, string) bool }); ok {
+		return p.ValidLength(text, link)
+	}
+	return utf8.RuneCountInString(body) <= provider.MaxTextLength()
 }
 
 func (s *Service) Schedule(ctx context.Context, in Schedule) error {
@@ -110,15 +137,15 @@ func (s *Service) Schedule(ctx context.Context, in Schedule) error {
 	if err != nil {
 		return err
 	}
-	if preview.Path != in.Path {
+	if preview.Path != in.Path || preview.Image != in.Image {
 		return ErrConflict
 	}
 	if err = outbox.RecordSocial(ctx, tx, in.ID, now, due); err != nil {
 		return err
 	}
-	_, err = tx.ExecContext(ctx, `INSERT INTO social_posts(id,connection_id,instance,account,content_key,locale,revision_id,path,body,request_hash,created_at,scheduled_at)
-		VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`, in.ID, in.Connection, s.provider.Instance(), preview.Destination, in.Key, in.Locale, in.Revision,
-		preview.Path, preview.Body, fingerprint, now.UnixMilli(), due.UnixMilli())
+	_, err = tx.ExecContext(ctx, `INSERT INTO social_posts(id,connection_id,instance,account,content_key,locale,revision_id,path,body,request_hash,created_at,scheduled_at,provider,image)
+		VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)`, in.ID, in.Connection, preview.instance, preview.Destination, in.Key, in.Locale, in.Revision,
+		preview.Path, preview.Body, fingerprint, now.UnixMilli(), due.UnixMilli(), preview.provider, preview.Image)
 	if err != nil {
 		return err
 	}
@@ -127,6 +154,7 @@ func (s *Service) Schedule(ctx context.Context, in Schedule) error {
 
 type Post struct {
 	ID          string    `json:"id"`
+	Provider    string    `json:"provider"`
 	Destination string    `json:"destination"`
 	Body        string    `json:"body"`
 	Locale      string    `json:"locale"`
@@ -150,7 +178,7 @@ func (s *Service) History(ctx context.Context, before string) (History, error) {
 	if before != "" && !media.ID.MatchString(before) {
 		return out, ErrInvalid
 	}
-	rows, err := s.DB.QueryContext(ctx, `SELECT p.id,p.account,p.body,p.locale,p.outcome,p.reason,p.scheduled_at,d.updated_at,d.attempts,
+	rows, err := s.DB.QueryContext(ctx, `SELECT p.id,p.provider,p.account,p.body,p.locale,p.outcome,p.reason,p.scheduled_at,d.updated_at,d.attempts,
 		p.remote_id,p.remote_url,p.first_dispatch_at,d.state,d.last_error
 		FROM social_posts p JOIN outbox_deliveries d ON d.id=p.id
 		WHERE (?='' OR (p.created_at,p.id)<(SELECT created_at,id FROM social_posts WHERE id=?))
@@ -167,7 +195,7 @@ func (s *Service) History(ctx context.Context, before string) (History, error) {
 		var post Post
 		var due, updated, dispatched int64
 		var delivery, deliveryError string
-		if err = rows.Scan(&post.ID, &post.Destination, &post.Body, &post.Locale, &post.Status, &post.Reason, &due, &updated, &post.Attempts,
+		if err = rows.Scan(&post.ID, &post.Provider, &post.Destination, &post.Body, &post.Locale, &post.Status, &post.Reason, &due, &updated, &post.Attempts,
 			&post.RemoteID, &post.RemoteURL, &dispatched, &delivery, &deliveryError); err != nil {
 			return out, err
 		}

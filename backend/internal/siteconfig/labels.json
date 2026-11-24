@@ -14,9 +14,9 @@
     "description": "Interface text: social.help",
     "placeholders": [],
     "values": {
-      "en": "Share an exact published revision on Mastodon now or schedule it for later.",
-      "fr": "Partagez une révision publiée précise sur Mastodon maintenant ou programmez sa publication.",
-      "ar": "شارك مراجعة منشورة بعينها على ماستودون الآن أو جدول نشرها لاحقاً."
+      "en": "Share a published revision on a connected account now or schedule it for later.",
+      "fr": "Partagez une révision publiée sur un compte connecté ou programmez sa publication.",
+      "ar": "شارك مراجعة منشورة على حساب مرتبط الآن أو جدول نشرها لاحقاً."
     }
   },
   "social.loading": {
@@ -44,9 +44,9 @@
     "description": "Interface text: social.destination",
     "placeholders": [],
     "values": {
-      "en": "Mastodon account",
-      "fr": "Compte Mastodon",
-      "ar": "حساب ماستودون"
+      "en": "Destination",
+      "fr": "Destination",
+      "ar": "وجهة النشر"
     }
   },
   "social.unconfigured": {
@@ -54,9 +54,9 @@
     "description": "Interface text: social.unconfigured",
     "placeholders": [],
     "values": {
-      "en": "This installation has no configured Mastodon application.",
-      "fr": "Aucune application Mastodon n’est configurée pour cette installation.",
-      "ar": "لم يُضبط تطبيق ماستودون لهذا التثبيت."
+      "en": "No social providers are configured for this installation.",
+      "fr": "Aucun réseau social n’est configuré pour cette installation.",
+      "ar": "لم يُضبط أي مزوّد للنشر الاجتماعي لهذا التثبيت."
     }
   },
   "social.disconnect": {
@@ -74,9 +74,9 @@
     "description": "Interface text: social.connect",
     "placeholders": [],
     "values": {
-      "en": "Connect Mastodon",
-      "fr": "Connecter Mastodon",
-      "ar": "ربط ماستودون"
+      "en": "Connect",
+      "fr": "Connecter",
+      "ar": "ربط الحساب"
     }
   },
   "social.disconnected": {
@@ -84,9 +84,9 @@
     "description": "Interface text: social.disconnected",
     "placeholders": [],
     "values": {
-      "en": "Mastodon disconnected.",
-      "fr": "Mastodon a été déconnecté.",
-      "ar": "تم قطع الاتصال بماستودون."
+      "en": "Account disconnected.",
+      "fr": "Compte déconnecté.",
+      "ar": "تم قطع اتصال الحساب."
     }
   },
   "social.connected": {
@@ -94,9 +94,9 @@
     "description": "Interface text: social.connected",
     "placeholders": [],
     "values": {
-      "en": "Mastodon connected.",
-      "fr": "Mastodon a été connecté.",
-      "ar": "تم ربط ماستودون."
+      "en": "Account connected.",
+      "fr": "Compte connecté.",
+      "ar": "تم ربط الحساب."
     }
   },
   "social.connectionFailed": {
@@ -144,9 +144,9 @@
     "description": "Interface text: social.uncertainHelp",
     "placeholders": [],
     "values": {
-      "en": "Check the Mastodon timeline before scheduling this post again.",
-      "fr": "Vérifiez le fil Mastodon avant de reprogrammer ce message.",
-      "ar": "تحقّق من الخط الزمني على ماستودون قبل إعادة جدولة هذا المنشور."
+      "en": "Check the destination account before scheduling this post again.",
+      "fr": "Vérifiez le compte de destination avant de reprogrammer ce message.",
+      "ar": "تحقّق من حساب الوجهة قبل إعادة جدولة هذا المنشور."
     }
   },
   "social.viewPost": {
@@ -154,9 +154,9 @@
     "description": "Interface text: social.viewPost",
     "placeholders": [],
     "values": {
-      "en": "View on Mastodon",
-      "fr": "Voir sur Mastodon",
-      "ar": "عرض على ماستودون"
+      "en": "View post",
+      "fr": "Voir la publication",
+      "ar": "عرض المنشور"
     }
   },
   "social.cancel": {
@@ -194,9 +194,9 @@
     "description": "Interface text: social.previewFailed",
     "placeholders": [],
     "values": {
-      "en": "Cannot preview this post. Check the publication and keep the message and link within 500 characters.",
-      "fr": "Impossible de prévisualiser le message. Vérifiez la publication et limitez le texte et le lien à 500 caractères.",
-      "ar": "تعذّرت معاينة المنشور. تحقّق من نشر المحتوى ومن أن النص والرابط لا يتجاوزان 500 حرف."
+      "en": "Cannot preview this post. Check the publication and the destination’s text limit.",
+      "fr": "Vérifiez la publication et la limite de texte de la destination, puis réessayez.",
+      "ar": "تعذّرت المعاينة. تحقّق من النشر والحد الأقصى للنص في الوجهة."
     }
   },
   "social.queued": {
@@ -424,9 +424,9 @@
     "description": "Interface text: social.reason.access_revoked",
     "placeholders": [],
     "values": {
-      "en": "Mastodon denied access. Reconnect the account to schedule future posts.",
-      "fr": "Mastodon a refusé l’accès. Reconnectez le compte pour programmer de nouveaux messages.",
-      "ar": "رفض ماستودون الوصول. أعد ربط الحساب لجدولة منشورات جديدة."
+      "en": "The provider denied access. Reconnect the account to schedule future posts.",
+      "fr": "Le réseau a refusé l’accès. Reconnectez le compte pour de nouvelles publications.",
+      "ar": "رفض المزوّد الوصول. أعد ربط الحساب لجدولة منشورات جديدة."
     }
   },
   "social.reason.connection_changed": {
@@ -434,9 +434,9 @@
     "description": "Interface text: social.reason.connection_changed",
     "placeholders": [],
     "values": {
-      "en": "The original Mastodon connection is no longer active.",
-      "fr": "La connexion Mastodon d’origine n’est plus active.",
-      "ar": "اتصال ماستودون الأصلي لم يعد نشطاً."
+      "en": "The original connection is no longer active.",
+      "fr": "La connexion d’origine n’est plus active.",
+      "ar": "الاتصال الأصلي لم يعد نشطاً."
     }
   },
   "social.reason.credentials_unavailable": {
@@ -454,9 +454,9 @@
     "description": "Interface text: social.reason.destination_changed",
     "placeholders": [],
     "values": {
-      "en": "Mastodon returned a different account.",
-      "fr": "Mastodon a indiqué un autre compte.",
-      "ar": "أعاد ماستودون حساباً مختلفاً."
+      "en": "The provider returned a different account.",
+      "fr": "Le réseau a indiqué un autre compte.",
+      "ar": "أعاد المزوّد حساباً مختلفاً."
     }
   },
   "social.reason.publication_changed": {
@@ -474,9 +474,9 @@
     "description": "Interface text: social.reason.provider_rejected",
     "placeholders": [],
     "values": {
-      "en": "Mastodon rejected the request.",
-      "fr": "Mastodon a refusé la demande.",
-      "ar": "رفض ماستودون الطلب."
+      "en": "The provider rejected the request.",
+      "fr": "Le réseau a refusé la demande.",
+      "ar": "رفض المزوّد الطلب."
     }
   },
   "social.reason.provider_retry": {
@@ -484,9 +484,9 @@
     "description": "Interface text: social.reason.provider_retry",
     "placeholders": [],
     "values": {
-      "en": "Mastodon is temporarily unavailable or rate limited.",
-      "fr": "Mastodon est temporairement indisponible ou a limité les requêtes.",
-      "ar": "ماستودون غير متاح مؤقتاً أو بلغ حد الطلبات."
+      "en": "The provider is temporarily unavailable or rate limited.",
+      "fr": "Le réseau est temporairement indisponible ou a limité les requêtes.",
+      "ar": "المزوّد غير متاح مؤقتاً أو بلغ حد الطلبات."
     }
   },
   "social.reason.provider_unavailable": {
@@ -494,9 +494,9 @@
     "description": "Interface text: social.reason.provider_unavailable",
     "placeholders": [],
     "values": {
-      "en": "The account could not be verified or Mastodon is unavailable.",
-      "fr": "Impossible de vérifier le compte ou Mastodon est indisponible.",
-      "ar": "تعذّر التحقق من الحساب أو أن ماستودون غير متاح."
+      "en": "The provider is unavailable or could not verify the account.",
+      "fr": "Le réseau est indisponible ou n’a pas pu vérifier le compte.",
+      "ar": "المزوّد غير متاح أو تعذّر عليه التحقق من الحساب."
     }
   },
   "social.reason.replay_window_expired": {
@@ -514,9 +514,109 @@
     "description": "Interface text: social.reason.unexpected_receipt",
     "placeholders": [],
     "values": {
-      "en": "Mastodon returned a receipt for a different account.",
-      "fr": "Mastodon a renvoyé un reçu pour un autre compte.",
-      "ar": "أعاد ماستودون تأكيداً يخص حساباً مختلفاً."
+      "en": "The provider returned a receipt for a different account.",
+      "fr": "Le réseau a renvoyé un reçu pour un autre compte.",
+      "ar": "أعاد المزوّد تأكيداً يخص حساباً مختلفاً."
+    }
+  },
+  "social.accounts": {
+    "section": "social",
+    "description": "Interface text: social.accounts",
+    "placeholders": [],
+    "values": {
+      "en": "Connected accounts",
+      "fr": "Comptes connectés",
+      "ar": "الحسابات المرتبطة"
+    }
+  },
+  "social.coverRequired": {
+    "section": "social",
+    "description": "Interface text: social.coverRequired",
+    "placeholders": [],
+    "values": {
+      "en": "Instagram requires a public JPEG cover on this revision.",
+      "fr": "Instagram exige une image de couverture JPEG publique sur cette révision.",
+      "ar": "يتطلّب إنستغرام صورة غلاف JPEG عامة لهذه المراجعة."
+    }
+  },
+  "social.cover": {
+    "section": "social",
+    "description": "Interface text: social.cover",
+    "placeholders": [],
+    "values": {
+      "en": "Published cover image",
+      "fr": "Image de couverture publiée",
+      "ar": "صورة الغلاف المنشورة"
+    }
+  },
+  "social.provider.mastodon": {
+    "section": "social",
+    "description": "Interface text: social.provider.mastodon",
+    "placeholders": [],
+    "values": {
+      "en": "Mastodon",
+      "fr": "Mastodon",
+      "ar": "ماستودون"
+    }
+  },
+  "social.provider.facebook": {
+    "section": "social",
+    "description": "Interface text: social.provider.facebook",
+    "placeholders": [],
+    "values": {
+      "en": "Facebook Page",
+      "fr": "Page Facebook",
+      "ar": "صفحة فيسبوك"
+    }
+  },
+  "social.provider.x": {
+    "section": "social",
+    "description": "Interface text: social.provider.x",
+    "placeholders": [],
+    "values": {
+      "en": "X",
+      "fr": "X",
+      "ar": "إكس"
+    }
+  },
+  "social.provider.instagram": {
+    "section": "social",
+    "description": "Interface text: social.provider.instagram",
+    "placeholders": [],
+    "values": {
+      "en": "Instagram",
+      "fr": "Instagram",
+      "ar": "إنستغرام"
+    }
+  },
+  "social.provider.linkedin-profile": {
+    "section": "social",
+    "description": "Interface text: social.provider.linkedin-profile",
+    "placeholders": [],
+    "values": {
+      "en": "LinkedIn profile",
+      "fr": "Profil LinkedIn",
+      "ar": "الملف الشخصي على لينكدإن"
+    }
+  },
+  "social.provider.linkedin-page": {
+    "section": "social",
+    "description": "Interface text: social.provider.linkedin-page",
+    "placeholders": [],
+    "values": {
+      "en": "LinkedIn company Page",
+      "fr": "Page d’entreprise LinkedIn",
+      "ar": "صفحة شركة على لينكدإن"
+    }
+  },
+  "social.reason.delivery_unconfirmed": {
+    "section": "social",
+    "description": "Interface text: social.reason.delivery_unconfirmed",
+    "placeholders": [],
+    "values": {
+      "en": "The provider did not confirm delivery.",
+      "fr": "Le réseau n’a pas confirmé la publication.",
+      "ar": "لم يؤكّد المزوّد نشر المنشور."
     }
   },
   "owner.forms": {

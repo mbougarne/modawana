@@ -7177,7 +7177,7 @@
     "/api/v1/owner/social/connection": {
       "get": {
         "operationId": "socialConnection",
-        "description": "Read the configured destination and account. / اقرأ إعدادات الوجهة والحساب.",
+        "description": "List configured providers and connected destinations. / اعرض المزوّدين المضبوطين والوجهات المرتبطة.",
         "security": [
           {
             "ownerCookie": []
@@ -7191,14 +7191,14 @@
                 "schema": {
                   "type": "object",
                   "required": [
-                    "instance"
+                    "destinations"
                   ],
                   "properties": {
-                    "instance": {
-                      "type": "string"
-                    },
-                    "connection": {
-                      "$ref": "#/components/schemas/SocialConnection"
+                    "destinations": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SocialDestination"
+                      }
                     }
                   }
                 }
@@ -7314,7 +7314,8 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "locale"
+                  "locale",
+                  "provider"
                 ],
                 "properties": {
                   "locale": {
@@ -7324,6 +7325,9 @@
                       "ar",
                       "fr"
                     ]
+                  },
+                  "provider": {
+                    "$ref": "#/components/schemas/SocialProvider"
                   }
                 }
               }
@@ -7473,6 +7477,24 @@
               }
             }
           }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "provider"
+                ],
+                "properties": {
+                  "provider": {
+                    "$ref": "#/components/schemas/SocialProvider"
+                  }
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -7531,6 +7553,10 @@
                     },
                     "destination": {
                       "type": "string"
+                    },
+                    "image": {
+                      "type": "string",
+                      "format": "uri"
                     }
                   }
                 }
@@ -11691,7 +11717,8 @@
           "id",
           "instance",
           "account",
-          "url"
+          "url",
+          "provider"
         ],
         "properties": {
           "id": {
@@ -11707,6 +11734,9 @@
           },
           "url": {
             "type": "string"
+          },
+          "provider": {
+            "$ref": "#/components/schemas/SocialProvider"
           }
         }
       },
@@ -11762,7 +11792,7 @@
           },
           "text": {
             "type": "string",
-            "maxLength": 500
+            "maxLength": 5000
           }
         }
       },
@@ -11800,7 +11830,7 @@
           },
           "text": {
             "type": "string",
-            "maxLength": 500
+            "maxLength": 5000
           },
           "id": {
             "type": "string",
@@ -11812,6 +11842,10 @@
           "scheduled_at": {
             "type": "string",
             "format": "date-time"
+          },
+          "image": {
+            "type": "string",
+            "format": "uri"
           }
         }
       },
@@ -11826,7 +11860,8 @@
           "scheduled_at",
           "updated_at",
           "attempts",
-          "can_cancel"
+          "can_cancel",
+          "provider"
         ],
         "properties": {
           "id": {
@@ -11883,6 +11918,48 @@
             "format": "uri"
           },
           "can_cancel": {
+            "type": "boolean"
+          },
+          "provider": {
+            "$ref": "#/components/schemas/SocialProvider"
+          }
+        }
+      },
+      "SocialProvider": {
+        "type": "string",
+        "enum": [
+          "mastodon",
+          "facebook",
+          "x",
+          "instagram",
+          "linkedin-profile",
+          "linkedin-page"
+        ]
+      },
+      "SocialDestination": {
+        "type": "object",
+        "required": [
+          "provider",
+          "instance",
+          "text_limit",
+          "requires_image"
+        ],
+        "properties": {
+          "provider": {
+            "$ref": "#/components/schemas/SocialProvider"
+          },
+          "instance": {
+            "type": "string",
+            "format": "uri"
+          },
+          "connection": {
+            "$ref": "#/components/schemas/SocialConnection"
+          },
+          "text_limit": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "requires_image": {
             "type": "boolean"
           }
         }

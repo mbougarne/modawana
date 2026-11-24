@@ -1,61 +1,69 @@
-# Social publishing with Mastodon
+# Social publishing
 
 [العربية](social-publishing.ar.md) · [Documentation](../README.md)
 
 Social Publishing is an optional first-party extension shipped with Modawana.
-It owns the editor, schedule, and delivery history. Mastodon is its first
-provider adapter and appears under **Social publishing** on the Plugins screen
-when configured.
+Configure any of the supported providers, then connect each destination
+independently. Each scheduled post targets one connection and one published
+revision.
 
-## Configure the connection
+## Configure provider apps
 
-1. On a Mastodon 4.3 or later instance, register an OAuth application with only
-   the `profile` and `write:statuses` scopes. Use the blog’s canonical HTTPS
-   origin followed by `/api/v1/owner/social/callback` as the redirect URI.
-2. Set `BLOG_MASTODON_ORIGIN` to the instance’s public HTTPS origin, such as
-   `https://mastodon.example`. Set `BLOG_MASTODON_CLIENT_ID` to the application’s
-   client ID. Write the client secret to a private regular file outside
-   `BLOG_DATA_ROOT` and set `BLOG_MASTODON_CLIENT_SECRET_FILE` to its absolute
-   path. The server process needs read access and the file must have no group
-   or other permissions. Keep the existing `BLOG_AUTH_KEY_FILE` configured.
-3. Restart the app. Open **Social publishing** in the owner dashboard, choose
-   **Connect Mastodon**, and confirm the displayed account on Mastodon. Configure
-   any proxy access logs to omit query strings for the callback.
+Register the blog’s canonical HTTPS origin followed by
+`/api/v1/owner/social/callback` as the redirect URI in each developer app.
+Keep `BLOG_AUTH_KEY_FILE` configured. Store each client secret in a private
+regular file outside `BLOG_DATA_ROOT`. The server process needs read access and
+the file needs no group or other permissions. Keep callback query strings out
+of any proxy access logs.
 
-The provider stays disabled when all three Mastodon settings are omitted.
-Each installation can connect one account on its configured instance.
-Connecting and disconnecting require recent owner authentication. Only
-ciphertext for the access token is stored in SQLite. Disconnect clears the local
-credential. Use Mastodon’s authorized applications settings to revoke the
-provider grant. A restored backup requires a fresh connection.
+For Facebook, X, Instagram, and LinkedIn, set the named environment prefix
+followed by `CLIENT_ID` and `CLIENT_SECRET_FILE`. Set the listed additional
+variables with the same prefix. Use the Graph API version enabled for the app
+in `vNN.0` format and a supported LinkedIn Marketing API version in `YYYYMM`
+format.
 
-For Docker Compose, pass the three settings under the `blog` service’s
-`environment` in a private Compose override. Add a read-only bind mount for
-the client secret, for example at `/run/secrets/mastodon-client-secret`, and use
-that container path in `BLOG_MASTODON_CLIENT_SECRET_FILE`. Give UID 65532 read
-access to the mounted file. Load the override alongside `deploy/compose.yml`.
+| Destination | Environment prefix and additional settings | Provider permissions |
+| --- | --- | --- |
+| Mastodon | `BLOG_MASTODON_ORIGIN`, `BLOG_MASTODON_CLIENT_ID`, `BLOG_MASTODON_CLIENT_SECRET_FILE`. Use a Mastodon 4.3 or later public HTTPS origin. | `profile`, `write:statuses` |
+| Facebook Page | `BLOG_SOCIAL_FACEBOOK_`, followed by `PAGE_ID` and `API_VERSION` | `pages_show_list`, `pages_read_engagement`, `pages_manage_posts`. Grant publishing authority on the configured Page. |
+| X account | `BLOG_SOCIAL_X_`. Configure a confidential OAuth 2.0 app with read and write access. X bills API requests separately. | `tweet.read`, `tweet.write`, `users.read`, `offline.access` |
+| Instagram professional account | `BLOG_SOCIAL_INSTAGRAM_`, followed by `API_VERSION`. Use Instagram Login for a Business or Creator account. | `instagram_business_basic`, `instagram_business_content_publish` |
+| LinkedIn personal profile | `BLOG_SOCIAL_LINKEDIN_PROFILE_`. Enable Sign In with LinkedIn using OpenID Connect and Share on LinkedIn. | `openid`, `profile`, `w_member_social` |
+| LinkedIn company Page | `BLOG_SOCIAL_LINKEDIN_PAGE_`, followed by `ORGANIZATION_ID` (numeric) and `API_VERSION`. Use a Community Management app and authenticate as an approved Page admin with publishing authority. | `r_organization_admin`, `w_organization_social` |
+
+Leave every setting for a provider empty to leave it disabled. For Docker
+Compose, pass the environment settings to the `blog` service in a private
+override. Bind each credential read-only outside the data directory, for
+example at `/run/secrets/social-client-secret`, and use the container path in
+its `CLIENT_SECRET_FILE` setting. Give UID 65532 read access to the mounted files.
+Load the override alongside `deploy/compose.yml`.
+
+Restart Modawana and open **Plugins → Social publishing**. Connect the desired
+accounts and check the destination names. Connecting and disconnecting require
+recent owner authentication. Only encrypted credentials are stored in SQLite.
+Reconnect expired or revoked credentials. A restored backup requires fresh
+connections. Disconnect clears the local credential. To revoke the provider
+grant, use the provider’s authorized applications settings.
 
 ## Preview and schedule
 
-Choose a language and an eligible public revision. Enter the post text and
-preview the exact text, destination, and canonical link. The text and link
-together can contain up to 500 characters. Choose **Send now** or enter a local
-date and time up to 90 days ahead. The app queues the post on Modawana and the
-background worker uses Mastodon to send it as a public status.
+Select the destination, language and published revision. Enter the post text
+and preview the destination, text, and canonical link. Instagram requires an
+approved public JPEG cover on that revision. The preview shows the image and
+caption. Instagram displays an article URL in a caption as part of the text.
 
-A scheduled post keeps its exact published revision and connection. Modawana
-checks anonymous access, the canonical link, the original account, and its
-authorization just before delivery. Unpublishing the revision, restricting
-access, changing its route, or replacing the connection can stop queued work.
-You can cancel in Delivery history until dispatch starts.
+Choose **Send now** or schedule up to 90 days ahead. The Modawana worker sends
+the post at the scheduled time. It rechecks the original account, the public
+revision, its canonical URL, and the public cover immediately before sending.
+You can cancel in Delivery history until the worker starts dispatch.
 
 ## Delivery history
 
-History lists the scheduled time, outcome, attempts, and Mastodon receipt when
-available. After a transient failure, the worker replays the same request with
-the same provider idempotency key, including after a restart. Modawana stops
-replaying within 45 minutes of the first send attempt. If history shows
-**Delivery unconfirmed**, check the account’s Mastodon timeline before creating
-a new scheduled post.
+History provides the destination, time, attempts, outcome and provider receipt
+when available. A short outage before dispatch can trigger a retry. Mastodon
+allows bounded replay with the same idempotency key for up to 45 minutes from
+the first attempt. Instagram can confirm a completed publish through the media
+container. When the outcome of a send remains uncertain, check the destination
+account before creating a replacement post.
 
 The [OpenAPI schema](../api/v1.openapi.json) documents the owner endpoints.

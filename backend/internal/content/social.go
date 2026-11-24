@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 
+	"github.com/mbougarne/modawana/backend/internal/media"
+
 	"github.com/mbougarne/modawana/backend/internal/access"
 	"github.com/mbougarne/modawana/backend/internal/siteconfig"
 )
@@ -40,6 +42,29 @@ func (s *Service) SocialRevision(ctx context.Context, tx *sql.Tx, key, locale, r
 		err = sql.ErrNoRows
 	}
 	return path, err
+}
+
+// SocialCover resolves the same immutable JPEG the public media route can serve.
+func (s *Service) SocialCover(ctx context.Context, tx *sql.Tx, revision string) (string, error) {
+	var id string
+	err := tx.QueryRowContext(ctx, `SELECT m.id FROM revisions r JOIN media m ON m.id=r.cover_media_id
+		WHERE r.id=? AND m.mime_type='image/jpeg' AND m.byte_size<=8388608
+		AND m.width BETWEEN 320 AND 1440 AND m.height>0 AND m.width*100>=m.height*80 AND m.width*100<=m.height*191`, revision).Scan(&id)
+	if err != nil {
+		return "", err
+	}
+	if !media.ID.MatchString(id) {
+		return "", sql.ErrNoRows
+	}
+	decision, err := s.Access.ResolveIn(ctx, tx, access.Request{Principal: access.Principal{Audience: access.Anonymous},
+		Surface: access.Media, ResourceID: id, Method: "GET"})
+	if err != nil {
+		return "", err
+	}
+	if !decision.AllowsBody() {
+		return "", sql.ErrNoRows
+	}
+	return "/media/" + id, nil
 }
 
 type SocialCandidate struct {

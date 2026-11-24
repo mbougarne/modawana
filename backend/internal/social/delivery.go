@@ -11,8 +11,8 @@ import (
 )
 
 type queuedPost struct {
-	id, connection, instance, key, locale, revision, path, body, outcome string
-	first                                                                int64
+	id, connection, provider, instance, key, locale, revision, path, body, outcome, image, container, title string
+	first                                                                                                   int64
 }
 
 func (s *Service) Prepare(ctx context.Context, job outbox.Delivery) (outbox.Effect, error) {
@@ -38,12 +38,51 @@ func (s *Service) Prepare(ctx context.Context, job outbox.Delivery) (outbox.Effe
 		return stopped(post, "credentials_unavailable", false), nil
 	}
 	token := string(raw)
-	account, err := s.provider.Verify(ctx, token)
+	provider := s.providers[post.provider]
+	if refresher, ok := provider.(credentialRefresher); ok {
+		updated, err := refresher.Refresh(ctx, token)
+		if err != nil {
+			return s.providerFailure(provider, post, err, false)
+		}
+		if updated != token {
+			encrypted := box.Seal(nil, nil, []byte(updated), connectionAAD(connection))
+			result, err := s.DB.ExecContext(ctx, "UPDATE social_connections SET token=? WHERE id=? AND token=?", encrypted, connection.ID, connection.token)
+			if err != nil {
+				return nil, err
+			}
+			n, err := result.RowsAffected()
+			if err != nil {
+				return nil, err
+			}
+			if n != 1 {
+				return stopped(post, "connection_changed", false), nil
+			}
+			token = updated
+		}
+	}
+	account, err := provider.Verify(ctx, token)
 	if err != nil {
-		return s.providerFailure(post, err, false)
+		return s.providerFailure(provider, post, err, false)
 	}
 	if account.ID != connection.accountID {
 		return stopped(post, "destination_changed", true), nil
+	}
+	message := Message{AccountID: account.ID, OperationID: post.id, Text: post.body, Title: post.title,
+		Link: s.baseURL + post.path, Image: post.image, Container: post.container}
+	if media, ok := provider.(mediaPublisher); ok {
+		if message.Container == "" {
+			container, err := media.PrepareMedia(ctx, token, message)
+			if err != nil {
+				return s.providerFailure(provider, post, err, false)
+			}
+			if _, err = s.DB.ExecContext(ctx, "UPDATE social_posts SET container=? WHERE id=? AND first_dispatch_at=0 AND outcome=''", container, post.id); err != nil {
+				return nil, err
+			}
+			message.Container = container
+		}
+		if err := media.MediaReady(ctx, token, message.Container); err != nil {
+			return s.providerFailure(provider, post, err, false)
+		}
 	}
 	// Check the publication, destination and cancellation once again after the
 	// provider query, and commit the dispatch marker before sending.
@@ -57,9 +96,16 @@ func (s *Service) Prepare(ctx context.Context, job outbox.Delivery) (outbox.Effe
 	if reason != "" {
 		return stopped(post, reason, false), nil
 	}
-	receipt, err := s.provider.Send(ctx, token, post.id, post.body)
+	receipt, err := provider.Send(ctx, token, message)
 	if err != nil {
-		return s.providerFailure(post, err, true)
+		var failure *providerError
+		if reconciler, ok := provider.(interface {
+			Reconcile(context.Context, string, Message) bool
+		}); ok &&
+			errors.As(err, &failure) && (failure.status == 0 || failure.status >= 500) && reconciler.Reconcile(ctx, token, message) {
+			return finish(post, "sent", "", Receipt{}, false), nil
+		}
+		return s.providerFailure(provider, post, err, true)
 	}
 	if receipt.Account.ID != connection.accountID {
 		return finish(post, "uncertain", "unexpected_receipt", Receipt{}, true), nil
@@ -75,23 +121,28 @@ func (s *Service) check(ctx context.Context, id string, dispatch bool) (queuedPo
 		return p, c, "", err
 	}
 	defer tx.Rollback()
-	err = tx.QueryRowContext(ctx, `SELECT id,connection_id,instance,content_key,locale,revision_id,path,body,outcome,first_dispatch_at
-		FROM social_posts WHERE id=?`, id).Scan(&p.id, &p.connection, &p.instance, &p.key, &p.locale, &p.revision, &p.path, &p.body, &p.outcome, &p.first)
+	err = tx.QueryRowContext(ctx, `SELECT id,connection_id,provider,instance,content_key,locale,revision_id,path,body,outcome,first_dispatch_at,image,container,
+		coalesce((SELECT title FROM revisions WHERE id=social_posts.revision_id),'')
+		FROM social_posts WHERE id=?`, id).Scan(&p.id, &p.connection, &p.provider, &p.instance, &p.key, &p.locale, &p.revision, &p.path, &p.body, &p.outcome, &p.first, &p.image, &p.container, &p.title)
 	if err != nil || p.outcome != "" {
 		return p, c, "", err
 	}
-	if s.provider == nil || p.instance != s.provider.Instance() {
+	provider := s.providers[p.provider]
+	if provider == nil || p.instance != provider.Instance() {
 		return p, c, "connection_changed", nil
 	}
-	c, err = readConnection(ctx, tx, p.instance)
-	if errors.Is(err, sql.ErrNoRows) || err == nil && c.ID != p.connection {
+	c, err = readConnection(ctx, tx, "id", p.connection)
+	if errors.Is(err, sql.ErrNoRows) || err == nil && (c.Provider != p.provider || c.Instance != p.instance) {
 		return p, c, "connection_changed", nil
 	}
 	if err != nil {
 		return p, c, "", err
 	}
 	now := time.Now()
-	if p.first > 0 && !now.Before(time.UnixMilli(p.first).Add(s.provider.ReplayWindow())) {
+	if p.first > 0 && provider.ReplayWindow() == 0 {
+		return p, c, "delivery_unconfirmed", nil
+	}
+	if p.first > 0 && !now.Before(time.UnixMilli(p.first).Add(provider.ReplayWindow())) {
 		return p, c, "replay_window_expired", nil
 	}
 	path, err := s.Content.SocialRevision(ctx, tx, p.key, p.locale, p.revision)
@@ -100,6 +151,15 @@ func (s *Service) check(ctx context.Context, id string, dispatch bool) (queuedPo
 	}
 	if err != nil {
 		return p, c, "", err
+	}
+	if p.image != "" {
+		cover, err := s.Content.SocialCover(ctx, tx, p.revision)
+		if errors.Is(err, sql.ErrNoRows) || err == nil && s.baseURL+cover != p.image {
+			return p, c, "publication_changed", nil
+		}
+		if err != nil {
+			return p, c, "", err
+		}
 	}
 	if dispatch && p.first == 0 {
 		if _, err := tx.ExecContext(ctx, "UPDATE social_posts SET first_dispatch_at=? WHERE id=?", now.UnixMilli(), p.id); err != nil {
@@ -116,7 +176,7 @@ func (s *Service) matchesOrigin(p queuedPost) bool {
 	return len(p.body) > len(suffix) && p.body[len(p.body)-len(suffix):] == suffix
 }
 
-func (s *Service) providerFailure(p queuedPost, err error, send bool) (outbox.Effect, error) {
+func (s *Service) providerFailure(provider Provider, p queuedPost, err error, send bool) (outbox.Effect, error) {
 	var failure *providerError
 	if !errors.As(err, &failure) {
 		return stopped(p, "provider_unavailable", false), nil
@@ -125,10 +185,16 @@ func (s *Service) providerFailure(p queuedPost, err error, send bool) (outbox.Ef
 	case http.StatusUnauthorized, http.StatusForbidden:
 		return stopped(p, "access_revoked", true), nil
 	}
+	if send && provider.ReplayWindow() == 0 && (failure.status == 0 || failure.status >= 500) {
+		return finish(p, "uncertain", "delivery_unconfirmed", Receipt{}, false), nil
+	}
+	if send && provider.ReplayWindow() == 0 && failure.status == http.StatusTooManyRequests {
+		return finish(p, "failed", "provider_retry", Receipt{}, false), nil
+	}
 	if failure.status == 0 || failure.status == http.StatusTooManyRequests || failure.status >= 500 {
-		deadline := time.Now().Add(s.provider.ReplayWindow())
+		deadline := time.Now().Add(provider.ReplayWindow())
 		if p.first > 0 {
-			deadline = time.UnixMilli(p.first).Add(s.provider.ReplayWindow())
+			deadline = time.UnixMilli(p.first).Add(provider.ReplayWindow())
 		}
 		if (send || p.first > 0) && !failure.retry.Before(deadline) {
 			return finish(p, "uncertain", "replay_window_expired", Receipt{}, false), nil

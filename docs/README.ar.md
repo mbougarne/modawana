@@ -17,7 +17,7 @@
 - [بروتوكول MCP وتكامل OAuth](integrations/mcp-oauth.md): إدارة عملاء النشر البعيد الاختياريين وإلغاء صلاحياتهم.
 - [إضافات WebAssembly](plugins.ar.md): مجلدات الإضافات المعزولة وبياناتها واعتماد المالك.
 - [توصيل الدروس إلى المدونة وNotion](integrations/lesson-delivery.ar.md): النشر المتزامن للوجهات المستقلة وإعادة المحاولة بأمان.
-- [النشر على ماستودون](integrations/social-publishing.ar.md)
+- [النشر على الشبكات الاجتماعية](integrations/social-publishing.ar.md)
 - [جدولة نشر الدروس](integrations/remote-publishing.md): التوليد الآلي الاختياري للدروس ونموذج خدمة معطل افتراضياً.
 
 ## المرجع التقني للتطوير

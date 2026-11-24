@@ -1086,3 +1086,9 @@
   overflow-wrap: anywhere;
   white-space: pre-wrap;
 }
+
+.social-post-image {
+  display: block;
+  max-inline-size: min(100%, 28rem);
+  block-size: auto;
+}

@@ -53,24 +53,34 @@ func NewMastodon(c MastodonConfig, baseURL, dataRoot string) (Provider, error) {
 		!validOAuthValue(c.ClientID) || !filepath.IsAbs(c.ClientSecretFile) {
 		return nil, ErrInvalid
 	}
-	secret, err := filepath.EvalSymlinks(c.ClientSecretFile)
-	if err != nil {
-		return nil, ErrInvalid
-	}
-	relative, err := filepath.Rel(dataRoot, secret)
-	if err != nil || (!strings.HasPrefix(relative, ".."+string(filepath.Separator)) && relative != "..") {
-		return nil, ErrInvalid
+	if err := checkOAuthSecret(c.ClientSecretFile, dataRoot); err != nil {
+		return nil, err
 	}
 	m := &mastodon{instance: c.Instance, callback: baseURL + CallbackPath, clientID: c.ClientID, secretFile: c.ClientSecretFile,
 		client: publichttp.NewClient(6 * time.Second)}
-	if _, err := m.readSecret(); err != nil {
-		return nil, err
-	}
 	return m, nil
 }
 
-func (m *mastodon) readSecret() (string, error) {
-	f, err := os.OpenFile(m.secretFile, os.O_RDONLY|syscall.O_NOFOLLOW|syscall.O_NONBLOCK, 0)
+func checkOAuthSecret(file, dataRoot string) error {
+	if !filepath.IsAbs(file) {
+		return ErrInvalid
+	}
+	secret, err := filepath.EvalSymlinks(file)
+	if err != nil {
+		return ErrInvalid
+	}
+	relative, err := filepath.Rel(dataRoot, secret)
+	if err != nil || (!strings.HasPrefix(relative, ".."+string(filepath.Separator)) && relative != "..") {
+		return ErrInvalid
+	}
+	_, err = readOAuthSecret(file)
+	return err
+}
+
+func (m *mastodon) readSecret() (string, error) { return readOAuthSecret(m.secretFile) }
+
+func readOAuthSecret(file string) (string, error) {
+	f, err := os.OpenFile(file, os.O_RDONLY|syscall.O_NOFOLLOW|syscall.O_NONBLOCK, 0)
 	if err != nil {
 		return "", ErrUnavailable
 	}
@@ -185,9 +195,9 @@ func (m *mastodon) Verify(ctx context.Context, token string) (Account, error) {
 	return out, err
 }
 
-func (m *mastodon) Send(ctx context.Context, token, id, body string) (Receipt, error) {
+func (m *mastodon) Send(ctx context.Context, token string, mPost Message) (Receipt, error) {
 	var out Receipt
-	err := m.call(ctx, http.MethodPost, "/api/v1/statuses", token, id, url.Values{"status": {body}, "visibility": {"public"}}, &out)
+	err := m.call(ctx, http.MethodPost, "/api/v1/statuses", token, mPost.OperationID, url.Values{"status": {mPost.Text}, "visibility": {"public"}}, &out)
 	if err == nil && (!numericID.MatchString(out.ID) || !numericID.MatchString(out.Account.ID)) {
 		err = &providerError{}
 	}

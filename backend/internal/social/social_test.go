@@ -77,7 +77,7 @@ func fixture(t *testing.T) (*Service, *mastodon, string, content.Result) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	s := &Service{DB: database, Content: contents, provider: adapter, baseURL: "https://blog.example",
+	s := &Service{DB: database, Content: contents, providers: map[string]Provider{"mastodon": adapter}, baseURL: "https://blog.example",
 		key: func() ([]byte, error) { return bytes.Repeat([]byte{42}, 32), nil }}
 	return s, adapter.(*mastodon), owner, published
 }
@@ -101,10 +101,10 @@ func fresh(_ context.Context, _ *sql.Tx, session string) error {
 func connect(t *testing.T, s *Service, p *mastodon, delivery roundTrip) string {
 	t.Helper()
 	ctx := context.Background()
-	if _, err := s.Start(ctx, "en", "revoked-session", fresh); err == nil {
+	if _, err := s.Start(ctx, "mastodon", "en", "revoked-session", fresh); err == nil {
 		t.Fatal("accepted a revoked session")
 	}
-	begin, err := s.Start(ctx, "en", "fresh-session", fresh)
+	begin, err := s.Start(ctx, "mastodon", "en", "fresh-session", fresh)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -152,7 +152,7 @@ func connect(t *testing.T, s *Service, p *mastodon, delivery roundTrip) string {
 		t.Fatal("accepted a replayed callback", calls, err)
 	}
 	cfg, err := s.Configuration(ctx)
-	if err != nil || cfg.Connection == nil || cfg.Connection.Account != "editor" || bytes.Contains(cfg.Connection.token, []byte(testToken)) {
+	if err != nil || cfg.Destinations[0].Connection == nil || cfg.Destinations[0].Connection.Account != "editor" || bytes.Contains(cfg.Destinations[0].Connection.token, []byte(testToken)) {
 		t.Fatal("invalid sealed connection")
 	}
 	encoded, err := json.Marshal(cfg)
@@ -160,7 +160,7 @@ func connect(t *testing.T, s *Service, p *mastodon, delivery roundTrip) string {
 		t.Fatal("credential was serialized")
 	}
 	p.client.Transport = delivery
-	return cfg.Connection.ID
+	return cfg.Destinations[0].Connection.ID
 }
 
 func reply(code int, body string) *http.Response {
@@ -335,7 +335,7 @@ func TestDeliveryBlocksRevokedAccess(t *testing.T) {
 		t.Fatal(post)
 	}
 	cfg, err := s.Configuration(context.Background())
-	if err != nil || cfg.Connection != nil {
+	if err != nil || cfg.Destinations[0].Connection != nil {
 		t.Fatal("revoked connection stayed active", err)
 	}
 }
@@ -396,7 +396,7 @@ func TestSupersededAndCancelledRevisionsCannotDispatch(t *testing.T) {
 					t.Fatal("cancelled job remained runnable", state, err)
 				}
 			case "disconnected":
-				if err := s.Disconnect(ctx, "fresh-session", fresh); err != nil {
+				if err := s.Disconnect(ctx, "mastodon", "fresh-session", fresh); err != nil {
 					t.Fatal(err)
 				}
 				runWorker(t, s)

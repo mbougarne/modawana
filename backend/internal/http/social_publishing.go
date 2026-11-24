@@ -16,6 +16,11 @@ const socialCookie = "__Host-social-oauth"
 
 func socialError(w http.ResponseWriter, err error) {
 	switch {
+	case errors.Is(err, social.ErrImage):
+		writeJSON(w, http.StatusUnprocessableEntity, map[string]any{"error": map[string]any{
+			"code": "invalid_fields", "message": messages[InvalidFields], "request_id": w.Header().Get("X-Request-ID"),
+			"fields": []siteconfig.FieldIssue{{Path: "image", Code: "cover_required"}},
+		}})
 	case errors.Is(err, social.ErrInvalid):
 		writeError(w, InvalidFields)
 	case errors.Is(err, social.ErrConflict):
@@ -71,14 +76,19 @@ func (d *Domain) socialRoutes(w http.ResponseWriter, r *http.Request) bool {
 	case path == socialAPI+"/connect" && r.Method == http.MethodPost:
 		d.socialConnect(w, r)
 	case path == socialAPI+"/disconnect" && r.Method == http.MethodPost:
-		session, err := d.Auth.FreshOwnerBinding(r)
-		if err == nil {
-			err = d.Social.Disconnect(ctx, session, d.Auth.CheckFreshOwnerBinding)
+		var in struct {
+			Provider string `json:"provider"`
 		}
-		socialSaved(w, err)
+		if DecodeJSON(w, r, &in, 1024) {
+			session, err := d.Auth.FreshOwnerBinding(r)
+			if err == nil {
+				err = d.Social.Disconnect(ctx, in.Provider, session, d.Auth.CheckFreshOwnerBinding)
+			}
+			socialSaved(w, err)
+		}
 	case path == socialAPI+"/preview" && r.Method == http.MethodPost:
 		var in social.Draft
-		if DecodeJSON(w, r, &in, 8<<10) {
+		if DecodeJSON(w, r, &in, 32<<10) {
 			out, err := d.Social.Preview(ctx, in)
 			if err != nil {
 				socialError(w, err)
@@ -88,7 +98,7 @@ func (d *Domain) socialRoutes(w http.ResponseWriter, r *http.Request) bool {
 		}
 	case path == socialAPI+"/schedule" && r.Method == http.MethodPost:
 		var in social.Schedule
-		if DecodeJSON(w, r, &in, 8<<10) {
+		if DecodeJSON(w, r, &in, 32<<10) {
 			socialSaved(w, d.Social.Schedule(ctx, in))
 		}
 	case strings.HasPrefix(path, socialAPI+"/cancel/") && r.Method == http.MethodPost:
@@ -109,7 +119,8 @@ func socialSaved(w http.ResponseWriter, err error) {
 
 func (d *Domain) socialConnect(w http.ResponseWriter, r *http.Request) {
 	var in struct {
-		Locale string `json:"locale"`
+		Locale   string `json:"locale"`
+		Provider string `json:"provider"`
 	}
 	if !DecodeJSON(w, r, &in, 1024) {
 		return
@@ -119,7 +130,7 @@ func (d *Domain) socialConnect(w http.ResponseWriter, r *http.Request) {
 		domainError(w, err)
 		return
 	}
-	out, err := d.Social.Start(r.Context(), in.Locale, session, d.Auth.CheckFreshOwnerBinding)
+	out, err := d.Social.Start(r.Context(), in.Provider, in.Locale, session, d.Auth.CheckFreshOwnerBinding)
 	if err != nil {
 		socialError(w, err)
 		return
@@ -134,7 +145,7 @@ func setSocialCookie(w http.ResponseWriter, value string, maxAge int) {
 
 func (d *Domain) socialCallback(w http.ResponseWriter, r *http.Request) {
 	// The Strict owner cookie is unavailable on this cross-site return. Use
-	// the short-lived Lax proof plus state, PKCE and the bound owner session.
+	// the short-lived Lax proof plus state and the bound owner session.
 	w.Header().Set("Referrer-Policy", "no-referrer")
 	setSocialCookie(w, "", -1)
 	language, result := "en", "failed"

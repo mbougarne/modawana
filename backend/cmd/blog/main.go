@@ -196,7 +196,32 @@ func run() int {
 		logger.Error("social publishing configuration rejected")
 		return 1
 	}
-	socialPublishing, err := social.Open(cfg, database, contents, adapter)
+	adapters := []social.Provider{adapter}
+	for _, entry := range []struct{ key, prefix, target, version string }{
+		{"facebook", "FACEBOOK", "PAGE_ID", "API_VERSION"},
+		{"x", "X", "", ""},
+		{"instagram", "INSTAGRAM", "", "API_VERSION"},
+		{"linkedin-profile", "LINKEDIN_PROFILE", "", ""},
+		{"linkedin-page", "LINKEDIN_PAGE", "ORGANIZATION_ID", "API_VERSION"},
+	} {
+		prefix := "BLOG_SOCIAL_" + entry.prefix + "_"
+		app := social.AppConfig{
+			ClientID: os.Getenv(prefix + "CLIENT_ID"), ClientSecretFile: os.Getenv(prefix + "CLIENT_SECRET_FILE"),
+		}
+		if entry.target != "" {
+			app.TargetID = os.Getenv(prefix + entry.target)
+		}
+		if entry.version != "" {
+			app.APIVersion = os.Getenv(prefix + entry.version)
+		}
+		adapter, err := social.NewRemote(entry.key, app, cfg.BaseURL, cfg.DataRoot)
+		if err != nil {
+			logger.Error("social provider configuration rejected", "provider", entry.key)
+			return 1
+		}
+		adapters = append(adapters, adapter)
+	}
+	socialPublishing, err := social.Open(cfg, database, contents, adapters...)
 	if err != nil {
 		logger.Error("social publishing requires the installation auth key")
 		return 1

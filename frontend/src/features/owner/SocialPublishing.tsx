@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { Button, Field, useI18n, type Locale } from '@ui';
 import { isLocale, localeCodes } from '../../../../ui/src/i18n/locales';
 import { useResource } from '../../pages/public/api';
-import { call } from '../auth/api';
+import { AuthError, call } from '../auth/api';
 import { authenticatedTransfer } from '../auth/reauthenticate';
 import { OwnerPageHeading } from './OwnerWorkspace';
 
@@ -16,6 +16,23 @@ interface Connection {
   url: string;
 }
 
+interface Destination {
+  provider: string;
+  instance: string;
+  connection?: Connection;
+  text_limit: number;
+  requires_image: boolean;
+}
+
+type Connected = Destination & { connection: Connection };
+
+function accountName(destination: Connected) {
+  const { provider, connection } = destination;
+  return provider === 'mastodon'
+    ? connection.account + '@' + connection.instance.slice(8)
+    : connection.account;
+}
+
 interface Candidate {
   key: string;
   revision_id: string;
@@ -24,6 +41,7 @@ interface Candidate {
 
 interface ScheduledPost {
   id: string;
+  provider: string;
   destination: string;
   body: string;
   locale: Locale;
@@ -41,6 +59,7 @@ interface Preview {
   body: string;
   path: string;
   destination: string;
+  image?: string;
 }
 
 interface Draft {
@@ -56,6 +75,7 @@ type ReviewedPost = Preview & Draft & { id: string; scheduled_at?: string };
 const failureReasons = new Set([
   'access_revoked',
   'connection_changed',
+  'delivery_unconfirmed',
   'credentials_unavailable',
   'destination_changed',
   'publication_changed',
@@ -70,7 +90,7 @@ export function SocialPublishing({ csrf }: { csrf: string }) {
   const { t, locale, date } = useI18n();
   const location = useLocation();
   const [cursor, setCursor] = useState('');
-  const account = useResource<{ instance: string; connection?: Connection }>(api + '/connection');
+  const account = useResource<{ destinations: Destination[] }>(api + '/connection');
   const history = useResource<{ items: ScheduledPost[]; next?: string }>(
     api + (cursor ? '?cursor=' + encodeURIComponent(cursor) : ''),
   );
@@ -78,7 +98,10 @@ export function SocialPublishing({ csrf }: { csrf: string }) {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
   const oauth = new URLSearchParams(location.search).get('oauth');
-  const connection = account.data?.connection;
+  const destinations = account.data?.destinations ?? [];
+  const connected = destinations.filter(
+    (destination): destination is Connected => !!destination.connection,
+  );
 
   function refresh() {
     setCursor('');
@@ -97,7 +120,7 @@ export function SocialPublishing({ csrf }: { csrf: string }) {
     }
   }
 
-  async function accountAction(action: 'connect' | 'disconnect') {
+  async function accountAction(action: 'connect' | 'disconnect', provider: string) {
     await mutate(async () => {
       const response = await authenticatedTransfer(
         api + '/' + action,
@@ -106,7 +129,7 @@ export function SocialPublishing({ csrf }: { csrf: string }) {
           credentials: 'same-origin',
           cache: 'no-store',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ locale }),
+          body: JSON.stringify(action === 'connect' ? { locale, provider } : { provider }),
         },
         (session) => setCSRF(session.csrf || ''),
       );
@@ -131,33 +154,30 @@ export function SocialPublishing({ csrf }: { csrf: string }) {
       {(account.error || history.error) && <p role="alert">{t('social.failedRequest')}</p>}
       {account.data && (
         <section className="vb-card">
-          <h2>{t('social.destination')}</h2>
-          {!account.data.instance ? (
-            <p>{t('social.unconfigured')}</p>
-          ) : (
-            <>
-              <p>
-                <bdi>
-                  {connection
-                    ? connection.account + '@' + connection.instance.slice(8)
-                    : account.data.instance}
-                </bdi>
-              </p>
-              {connection ? (
+          <h2>{t('social.accounts')}</h2>
+          {destinations.length === 0 && <p>{t('social.unconfigured')}</p>}
+          {destinations.map((destination) => {
+            const { connection, provider } = destination;
+            return (
+              <article key={provider} className="vb-card">
+                <h3>{t('social.provider.' + provider)}</h3>
+                {connection && (
+                  <p>
+                    <bdi>{accountName({ ...destination, connection })}</bdi>
+                  </p>
+                )}
                 <Button
                   disabled={busy}
-                  variant="quiet"
-                  onClick={() => void accountAction('disconnect')}
+                  variant={connection ? 'quiet' : undefined}
+                  onClick={() =>
+                    void accountAction(connection ? 'disconnect' : 'connect', provider)
+                  }
                 >
-                  {t('social.disconnect')}
+                  {t(connection ? 'social.disconnect' : 'social.connect')}
                 </Button>
-              ) : (
-                <Button disabled={busy} onClick={() => void accountAction('connect')}>
-                  {t('social.connect')}
-                </Button>
-              )}
-            </>
-          )}
+              </article>
+            );
+          })}
         </section>
       )}
       {(notice || oauth === 'connected' || oauth === 'failed') && (
@@ -165,13 +185,8 @@ export function SocialPublishing({ csrf }: { csrf: string }) {
           {t(notice || (oauth === 'connected' ? 'social.connected' : 'social.connectionFailed'))}
         </p>
       )}
-      {connection && (
-        <Composer
-          key={connection.id}
-          connection={connection}
-          csrf={activeCSRF || csrf}
-          refresh={refresh}
-        />
+      {connected.length > 0 && (
+        <Composer destinations={connected} csrf={activeCSRF || csrf} refresh={refresh} />
       )}
       <section className="vb-card">
         <h2>{t('social.history')}</h2>
@@ -181,7 +196,7 @@ export function SocialPublishing({ csrf }: { csrf: string }) {
           <article className="vb-card" key={post.id}>
             <h3>{t('social.status.' + post.status)}</h3>
             <p>
-              <bdi>{post.destination}</bdi> ·{' '}
+              {t('social.provider.' + post.provider)} · <bdi>{post.destination}</bdi> ·{' '}
               <time dateTime={post.scheduled_at}>
                 {date(post.scheduled_at, { dateStyle: 'medium', timeStyle: 'short' })}
               </time>
@@ -234,16 +249,19 @@ export function SocialPublishing({ csrf }: { csrf: string }) {
 }
 
 function Composer({
-  connection,
+  destinations,
   csrf,
   refresh,
 }: {
-  connection: Connection;
+  destinations: Connected[];
   csrf: string;
   refresh: () => void;
 }) {
   const { t, locale, date } = useI18n();
   const [language, setLanguage] = useState(locale);
+  const [connectionID, selectConnection] = useState('');
+  const destination =
+    destinations.find((item) => item.connection.id === connectionID) ?? destinations[0];
   const [cursor, setCursor] = useState('');
   const candidates = useResource<{ items: Candidate[]; next?: string }>(
     api + '/content?' + new URLSearchParams({ locale: language, cursor }),
@@ -264,7 +282,7 @@ function Composer({
     setNotice('');
     try {
       const draft: Draft = {
-        connection_id: connection.id,
+        connection_id: destination.connection.id,
         key: content.key,
         locale: language,
         revision_id: content.revision_id,
@@ -273,8 +291,12 @@ function Composer({
       const scheduled_at = when ? new Date(when).toISOString() : undefined;
       const result = await call<Preview>('/owner/social/preview', 'POST', draft, csrf);
       setReview({ ...result, ...draft, scheduled_at, id: crypto.randomUUID().replaceAll('-', '') });
-    } catch {
-      setNotice('social.previewFailed');
+    } catch (error) {
+      setNotice(
+        error instanceof AuthError && error.fields?.some((field) => field.code === 'cover_required')
+          ? 'social.coverRequired'
+          : 'social.previewFailed',
+      );
     } finally {
       setBusy(false);
     }
@@ -284,7 +306,7 @@ function Composer({
     if (!review || busy) {
       return;
     }
-    const { id, key, locale, revision_id, text, path, scheduled_at, connection_id } = review;
+    const { id, key, locale, revision_id, text, path, scheduled_at, connection_id, image } = review;
     setBusy(true);
     setNotice('');
     try {
@@ -300,6 +322,7 @@ function Composer({
           path,
           scheduled_at,
           connection_id,
+          image,
         },
         csrf,
       );
@@ -324,6 +347,22 @@ function Composer({
         }}
       >
         <fieldset className="owner-fields" disabled={busy}>
+          <Field label={t('social.destination')}>
+            <select
+              value={destination.connection.id}
+              onChange={(event) => {
+                selectConnection(event.target.value);
+                setReview(undefined);
+              }}
+            >
+              {destinations.map((item) => (
+                <option value={item.connection.id} key={item.connection.id}>
+                  {t('social.provider.' + item.provider)} · {accountName(item)}
+                </option>
+              ))}
+            </select>
+          </Field>
+          {destination.requires_image && <p>{t('social.coverRequired')}</p>}
           <Field label={t('social.language')}>
             <select
               value={language}
@@ -390,7 +429,7 @@ function Composer({
             <textarea
               required
               dir="auto"
-              maxLength={500}
+              maxLength={destination.text_limit}
               value={text}
               onChange={(event) => {
                 setText(event.target.value);
@@ -413,12 +452,15 @@ function Composer({
           </Button>
         </fieldset>
       </form>
-      {review && (
+      {review && review.connection_id === destination.connection.id && (
         <div className="vb-card">
           <h3>{t('social.preview')}</h3>
           <p>
             <bdi>{review.destination}</bdi>
           </p>
+          {review.image && (
+            <img src={review.image} alt={t('social.cover')} className="social-post-image" />
+          )}
           {review.scheduled_at && (
             <p>
               <time dateTime={review.scheduled_at}>
