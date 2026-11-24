@@ -44,6 +44,7 @@ const pages = [
   ['social', 'link'],
   ['analytics', 'ul'],
   ['editorial', 'quote'],
+  ['store', 'folder'],
   ['layout', 'settings'],
 ] as const satisfies readonly (readonly [string, IconName])[];
 

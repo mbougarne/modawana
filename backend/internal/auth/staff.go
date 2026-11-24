@@ -22,10 +22,11 @@ const staffSessionDuration = 12 * time.Hour
 type StaffPermission string
 
 const (
-	StaffReadContent  StaffPermission = "content:read"
-	StaffWriteDraft   StaffPermission = "content:draft"
-	StaffPublish      StaffPermission = "content:publish"
-	StaffManageOrders StaffPermission = "store:orders"
+	StaffReadContent   StaffPermission = "content:read"
+	StaffWriteDraft    StaffPermission = "content:draft"
+	StaffPublish       StaffPermission = "content:publish"
+	StaffManageOrders  StaffPermission = "store:orders"
+	StaffManageCatalog StaffPermission = "store:catalog"
 )
 
 func staffRoleValid(role string) bool {
@@ -38,7 +39,7 @@ func staffAllows(role string, permission StaffPermission) bool {
 		return role == "owner" || role == "editor"
 	case StaffPublish:
 		return role == "owner"
-	case StaffManageOrders:
+	case StaffManageOrders, StaffManageCatalog:
 		return role == "owner" || role == "store_manager"
 	}
 	return false

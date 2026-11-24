@@ -27,7 +27,8 @@
 <a class="vb-btn vb-btn-quiet" href="{{.URL}}">{{.Clear}}</a>
 {{else}}
 <p class="vb-meta" role="status">{{.Count}}</p>
-{{if .Posts}}{{template "public-posts" .Posts}}{{else}}<p class="public-empty">{{.Empty}}</p>{{end}}
+{{if .Posts}}{{template "public-posts" .Posts}}{{else if not .ProductResults}}<p class="public-empty">{{.Empty}}</p>{{end}}
+{{if .ProductResults}}<section><h2>{{.ProductHeading}}</h2>{{template "public-posts" .ProductResults}}</section>{{end}}
 {{if or .PreviousURL .NextURL}}<nav class="public-pagination" aria-label="{{.PagesLabel}}">
 {{if .PreviousURL}}<a class="vb-btn vb-btn-secondary" href="{{.PreviousURL}}">{{.Previous}}</a>{{end}}
 {{if .NextURL}}<a class="vb-btn vb-btn-secondary" href="{{.NextURL}}">{{.Next}}</a>{{end}}

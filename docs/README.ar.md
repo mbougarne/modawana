@@ -20,6 +20,7 @@
 - [النشر على الشبكات الاجتماعية](integrations/social-publishing.ar.md)
 - [إحصاءات الموقع](integrations/analytics.ar.md)
 - [المساعد التحريري](integrations/editorial-ai.ar.md)
+- [كتالوج المتجر والمخزون](integrations/store.ar.md)
 - [جدولة نشر الدروس](integrations/remote-publishing.md): التوليد الآلي الاختياري للدروس ونموذج خدمة معطل افتراضياً.
 
 ## المرجع التقني للتطوير

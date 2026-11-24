@@ -26,6 +26,9 @@ func (s *Server) readerContext(r *http.Request) context.Context {
 }
 
 func (d *Domain) ResolvePage(ctx context.Context, path string) (content.PageRoute, error) {
+	if storePath(path) {
+		return d.resolveStore(ctx, path)
+	}
 	return d.Content.ResolvePage(ctx, path)
 }
 
@@ -84,7 +87,7 @@ func (s *Server) publicPage(w http.ResponseWriter, r *http.Request, resolver pag
 		path = "/" + publicLocales(locales)[0]
 	}
 	page, err := resolver.ResolvePage(ctx, path)
-	if errors.Is(err, sql.ErrNoRows) {
+	if errors.Is(err, sql.ErrNoRows) && !storePath(path) {
 		page, err = s.resolveEditorialRedirect(ctx, resolver, path)
 	}
 	if page.Content != nil && page.Content.SEO != nil && page.Content.SEO.NoIndex {

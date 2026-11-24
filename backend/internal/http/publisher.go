@@ -32,7 +32,7 @@ func (d *Domain) publisherRoutes(w http.ResponseWriter, r *http.Request) bool {
 			}
 			return nil
 		}})
-		return d.uploadMedia(w, r.WithContext(ctx), token.Owner)
+		return d.uploadMedia(w, r.WithContext(ctx), token.Owner, false)
 	}
 	parts := strings.Split(strings.TrimPrefix(r.URL.Path, "/api/v1/publisher/content/"), "/")
 	if !strings.HasPrefix(r.URL.Path, "/api/v1/publisher/content/") || len(parts) < 2 || len(parts) > 3 {

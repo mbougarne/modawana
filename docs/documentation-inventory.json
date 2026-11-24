@@ -339,6 +339,16 @@
       "companion": "docs/integrations/social-publishing.ar.md"
     },
     {
+      "path": "docs/integrations/store.ar.md",
+      "coverage": "ar",
+      "companion": "docs/integrations/store.md"
+    },
+    {
+      "path": "docs/integrations/store.md",
+      "coverage": "en",
+      "companion": "docs/integrations/store.ar.md"
+    },
+    {
       "path": "docs/licenses.md",
       "coverage": "bilingual"
     },

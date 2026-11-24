@@ -53,6 +53,14 @@ func (s *Service) Upload(ctx context.Context, owner, name, declared, purpose str
 	return s.UploadWithKey(ctx, owner, name, declared, purpose, r, "")
 }
 func (s *Service) UploadWithKey(ctx context.Context, owner, name, declared, purpose string, r io.Reader, retryKey string) (Record, error) {
+	return s.upload(ctx, owner, name, declared, purpose, r, retryKey, false)
+}
+
+func (s *Service) UploadStoreImage(ctx context.Context, owner, name, declared string, r io.Reader, retryKey string) (Record, error) {
+	return s.upload(ctx, owner, name, declared, "content", r, retryKey, true)
+}
+
+func (s *Service) upload(ctx context.Context, owner, name, declared, purpose string, r io.Reader, retryKey string, store bool) (Record, error) {
 	select {
 	case s.slots <- struct{}{}:
 		defer func() { <-s.slots }()
@@ -73,6 +81,9 @@ func (s *Service) UploadWithKey(ctx context.Context, owner, name, declared, purp
 	if e != nil {
 		return Record{}, e
 	}
+	if store && f.Kind != "image" {
+		return Record{}, ErrInvalid
+	}
 	name = filepath.Base(strings.ReplaceAll(name, "\\", "/"))
 	if len(name) > 255 || strings.ContainsAny(name, "\x00\r\n") || name == "." {
 		return Record{}, ErrInvalid
@@ -83,6 +94,9 @@ func (s *Service) UploadWithKey(ctx context.Context, owner, name, declared, purp
 		Bytes                   string
 		Name, Declared, Purpose string
 	}{hex.EncodeToString(byteHash[:]), name, declared, purpose})
+	if store {
+		request = requestDigest(struct{ Store string }{request})
+	}
 	e = s.Files.Exclusive(ctx, func() error {
 		tx, e := s.DB.BeginTx(ctx, nil)
 		if e != nil {
@@ -107,6 +121,11 @@ func (s *Service) UploadWithKey(ctx context.Context, owner, name, declared, purp
 		}
 		if e = access.CheckMutation(ctx, tx, id); e != nil {
 			return e
+		}
+		if store {
+			if _, e = tx.ExecContext(ctx, "INSERT INTO store_media VALUES(?)", id); e != nil {
+				return e
+			}
 		}
 		if e = rememberUpload(ctx, tx, access.Actor(ctx, owner), retryKey, request, id); e != nil {
 			return e

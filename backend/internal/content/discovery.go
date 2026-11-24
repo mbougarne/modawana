@@ -171,9 +171,10 @@ type ListEntry struct {
 	Locked         bool     `json:"locked"`
 }
 type Page struct {
-	Items []ListEntry `json:"items"`
-	Total int         `json:"total"`
-	Next  string      `json:"next_cursor"`
+	Products []ListEntry `json:"products,omitempty"`
+	Items    []ListEntry `json:"items"`
+	Total    int         `json:"total"`
+	Next     string      `json:"next_cursor"`
 }
 type pageCursor struct {
 	Date   string `json:"d"`

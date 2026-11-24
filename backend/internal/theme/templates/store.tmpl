@@ -1,0 +1,35 @@
+{{define "public-store"}}
+{{if .Product}}
+<a class="vb-link" href="{{.BackURL}}">{{.Back}}</a>
+<article class="public-section">
+{{with .Product}}
+<header class="vb-pagehead"><h1 dir="auto">{{.Title}}</h1></header>
+{{if .Images}}<div class="public-store-gallery">{{range .Images}}<img src="{{.URL}}" alt="{{.Alt}}" loading="lazy">{{end}}</div>{{end}}
+<p class="public-store-description" dir="auto">{{.Description}}</p>
+<ul class="public-store-variants">{{range .Variants}}<li class="vb-card">
+<strong><bdi>{{.Name}}</bdi></strong>
+{{if ne .Name .SKU}}<span class="vb-meta"><bdi>{{.SKU}}</bdi></span>{{end}}
+<bdi>{{.Price}}</bdi>
+<span>{{.Availability}}</span>
+</li>{{end}}</ul>
+{{end}}
+</article>
+{{else}}
+<header class="vb-pagehead"><h1>{{.Title}}</h1></header>
+<form class="public-search-panel" method="get" action="{{.URL}}">
+<label><span>{{.SearchLabel}}</span><input name="q" type="search" maxlength="200" value="{{.Search}}"></label>
+<label><span>{{.CategoryLabel}}</span><select name="category">{{range .Categories}}<option value="{{.Value}}"{{if .Selected}} selected{{end}}>{{.Label}}</option>{{end}}</select></label>
+<button class="vb-btn vb-btn-primary" type="submit">{{.Submit}}</button>
+</form>
+{{if .Error}}<p class="public-notice" role="alert">{{.Error}}</p>
+{{else if .Products}}<ul class="public-store-grid">{{range .Products}}
+<li class="vb-card">
+{{if .Images}}{{with index .Images 0}}<img src="{{.URL}}" alt="{{.Alt}}" loading="lazy">{{end}}{{end}}
+<h2><a href="{{.URL}}" dir="auto">{{.Title}}</a></h2>
+<p dir="auto">{{.Description}}</p>
+<bdi>{{.Price}}</bdi>
+</li>{{end}}</ul>
+{{else}}<p class="public-empty">{{.Empty}}</p>{{end}}
+{{if .NextURL}}<a class="vb-btn vb-btn-secondary" href="{{.NextURL}}">{{.Next}}</a>{{end}}
+{{end}}
+{{end}}

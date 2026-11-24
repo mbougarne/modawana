@@ -52,3 +52,36 @@
   border-radius: 0;
   background: transparent;
 }
+
+.public-store-grid,
+.public-store-gallery,
+.public-store-variants {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.public-store-grid img,
+.public-store-gallery img {
+  display: block;
+  inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+}
+
+.public-store-gallery {
+  margin-block: 1rem;
+}
+
+.public-store-variants li {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.public-store-description {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}

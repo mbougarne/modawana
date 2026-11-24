@@ -9,6 +9,7 @@ import (
 
 	"github.com/mbougarne/modawana/backend/internal/access"
 	"github.com/mbougarne/modawana/backend/internal/content"
+	"github.com/mbougarne/modawana/backend/internal/store"
 )
 
 func (s *Server) resolveEditorialRedirect(ctx context.Context, resolver pageResolver, path string) (content.PageRoute, error) {
@@ -77,5 +78,24 @@ func structuredMetadata(item *content.PublicContent, head headData) template.JS 
 		return ""
 	}
 	// Marshal escapes angle brackets and line separators for the JSON script body.
+	return template.JS(raw)
+}
+
+func productMetadata(item *store.PublicProduct, head headData) template.JS {
+	if head.NoIndex || head.Canonical == "" {
+		return ""
+	}
+	doc := structuredPage{Context: "https://schema.org", Type: "Product", URL: head.Canonical, Language: item.Locale,
+		Name: item.Title, Description: item.Description}
+	if len(item.Images) > 0 {
+		doc.Image = head.Social.Image
+	}
+	if len(item.Variants) == 1 {
+		doc.SKU = item.Variants[0].SKU
+	}
+	raw, err := json.Marshal(doc)
+	if err != nil {
+		return ""
+	}
 	return template.JS(raw)
 }

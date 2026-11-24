@@ -1,4 +1,518 @@
 {
+  "owner.store": {
+    "section": "owner",
+    "description": "Interface text: owner.store",
+    "placeholders": [],
+    "values": {
+      "en": "Store",
+      "fr": "Boutique",
+      "ar": "المتجر"
+    }
+  },
+  "page.store": {
+    "section": "page",
+    "description": "Interface text: page.store",
+    "placeholders": [],
+    "values": {
+      "en": "Store",
+      "fr": "Boutique",
+      "ar": "المتجر"
+    }
+  },
+  "public.product": {
+    "section": "public",
+    "description": "Interface text: public.product",
+    "placeholders": [],
+    "values": {
+      "en": "Product",
+      "fr": "Produit",
+      "ar": "منتج"
+    }
+  },
+  "kind.product": {
+    "section": "kind",
+    "description": "Interface text: kind.product",
+    "placeholders": [],
+    "values": {
+      "en": "Product",
+      "fr": "Produit",
+      "ar": "منتج"
+    }
+  },
+  "store.help": {
+    "section": "store",
+    "description": "Interface text: store.help",
+    "placeholders": [],
+    "values": {
+      "en": "Manage localized products, SKUs, and stock for the storefront.",
+      "fr": "Gérez les produits localisés, les références et le stock de la boutique.",
+      "ar": "أدر المنتجات المترجمة ورموزها ومخزونها في واجهة المتجر."
+    }
+  },
+  "store.saved": {
+    "section": "store",
+    "description": "Interface text: store.saved",
+    "placeholders": [],
+    "values": {
+      "en": "Saved.",
+      "fr": "Enregistré.",
+      "ar": "تم الحفظ."
+    }
+  },
+  "store.stockError": {
+    "section": "store",
+    "description": "Interface text: store.stockError",
+    "placeholders": [],
+    "values": {
+      "en": "The adjustment would make the stock quantity invalid.",
+      "fr": "Cette correction ferait sortir le stock des limites autorisées.",
+      "ar": "سيجعل هذا التعديل كمية المخزون خارج الحدود المسموح بها."
+    }
+  },
+  "store.variantRequired": {
+    "section": "store",
+    "description": "Interface text: store.variantRequired",
+    "placeholders": [],
+    "values": {
+      "en": "A published product needs at least one active variant.",
+      "fr": "Un produit publié doit avoir au moins une variante active.",
+      "ar": "يحتاج المنتج المنشور إلى خيار نشط واحد على الأقل."
+    }
+  },
+  "store.conflict": {
+    "section": "store",
+    "description": "Interface text: store.conflict",
+    "placeholders": [],
+    "values": {
+      "en": "This version, slug, SKU, or currency conflicts with another saved value.",
+      "fr": "Cette version, ce segment, cette référence ou cette devise est déjà en conflit.",
+      "ar": "يتعارض هذا الإصدار أو جزء الرابط أو رمز المنتج أو العملة مع قيمة محفوظة."
+    }
+  },
+  "store.saveFailed": {
+    "section": "store",
+    "description": "Interface text: store.saveFailed",
+    "placeholders": [],
+    "values": {
+      "en": "Could not save the change.",
+      "fr": "Impossible d’enregistrer la modification.",
+      "ar": "تعذّر حفظ التغيير."
+    }
+  },
+  "store.language": {
+    "section": "store",
+    "description": "Interface text: store.language",
+    "placeholders": [],
+    "values": {
+      "en": "Catalog language",
+      "fr": "Langue du catalogue",
+      "ar": "لغة الكتالوج"
+    }
+  },
+  "store.products": {
+    "section": "store",
+    "description": "Interface text: store.products",
+    "placeholders": [],
+    "values": {
+      "en": "Products",
+      "fr": "Produits",
+      "ar": "المنتجات"
+    }
+  },
+  "store.empty": {
+    "section": "store",
+    "description": "Interface text: store.empty",
+    "placeholders": [],
+    "values": {
+      "en": "No products to show.",
+      "fr": "Aucun produit à afficher.",
+      "ar": "لا توجد منتجات لعرضها."
+    }
+  },
+  "store.missingLocale": {
+    "section": "store",
+    "description": "Interface text: store.missingLocale",
+    "placeholders": [],
+    "values": {
+      "en": "Translation missing",
+      "fr": "Traduction manquante",
+      "ar": "الترجمة غير متوفرة"
+    }
+  },
+  "store.productKey": {
+    "section": "store",
+    "description": "Interface text: store.productKey",
+    "placeholders": [],
+    "values": {
+      "en": "Stable product key",
+      "fr": "Clé produit permanente",
+      "ar": "معرّف المنتج الثابت"
+    }
+  },
+  "store.newProduct": {
+    "section": "store",
+    "description": "Interface text: store.newProduct",
+    "placeholders": [],
+    "values": {
+      "en": "New product",
+      "fr": "Nouveau produit",
+      "ar": "منتج جديد"
+    }
+  },
+  "store.settings": {
+    "section": "store",
+    "description": "Interface text: store.settings",
+    "placeholders": [],
+    "values": {
+      "en": "Store settings",
+      "fr": "Paramètres de la boutique",
+      "ar": "إعدادات المتجر"
+    }
+  },
+  "store.enable": {
+    "section": "store",
+    "description": "Interface text: store.enable",
+    "placeholders": [],
+    "values": {
+      "en": "Enable the public storefront",
+      "fr": "Activer la boutique publique",
+      "ar": "تفعيل واجهة المتجر العامة"
+    }
+  },
+  "store.currency": {
+    "section": "store",
+    "description": "Interface text: store.currency",
+    "placeholders": [],
+    "values": {
+      "en": "Store currency",
+      "fr": "Devise de la boutique",
+      "ar": "عملة المتجر"
+    }
+  },
+  "store.currencyHelp": {
+    "section": "store",
+    "description": "Interface text: store.currencyHelp",
+    "placeholders": [],
+    "values": {
+      "en": "Enter a three-letter currency code. Choose it before adding the first SKU.",
+      "fr": "Saisissez un code devise de trois lettres avant de créer la première référence.",
+      "ar": "أدخل رمز عملة من ثلاثة أحرف قبل إضافة أول رمز منتج."
+    }
+  },
+  "store.saveSettings": {
+    "section": "store",
+    "description": "Interface text: store.saveSettings",
+    "placeholders": [],
+    "values": {
+      "en": "Save store settings",
+      "fr": "Enregistrer les paramètres",
+      "ar": "حفظ إعدادات المتجر"
+    }
+  },
+  "store.view": {
+    "section": "store",
+    "description": "Interface text: store.view",
+    "placeholders": [],
+    "values": {
+      "en": "View storefront",
+      "fr": "Voir la boutique",
+      "ar": "عرض المتجر"
+    }
+  },
+  "store.categories": {
+    "section": "store",
+    "description": "Interface text: store.categories",
+    "placeholders": [],
+    "values": {
+      "en": "Categories",
+      "fr": "Catégories",
+      "ar": "الفئات"
+    }
+  },
+  "store.newCategory": {
+    "section": "store",
+    "description": "Interface text: store.newCategory",
+    "placeholders": [],
+    "values": {
+      "en": "New category",
+      "fr": "Nouvelle catégorie",
+      "ar": "فئة جديدة"
+    }
+  },
+  "store.categoryKey": {
+    "section": "store",
+    "description": "Interface text: store.categoryKey",
+    "placeholders": [],
+    "values": {
+      "en": "Stable category key",
+      "fr": "Clé de catégorie permanente",
+      "ar": "معرّف الفئة الثابت"
+    }
+  },
+  "store.saveCategory": {
+    "section": "store",
+    "description": "Interface text: store.saveCategory",
+    "placeholders": [],
+    "values": {
+      "en": "Save category",
+      "fr": "Enregistrer la catégorie",
+      "ar": "حفظ الفئة"
+    }
+  },
+  "store.description": {
+    "section": "store",
+    "description": "Interface text: store.description",
+    "placeholders": [],
+    "values": {
+      "en": "Product description",
+      "fr": "Description du produit",
+      "ar": "وصف المنتج"
+    }
+  },
+  "store.imageAlt": {
+    "section": "store",
+    "description": "Interface text: store.imageAlt",
+    "placeholders": [],
+    "values": {
+      "en": "Image alt text",
+      "fr": "Texte alternatif de l’image",
+      "ar": "النص البديل للصورة"
+    }
+  },
+  "store.removeImage": {
+    "section": "store",
+    "description": "Interface text: store.removeImage",
+    "placeholders": [],
+    "values": {
+      "en": "Remove image from draft",
+      "fr": "Retirer l’image du brouillon",
+      "ar": "إزالة الصورة من المسوّدة"
+    }
+  },
+  "store.image": {
+    "section": "store",
+    "description": "Interface text: store.image",
+    "placeholders": [],
+    "values": {
+      "en": "Product image",
+      "fr": "Image du produit",
+      "ar": "صورة المنتج"
+    }
+  },
+  "store.uploadImage": {
+    "section": "store",
+    "description": "Interface text: store.uploadImage",
+    "placeholders": [],
+    "values": {
+      "en": "Upload image",
+      "fr": "Téléverser l’image",
+      "ar": "رفع الصورة"
+    }
+  },
+  "store.imageFailed": {
+    "section": "store",
+    "description": "Interface text: store.imageFailed",
+    "placeholders": [],
+    "values": {
+      "en": "Could not upload the product image.",
+      "fr": "Impossible de téléverser l’image du produit.",
+      "ar": "تعذّر رفع صورة المنتج."
+    }
+  },
+  "store.saveToPublish": {
+    "section": "store",
+    "description": "Interface text: store.saveToPublish",
+    "placeholders": [],
+    "values": {
+      "en": "Save the draft before publishing these changes.",
+      "fr": "Enregistrez le brouillon avant de publier ces modifications.",
+      "ar": "احفظ المسوّدة قبل نشر التغييرات."
+    }
+  },
+  "store.variants": {
+    "section": "store",
+    "description": "Interface text: store.variants",
+    "placeholders": [],
+    "values": {
+      "en": "Variants",
+      "fr": "Variantes",
+      "ar": "خيارات المنتج"
+    }
+  },
+  "store.newVariant": {
+    "section": "store",
+    "description": "Interface text: store.newVariant",
+    "placeholders": [],
+    "values": {
+      "en": "New variant",
+      "fr": "Nouvelle variante",
+      "ar": "خيار جديد"
+    }
+  },
+  "store.variant": {
+    "section": "store",
+    "description": "Interface text: store.variant",
+    "placeholders": [],
+    "values": {
+      "en": "Variant",
+      "fr": "Variante",
+      "ar": "خيار المنتج"
+    }
+  },
+  "store.sku": {
+    "section": "store",
+    "description": "Interface text: store.sku",
+    "placeholders": [],
+    "values": {
+      "en": "SKU",
+      "fr": "Référence SKU",
+      "ar": "رمز المنتج (SKU)"
+    }
+  },
+  "store.variantLabel": {
+    "section": "store",
+    "description": "Interface text: store.variantLabel",
+    "placeholders": [],
+    "values": {
+      "en": "Variant label in the catalog language",
+      "fr": "Nom de la variante dans la langue du catalogue",
+      "ar": "اسم الخيار بلغة الكتالوج"
+    }
+  },
+  "store.price": {
+    "section": "store",
+    "description": "Interface text: store.price",
+    "placeholders": [
+      "currency"
+    ],
+    "values": {
+      "en": "Price in minor units ({currency})",
+      "fr": "Prix en unités mineures ({currency})",
+      "ar": "السعر بأصغر وحدة للعملة ({currency})"
+    }
+  },
+  "store.active": {
+    "section": "store",
+    "description": "Interface text: store.active",
+    "placeholders": [],
+    "values": {
+      "en": "Active variant",
+      "fr": "Variante active",
+      "ar": "خيار نشط"
+    }
+  },
+  "store.saveVariant": {
+    "section": "store",
+    "description": "Interface text: store.saveVariant",
+    "placeholders": [],
+    "values": {
+      "en": "Save variant",
+      "fr": "Enregistrer la variante",
+      "ar": "حفظ الخيار"
+    }
+  },
+  "store.inventory": {
+    "section": "store",
+    "description": "Interface text: store.inventory",
+    "placeholders": [],
+    "values": {
+      "en": "Inventory",
+      "fr": "Stock",
+      "ar": "المخزون"
+    }
+  },
+  "store.quantity": {
+    "section": "store",
+    "description": "Interface text: store.quantity",
+    "placeholders": [
+      "quantity"
+    ],
+    "values": {
+      "en": "Quantity in stock {quantity}",
+      "fr": "Quantité en stock {quantity}",
+      "ar": "الكمية في المخزون {quantity}"
+    }
+  },
+  "store.delta": {
+    "section": "store",
+    "description": "Interface text: store.delta",
+    "placeholders": [],
+    "values": {
+      "en": "Quantity to add or subtract",
+      "fr": "Quantité à ajouter ou à retirer",
+      "ar": "الكمية المضافة أو المخصومة"
+    }
+  },
+  "store.reason": {
+    "section": "store",
+    "description": "Interface text: store.reason",
+    "placeholders": [],
+    "values": {
+      "en": "Adjustment reason",
+      "fr": "Motif de la correction",
+      "ar": "سبب تعديل المخزون"
+    }
+  },
+  "store.adjust": {
+    "section": "store",
+    "description": "Interface text: store.adjust",
+    "placeholders": [],
+    "values": {
+      "en": "Record adjustment",
+      "fr": "Enregistrer la correction",
+      "ar": "تسجيل تعديل المخزون"
+    }
+  },
+  "store.history": {
+    "section": "store",
+    "description": "Interface text: store.history",
+    "placeholders": [],
+    "values": {
+      "en": "Stock adjustment history",
+      "fr": "Historique des corrections de stock",
+      "ar": "سجل تعديلات المخزون"
+    }
+  },
+  "store.inStock": {
+    "section": "store",
+    "description": "Interface text: store.inStock",
+    "placeholders": [],
+    "values": {
+      "en": "In stock",
+      "fr": "En stock",
+      "ar": "متوفر"
+    }
+  },
+  "store.outOfStock": {
+    "section": "store",
+    "description": "Interface text: store.outOfStock",
+    "placeholders": [],
+    "values": {
+      "en": "Out of stock",
+      "fr": "Rupture de stock",
+      "ar": "نفد المخزون"
+    }
+  },
+  "store.search": {
+    "section": "store",
+    "description": "Interface text: store.search",
+    "placeholders": [],
+    "values": {
+      "en": "Search products",
+      "fr": "Rechercher des produits",
+      "ar": "البحث عن منتجات"
+    }
+  },
+  "store.invalidSearch": {
+    "section": "store",
+    "description": "Interface text: store.invalidSearch",
+    "placeholders": [],
+    "values": {
+      "en": "Check the search text and category.",
+      "fr": "Vérifiez le texte et la catégorie de recherche.",
+      "ar": "تحقّق من نص البحث والفئة المحددة."
+    }
+  },
   "owner.editorial": {
     "section": "owner",
     "description": "Interface text: owner.editorial",

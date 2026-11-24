@@ -70,6 +70,11 @@ func (s *Server) renderThemed(ctx context.Context, r *http.Request, page content
 		Footer: s.themeFooter(settings, navigation),
 	}
 	view.Footer.Analytics = head.Analytics
+	if page.Kind != "error" && s.storeEnabled(ctx) {
+		link := theme.Link{Label: label("page.store"), URL: "/" + locale + "/store", Current: page.Kind == "store" || page.Kind == "product"}
+		view.Nav = append(view.Nav, link)
+		view.MenuNav = append(view.MenuNav, link)
+	}
 	head.Boot = ""
 	head.Scripts = nil
 	if page.Kind != "article" {
@@ -101,6 +106,8 @@ func (s *Server) renderThemed(ctx context.Context, r *http.Request, page content
 		view.Discovery, err = s.themeDiscovery(ctx, r.URL.Query(), page, label)
 	case "learn", "docs", "collection", "doc", "lesson":
 		view.Reading, err = s.themeReading(ctx, r.URL.Query(), page, settings, &head, label)
+	case "store", "product":
+		view.Store, err = s.themeStore(ctx, r, page, label)
 	case "error":
 		view.Error, view.HomeLabel = head.Title, label("slot.home")
 	default:

@@ -16,6 +16,7 @@ export function useResource<T>(
   url?: string,
   allowLocked = false,
   followProgress = false,
+  retainWhileRefreshing = false,
 ): Resource<T> {
   const [attempt, setAttempt] = useState(0);
   const [result, setResult] = useState<{ url?: string; data?: T; error?: number }>({});
@@ -32,7 +33,9 @@ export function useResource<T>(
     const controller = new AbortController();
     let active = true;
     setLoading(!!url);
-    setResult((old) => (followProgress && old.url === url ? old : { url }));
+    setResult((old) =>
+      (followProgress || retainWhileRefreshing) && old.url === url ? old : { url },
+    );
     if (url) {
       fetch(url, { signal: controller.signal, cache: 'no-store', credentials: 'same-origin' })
         .then(async (response) => {
@@ -64,7 +67,7 @@ export function useResource<T>(
       active = false;
       controller.abort();
     };
-  }, [url, attempt, allowLocked, followProgress]);
+  }, [url, attempt, allowLocked, followProgress, retainWhileRefreshing]);
   const current = result.url === url;
   return {
     data: current ? result.data : undefined,

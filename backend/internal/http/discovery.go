@@ -2,6 +2,8 @@ package httpserver
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 
 	"github.com/mbougarne/modawana/backend/internal/access"
 	"net/http"
@@ -9,10 +11,49 @@ import (
 	"strings"
 
 	"github.com/mbougarne/modawana/backend/internal/content"
+	"github.com/mbougarne/modawana/backend/internal/store"
 )
 
 func (d *Domain) PublicDiscovery(ctx context.Context, filter content.Filter) (content.Page, error) {
-	return d.Content.Discover(ctx, filter, access.FromContext(ctx))
+	if filter.Kind == "product" {
+		return d.discoverProducts(ctx, filter)
+	}
+	out, err := d.Content.Discover(ctx, filter, access.FromContext(ctx))
+	if err != nil || filter.Kind != "" || filter.Query == "" || filter.Cursor != "" || filter.ExcludePages || filter.Category != "" || filter.Tag != "" {
+		return out, err
+	}
+	products, err := d.discoverProducts(ctx, content.Filter{Locale: filter.Locale, Query: filter.Query, Limit: 8})
+	if err == nil {
+		out.Products = products.Items
+	}
+	if errors.Is(err, sql.ErrNoRows) {
+		err = nil
+	}
+	return out, err
+}
+
+func (d *Domain) discoverProducts(ctx context.Context, f content.Filter) (content.Page, error) {
+	out := content.Page{Items: []content.ListEntry{}}
+	if f.Tag != "" || f.ExcludePages {
+		return out, content.ErrInvalid
+	}
+	limit := f.Limit
+	if limit == 0 {
+		limit = 20
+	}
+	page, err := d.StoreCatalog(ctx, store.Filter{Locale: f.Locale, Category: f.Category, Query: f.Query, Cursor: f.Cursor, Limit: limit})
+	if errors.Is(err, store.ErrInvalid) {
+		return out, content.ErrInvalid
+	}
+	if err != nil {
+		return out, err
+	}
+	out.Total, out.Next = page.Total, page.Next
+	for _, product := range page.Products {
+		out.Items = append(out.Items, content.ListEntry{Key: product.Key, Locale: product.Locale, Kind: "product",
+			URL: product.URL, Slug: product.Slug, Title: product.Title, Summary: product.Description, CategoryKey: product.Category, Published: product.Published, Tags: []string{}})
+	}
+	return out, nil
 }
 
 func (d *Domain) discoveryRoutes(w http.ResponseWriter, r *http.Request) bool {

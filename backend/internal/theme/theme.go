@@ -106,6 +106,7 @@ type Footer struct {
 
 // Page carries the shared shell and the view for the requested public route.
 type Page struct {
+	Store         *StoreView
 	ThemeID       string
 	Layout        []string
 	BannerURL     string

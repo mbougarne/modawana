@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"bytes"
 	"database/sql"
 	"errors"
 	"io"
@@ -25,12 +26,14 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/plugin"
 	"github.com/mbougarne/modawana/backend/internal/siteconfig"
 	"github.com/mbougarne/modawana/backend/internal/social"
+	"github.com/mbougarne/modawana/backend/internal/store"
 	"github.com/mbougarne/modawana/backend/internal/webhook"
 )
 
 var uploadHTTPGate = make(chan struct{}, 1)
 
 type Domain struct {
+	Store      *store.Service
 	Editorial  *editorial.Service
 	Analytics  *analytics.Service
 	Social     *social.Service
@@ -62,6 +65,9 @@ func (d *Domain) Builtins() []extension.Extension {
 	}
 	if d.Editorial != nil {
 		modules = append(modules, d.Editorial)
+	}
+	if d.Store != nil {
+		modules = append(modules, d.Store)
 	}
 	return modules
 }
@@ -127,6 +133,9 @@ func domainError(w http.ResponseWriter, e error) {
 	}
 }
 func (d *Domain) Handle(w http.ResponseWriter, r *http.Request) bool {
+	if d.Store != nil && d.storeRoutes(w, r) {
+		return true
+	}
 	if d.Editorial != nil && d.editorialRoutes(w, r) {
 		return true
 	}
@@ -202,7 +211,7 @@ func (d *Domain) Handle(w http.ResponseWriter, r *http.Request) bool {
 		return true
 	}
 	if p == "/api/v1/media" && r.Method == "POST" {
-		return d.uploadMedia(w, r, owner)
+		return d.uploadMedia(w, r, owner, false)
 	}
 	if strings.HasPrefix(p, "/api/v1/media/") && r.Method == "DELETE" {
 		e := d.Media.Delete(r.Context(), strings.TrimPrefix(p, "/api/v1/media/"))
@@ -217,7 +226,7 @@ func (d *Domain) Handle(w http.ResponseWriter, r *http.Request) bool {
 	return true
 }
 
-func (d *Domain) uploadMedia(w http.ResponseWriter, r *http.Request, owner string) bool {
+func (d *Domain) uploadMedia(w http.ResponseWriter, r *http.Request, owner string, catalog bool) bool {
 	select {
 	case uploadHTTPGate <- struct{}{}:
 		defer func() { <-uploadHTTPGate }()
@@ -260,7 +269,12 @@ func (d *Domain) uploadMedia(w http.ResponseWriter, r *http.Request, owner strin
 		writeError(w, BadRequest)
 		return true
 	}
-	m, e := d.Media.UploadWithKey(r.Context(), owner, part.FileName(), declared, purpose, strings.NewReader(string(b)), r.Header.Get("Idempotency-Key"))
+	var m media.Record
+	if catalog {
+		m, e = d.Media.UploadStoreImage(r.Context(), owner, part.FileName(), declared, bytes.NewReader(b), r.Header.Get("Idempotency-Key"))
+	} else {
+		m, e = d.Media.UploadWithKey(r.Context(), owner, part.FileName(), declared, purpose, bytes.NewReader(b), r.Header.Get("Idempotency-Key"))
+	}
 	if e != nil {
 		domainError(w, e)
 	} else {
