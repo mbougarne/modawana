@@ -3,6 +3,8 @@ package theme
 type StoreView struct {
 	Title, URL, Back, BackURL                                               string
 	Search, SearchLabel, Submit, CategoryLabel, Empty, Next, NextURL, Error string
+	CartLabel, CartURL, AddLabel, AddedLabel, CartFull, CartFailed          string
+	Checkout                                                                bool
 	Categories                                                              []Choice
 	Products                                                                []StoreProduct
 	Product                                                                 *StoreProduct
@@ -16,4 +18,7 @@ type StoreProduct struct {
 
 type StoreImage struct{ URL, Alt string }
 
-type StoreVariant struct{ SKU, Name, Price, Availability string }
+type StoreVariant struct {
+	SKU, Name, Price, Availability string
+	InStock                        bool
+}

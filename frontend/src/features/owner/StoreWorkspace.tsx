@@ -16,6 +16,7 @@ import { AuthError, call } from '../auth/api';
 import { useResource } from '../../pages/public/api';
 import { ResourceState } from '../../pages/public/ResourceState';
 import { OwnerPageHeading } from './OwnerWorkspace';
+import { CheckoutAdmin, StoreOrders } from '../store/CheckoutAdmin';
 
 interface Access {
   csrf: string;
@@ -73,6 +74,7 @@ function SubmissionForm({ submit, title, children }: SaveForm) {
 export function StoreWorkspace({ csrf, staff = false }: { csrf: string; staff?: boolean }) {
   const { locale, t } = useI18n();
   const access = { csrf, root: staff ? '/staff/store' : '/owner/store' };
+  const [section, setSection] = useState<'catalog' | 'checkout' | 'orders'>('catalog');
   const [language, setLanguage] = useState(locale);
   const [cursor, setCursor] = useState('');
   const [key, setKey] = useState('');
@@ -112,136 +114,165 @@ export function StoreWorkspace({ csrf, staff = false }: { csrf: string; staff?: 
       ) : (
         <OwnerPageHeading title={t('owner.store')} description={t('store.help')} />
       )}
-      <Field label={t('store.language')}>
-        <select
-          value={language}
-          onChange={(event) => {
-            if (isLocale(event.target.value)) {
-              setLanguage(event.target.value);
-              setDraft(undefined);
-              setCursor('');
-            }
-          }}
+      <div className="owner-row">
+        <Button
+          variant={section === 'catalog' ? 'secondary' : 'quiet'}
+          aria-pressed={section === 'catalog'}
+          onClick={() => setSection('catalog')}
         >
-          {localeCodes.map((code) => (
-            <option value={code} key={code}>
-              {t('language.' + code)}
-            </option>
-          ))}
-        </select>
-      </Field>
-      <ResourceState resource={workspace} />
-      {workspace.data && (
-        <>
-          {!staff && (
-            <SettingsEditor
-              key={workspace.data.settings.version}
+          {t('checkout.catalog')}
+        </Button>
+        {!staff && (
+          <Button
+            variant={section === 'checkout' ? 'secondary' : 'quiet'}
+            aria-pressed={section === 'checkout'}
+            onClick={() => setSection('checkout')}
+          >
+            {t('checkout.settings')}
+          </Button>
+        )}
+        <Button
+          variant={section === 'orders' ? 'secondary' : 'quiet'}
+          aria-pressed={section === 'orders'}
+          onClick={() => setSection('orders')}
+        >
+          {t('checkout.orders')}
+        </Button>
+      </div>
+      {section === 'checkout' && !staff && <CheckoutAdmin access={access} />}
+      {section === 'orders' && <StoreOrders access={access} />}
+      <div hidden={section !== 'catalog'}>
+        <Field label={t('store.language')}>
+          <select
+            value={language}
+            onChange={(event) => {
+              if (isLocale(event.target.value)) {
+                setLanguage(event.target.value);
+                setDraft(undefined);
+                setCursor('');
+              }
+            }}
+          >
+            {localeCodes.map((code) => (
+              <option value={code} key={code}>
+                {t('language.' + code)}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <ResourceState resource={workspace} />
+        {workspace.data && (
+          <>
+            {!staff && (
+              <SettingsEditor
+                key={workspace.data.settings.version}
+                access={access}
+                data={workspace.data.settings}
+                refresh={workspace.retry}
+              />
+            )}
+            <CategoryEditor
+              key={language}
               access={access}
-              data={workspace.data.settings}
+              language={language}
+              categories={workspace.data.categories}
               refresh={workspace.retry}
             />
-          )}
-          <CategoryEditor
-            key={language}
-            access={access}
-            language={language}
-            categories={workspace.data.categories}
-            refresh={workspace.retry}
-          />
-          <section className="owner-panel owner-form">
-            <h3>{t('store.products')}</h3>
-            {workspace.data.products.length === 0 && <p>{t('store.empty')}</p>}
-            <ul className="store-product-list">
-              {workspace.data.products.map((product) => (
-                <li key={product.key}>
-                  <Button
-                    variant={key === product.key ? 'secondary' : 'quiet'}
-                    onClick={() => select(product.key)}
-                  >
-                    <bdi>{product.title}</bdi>
-                  </Button>{' '}
-                  <span>
-                    {t(
-                      product.published
-                        ? 'owner.published'
-                        : product.localized
-                          ? 'owner.draft'
-                          : 'store.missingLocale',
-                    )}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <div className="owner-row">
-              {cursor && <Button onClick={() => setCursor('')}>{t('staff.first')}</Button>}
-              {workspace.data.next && (
-                <Button onClick={() => setCursor(workspace.data?.next ?? '')}>
-                  {t('public.next')}
-                </Button>
-              )}
-            </div>
-            <Field label={t('store.productKey')}>
-              <input
-                dir="ltr"
-                maxLength={64}
-                value={newKey}
-                onChange={(event) => setNewKey(event.target.value)}
-              />
-            </Field>
-            <Button
-              disabled={!/^[a-z0-9][a-z0-9_-]{0,63}$/.test(newKey)}
-              onClick={() => {
-                setKey(newKey);
-                setDraft({
-                  key: newKey,
-                  locale: language,
-                  version: 0,
-                  slug: newKey,
-                  title: '',
-                  description: '',
-                  category: '',
-                  images: [],
-                  variants: [],
-                  published: false,
-                  published_version: 0,
-                });
-                setNewKey('');
-              }}
-            >
-              {t('store.newProduct')}
-            </Button>
-          </section>
-          {!selected && <ResourceState resource={product} />}
-          {selected && (
-            <>
-              <DraftEditor
-                key={selected.key + ':' + language + ':' + selected.version}
-                access={access}
-                product={selected}
-                categories={workspace.data.categories}
-                path={productPath}
-                saved={refresh}
-              />
-              {selected.version > 0 && (
-                <VariantsEditor
-                  key={selected.key + ':' + language}
+            <section className="owner-panel owner-form">
+              <h3>{t('store.products')}</h3>
+              {workspace.data.products.length === 0 && <p>{t('store.empty')}</p>}
+              <ul className="store-product-list">
+                {workspace.data.products.map((product) => (
+                  <li key={product.key}>
+                    <Button
+                      variant={key === product.key ? 'secondary' : 'quiet'}
+                      onClick={() => select(product.key)}
+                    >
+                      <bdi>{product.title}</bdi>
+                    </Button>{' '}
+                    <span>
+                      {t(
+                        product.published
+                          ? 'owner.published'
+                          : product.localized
+                            ? 'owner.draft'
+                            : 'store.missingLocale',
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <div className="owner-row">
+                {cursor && <Button onClick={() => setCursor('')}>{t('staff.first')}</Button>}
+                {workspace.data.next && (
+                  <Button onClick={() => setCursor(workspace.data?.next ?? '')}>
+                    {t('public.next')}
+                  </Button>
+                )}
+              </div>
+              <Field label={t('store.productKey')}>
+                <input
+                  dir="ltr"
+                  maxLength={64}
+                  value={newKey}
+                  onChange={(event) => setNewKey(event.target.value)}
+                />
+              </Field>
+              <Button
+                disabled={!/^[a-z0-9][a-z0-9_-]{0,63}$/.test(newKey)}
+                onClick={() => {
+                  setKey(newKey);
+                  setDraft({
+                    key: newKey,
+                    locale: language,
+                    version: 0,
+                    slug: newKey,
+                    title: '',
+                    description: '',
+                    category: '',
+                    images: [],
+                    variants: [],
+                    published: false,
+                    published_version: 0,
+                  });
+                  setNewKey('');
+                }}
+              >
+                {t('store.newProduct')}
+              </Button>
+            </section>
+            {!selected && <ResourceState resource={product} />}
+            {selected && (
+              <>
+                <DraftEditor
+                  key={selected.key + ':' + language + ':' + selected.version}
                   access={access}
                   product={selected}
-                  currency={workspace.data.settings.currency}
-                  saved={(value) =>
-                    setDraft({
-                      ...selected,
-                      variants: selected.variants.some((item) => item.sku === value.sku)
-                        ? selected.variants.map((item) => (item.sku === value.sku ? value : item))
-                        : [...selected.variants, value],
-                    })
-                  }
+                  categories={workspace.data.categories}
+                  path={productPath}
+                  saved={refresh}
                 />
-              )}
-            </>
-          )}
-        </>
-      )}
+                {selected.version > 0 && (
+                  <VariantsEditor
+                    key={selected.key + ':' + language}
+                    access={access}
+                    product={selected}
+                    currency={workspace.data.settings.currency}
+                    saved={(value) =>
+                      setDraft({
+                        ...selected,
+                        variants: selected.variants.some((item) => item.sku === value.sku)
+                          ? selected.variants.map((item) => (item.sku === value.sku ? value : item))
+                          : [...selected.variants, value],
+                      })
+                    }
+                  />
+                )}
+              </>
+            )}
+          </>
+        )}
+      </div>
     </section>
   );
 }
@@ -757,6 +788,7 @@ function StockEditor({
       }}
     >
       <p>{t('store.quantity', { quantity: item.stock })}</p>
+      {item.reserved > 0 && <p>{t('checkout.stockReserved', { quantity: item.reserved })}</p>}
       <Field label={t('store.delta')}>
         <input
           required

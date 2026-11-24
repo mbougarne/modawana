@@ -53,7 +53,7 @@ func themeProduct(item store.PublicProduct, currency string, digits int, label f
 		if variant.InStock {
 			status = label("store.inStock")
 		}
-		out.Variants = append(out.Variants, theme.StoreVariant{SKU: variant.SKU, Name: variant.Label, Price: displayPrice(variant.PriceMinor, currency, digits), Availability: status})
+		out.Variants = append(out.Variants, theme.StoreVariant{SKU: variant.SKU, Name: variant.Label, Price: displayPrice(variant.PriceMinor, currency, digits), Availability: status, InStock: variant.InStock})
 	}
 	return out
 }
@@ -66,6 +66,10 @@ func (s *Server) themeStore(ctx context.Context, r *http.Request, page content.P
 	data := *page.Store
 	view := &theme.StoreView{Title: label("page.store"), URL: path, Back: label("page.store"), BackURL: path, SearchLabel: label("store.search"),
 		Submit: label("public.search"), CategoryLabel: label("public.category"), Empty: label("store.empty"), Next: label("public.next")}
+	if data.CheckoutEnabled {
+		view.CartLabel, view.CartURL, view.AddLabel = label("page.checkout"), path+"/checkout/cart", label("checkout.add")
+		view.AddedLabel, view.CartFull, view.CartFailed = label("checkout.added"), label("checkout.cartFull"), label("checkout.cartFailed")
+	}
 	if data.Product != nil {
 		product := themeProduct(*data.Product, data.Currency, data.Digits, label)
 		view.Product = &product

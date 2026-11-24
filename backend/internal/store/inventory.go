@@ -25,8 +25,9 @@ type VariantInput struct {
 
 type Variant struct {
 	VariantInput
-	SKU   string `json:"sku"`
-	Stock int64  `json:"stock"`
+	SKU      string `json:"sku"`
+	Stock    int64  `json:"stock"`
+	Reserved int64  `json:"reserved"`
 }
 
 func validateVariant(product, sku string, in VariantInput) bool {
@@ -83,13 +84,13 @@ func (s *Service) SaveVariant(ctx context.Context, product, sku string, in Varia
 			}
 		}
 		out = Variant{SKU: sku, VariantInput: in}
-		return tx.QueryRowContext(ctx, "SELECT version,stock FROM store_variants WHERE sku=?", sku).Scan(&out.Version, &out.Stock)
+		return tx.QueryRowContext(ctx, "SELECT version,stock,reserved FROM store_variants WHERE sku=?", sku).Scan(&out.Version, &out.Stock, &out.Reserved)
 	})
 	return out, err
 }
 
 func readVariants(ctx context.Context, tx *sql.Tx, product string, public bool) ([]Variant, error) {
-	query := "SELECT sku,version,labels,price_minor,active,stock FROM store_variants WHERE product=?"
+	query := "SELECT sku,version,labels,price_minor,active,stock,reserved FROM store_variants WHERE product=?"
 	if public {
 		query += " AND active=1"
 	}
@@ -102,7 +103,7 @@ func readVariants(ctx context.Context, tx *sql.Tx, product string, public bool) 
 	for rows.Next() {
 		var item Variant
 		var labels string
-		if err = rows.Scan(&item.SKU, &item.Version, &labels, &item.PriceMinor, &item.Active, &item.Stock); err != nil {
+		if err = rows.Scan(&item.SKU, &item.Version, &labels, &item.PriceMinor, &item.Active, &item.Stock, &item.Reserved); err != nil {
 			return nil, err
 		}
 		if err = json.Unmarshal([]byte(labels), &item.Labels); err != nil {
@@ -158,11 +159,12 @@ func (s *Service) Adjust(ctx context.Context, owner, sku string, in AdjustmentIn
 		if !errors.Is(err, sql.ErrNoRows) {
 			return err
 		}
-		if err = tx.QueryRowContext(ctx, "SELECT stock FROM store_variants WHERE sku=?", sku).Scan(&out.Before); err != nil {
+		var reserved int64
+		if err = tx.QueryRowContext(ctx, "SELECT stock,reserved FROM store_variants WHERE sku=?", sku).Scan(&out.Before, &reserved); err != nil {
 			return err
 		}
 		out.After = out.Before + in.Delta
-		if out.After < 0 || out.After > maxStock {
+		if out.After < reserved || out.After > maxStock {
 			return ErrStock
 		}
 		out.Created = db.UTC(time.Now())

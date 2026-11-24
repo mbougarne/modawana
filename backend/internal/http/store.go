@@ -10,6 +10,7 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/access"
 	"github.com/mbougarne/modawana/backend/internal/auth"
 	"github.com/mbougarne/modawana/backend/internal/content"
+	"github.com/mbougarne/modawana/backend/internal/siteconfig"
 	"github.com/mbougarne/modawana/backend/internal/store"
 )
 
@@ -31,6 +32,18 @@ func (d *Domain) resolveStore(ctx context.Context, path string) (content.PageRou
 	var result store.PublicPage
 	var err error
 	switch len(parts) {
+	case 4:
+		if parts[2] != "checkout" || parts[3] != "cart" {
+			return page, sql.ErrNoRows
+		}
+		visible, err := siteconfig.LocaleVisibleIn(ctx, d.Store.DB, language)
+		if err != nil {
+			return page, err
+		}
+		if !visible {
+			return page, sql.ErrNoRows
+		}
+		return content.PageRoute{Kind: "checkout", URL: "/" + language + "/store/checkout/cart", Locale: language}, nil
 	case 2:
 		result, err = d.Store.Catalog(ctx, store.Filter{Locale: language, Limit: 24})
 		page.Kind, page.URL = "store", "/"+language+"/store"
@@ -101,6 +114,29 @@ func (d *Domain) storeRoutes(w http.ResponseWriter, r *http.Request) bool {
 			out, err := d.Store.SaveSettings(ctx, in)
 			storeReply(w, out, err)
 		}
+	case relative == "/checkout" && r.Method == http.MethodGet:
+		if prefix != ownerStore {
+			writeError(w, Forbidden)
+			return true
+		}
+		out, err := d.Store.CheckoutSettings(ctx)
+		checkoutReply(w, out, err)
+	case relative == "/checkout" && r.Method == http.MethodPut:
+		if prefix != ownerStore {
+			writeError(w, Forbidden)
+			return true
+		}
+		var in store.CheckoutSettings
+		if DecodeJSON(w, r, &in, 32<<10) {
+			out, err := d.Store.SaveCheckoutSettings(ctx, in)
+			checkoutReply(w, out, err)
+		}
+	case relative == "/orders" && r.Method == http.MethodGet:
+		out, err := d.Store.Orders(ctx, q.Get("cursor"))
+		checkoutReply(w, out, err)
+	case len(parts) == 2 && parts[0] == "orders" && r.Method == http.MethodGet:
+		out, err := d.Store.MerchantOrder(ctx, parts[1])
+		checkoutReply(w, out, err)
 	case relative == "/categories" && r.Method == http.MethodPut:
 		var in store.Category
 		if DecodeJSON(w, r, &in, 4096) {

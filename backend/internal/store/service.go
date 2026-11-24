@@ -7,6 +7,7 @@ import (
 	"errors"
 	"regexp"
 	"strings"
+	"time"
 	"unicode"
 	"unicode/utf8"
 
@@ -33,8 +34,13 @@ var skuPattern = regexp.MustCompile(`^[A-Z0-9][A-Z0-9._-]{0,47}$`)
 
 type Service struct{ DB *sql.DB }
 
-func (*Service) Slug() string                        { return Slug }
-func (*Service) Register(*extension.Registrar) error { return nil }
+func (*Service) Slug() string { return Slug }
+
+func (s *Service) Register(r *extension.Registrar) error {
+	return r.Job(extension.Job{Name: "expire-orders", Every: time.Minute, Timeout: 15 * time.Second, Run: func(ctx context.Context) error {
+		return s.expireOrders(ctx, time.Now())
+	}})
+}
 
 type Settings struct {
 	Version  int64  `json:"version"`
