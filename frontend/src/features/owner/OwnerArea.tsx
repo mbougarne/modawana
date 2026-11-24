@@ -1,3 +1,4 @@
+import { AnalyticsPage } from './AnalyticsPage';
 import { FormsPage } from './FormsPage';
 import { SocialPublishing } from './SocialPublishing';
 import { Portability } from './Portability';
@@ -25,6 +26,7 @@ export function OwnerArea({
     | 'plugins'
     | 'forms'
     | 'social'
+    | 'analytics'
     | 'dashboard'
     | 'layout';
 }) {
@@ -42,6 +44,8 @@ export function OwnerArea({
           <OwnerDashboard />
         ) : page === 'layout' ? (
           <DashboardLayoutSettings csrf={csrf} />
+        ) : page === 'analytics' ? (
+          <AnalyticsPage csrf={csrf} />
         ) : page === 'social' ? (
           <SocialPublishing csrf={csrf} />
         ) : page === 'forms' ? (

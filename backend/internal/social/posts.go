@@ -66,7 +66,7 @@ func (s *Service) previewIn(ctx context.Context, tx *sql.Tx, in Draft) (Preview,
 	if provider == nil || provider.Instance() != conn.Instance {
 		return out, ErrUnavailable
 	}
-	path, err := s.Content.SocialRevision(ctx, tx, in.Key, in.Locale, in.Revision)
+	path, err := s.Content.PublicRevisionPath(ctx, tx, in.Key, in.Locale, in.Revision)
 	if err != nil {
 		return out, err
 	}

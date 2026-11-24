@@ -86,9 +86,14 @@ type Article struct {
 	Arrow           string
 }
 
+type AnalyticsChoice struct {
+	Action, ReturnPath, Label, Note, Allow, Decline string
+}
+
 // Footer is the static public footer: configured text or the default
 // email call to action, copyright, and safe visible destinations.
 type Footer struct {
+	Analytics   *AnalyticsChoice
 	Projections []string
 	Text        string
 	Question    string

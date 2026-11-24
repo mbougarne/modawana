@@ -1,4 +1,284 @@
 {
+  "owner.analytics": {
+    "section": "owner",
+    "description": "Interface text: owner.analytics",
+    "placeholders": [],
+    "values": {
+      "en": "Analytics",
+      "fr": "Statistiques",
+      "ar": "الإحصاءات"
+    }
+  },
+  "analytics.help": {
+    "section": "analytics",
+    "description": "Interface text: analytics.help",
+    "placeholders": [],
+    "values": {
+      "en": "See public pageviews and accepted lead submissions. Counts are saved in batches.",
+      "fr": "Consultez les pages publiques vues et les demandes reçues. Les compteurs sont enregistrés par lots.",
+      "ar": "اطّلع على مشاهدات الصفحات العامة وإرسالات النماذج المقبولة. تُحفظ الإحصاءات على دفعات."
+    }
+  },
+  "analytics.refresh": {
+    "section": "analytics",
+    "description": "Interface text: analytics.refresh",
+    "placeholders": [],
+    "values": {
+      "en": "Refresh report",
+      "fr": "Actualiser le rapport",
+      "ar": "تحديث التقرير"
+    }
+  },
+  "analytics.saved": {
+    "section": "analytics",
+    "description": "Interface text: analytics.saved",
+    "placeholders": [],
+    "values": {
+      "en": "Analytics settings saved.",
+      "fr": "Paramètres des statistiques enregistrés.",
+      "ar": "حُفظت إعدادات الإحصاءات."
+    }
+  },
+  "analytics.summary": {
+    "section": "analytics",
+    "description": "Interface text: analytics.summary",
+    "placeholders": [],
+    "values": {
+      "en": "Traffic and conversions",
+      "fr": "Trafic et conversions",
+      "ar": "الزيارات والتحويلات"
+    }
+  },
+  "analytics.pageViews": {
+    "section": "analytics",
+    "description": "Interface text: analytics.pageViews",
+    "placeholders": [],
+    "values": {
+      "en": "Pageviews",
+      "fr": "Pages vues",
+      "ar": "مشاهدات الصفحات"
+    }
+  },
+  "analytics.leads": {
+    "section": "analytics",
+    "description": "Interface text: analytics.leads",
+    "placeholders": [],
+    "values": {
+      "en": "Lead submissions",
+      "fr": "Demandes reçues",
+      "ar": "إرسالات النماذج"
+    }
+  },
+  "analytics.empty": {
+    "section": "analytics",
+    "description": "Interface text: analytics.empty",
+    "placeholders": [],
+    "values": {
+      "en": "No counts have been saved for the retention period.",
+      "fr": "Aucun compteur enregistré pour la période de conservation.",
+      "ar": "لا توجد إحصاءات محفوظة خلال مدة الاحتفاظ."
+    }
+  },
+  "analytics.days": {
+    "section": "analytics",
+    "description": "Interface text: analytics.days",
+    "placeholders": [],
+    "values": {
+      "en": "Daily counts",
+      "fr": "Totaux quotidiens",
+      "ar": "الإحصاءات اليومية"
+    }
+  },
+  "analytics.day": {
+    "section": "analytics",
+    "description": "Interface text: analytics.day",
+    "placeholders": [],
+    "values": {
+      "en": "Day (UTC)",
+      "fr": "Jour (UTC)",
+      "ar": "اليوم (بالتوقيت العالمي)"
+    }
+  },
+  "analytics.topPages": {
+    "section": "analytics",
+    "description": "Interface text: analytics.topPages",
+    "placeholders": [],
+    "values": {
+      "en": "Top pages",
+      "fr": "Pages principales",
+      "ar": "الصفحات الأكثر زيارة"
+    }
+  },
+  "analytics.path": {
+    "section": "analytics",
+    "description": "Interface text: analytics.path",
+    "placeholders": [],
+    "values": {
+      "en": "Page path",
+      "fr": "Chemin de la page",
+      "ar": "مسار الصفحة"
+    }
+  },
+  "analytics.settings": {
+    "section": "analytics",
+    "description": "Interface text: analytics.settings",
+    "placeholders": [],
+    "values": {
+      "en": "Collection settings",
+      "fr": "Paramètres de collecte",
+      "ar": "إعدادات جمع الإحصاءات"
+    }
+  },
+  "analytics.enabled": {
+    "section": "analytics",
+    "description": "Interface text: analytics.enabled",
+    "placeholders": [],
+    "values": {
+      "en": "Enable aggregate analytics",
+      "fr": "Activer les statistiques agrégées",
+      "ar": "تفعيل الإحصاءات المجمّعة"
+    }
+  },
+  "analytics.consent": {
+    "section": "analytics",
+    "description": "Interface text: analytics.consent",
+    "placeholders": [],
+    "values": {
+      "en": "Visitor choice",
+      "fr": "Choix des visiteurs",
+      "ar": "اختيار الزائر"
+    }
+  },
+  "analytics.mode.optIn": {
+    "section": "analytics",
+    "description": "Interface text: analytics.mode.optIn",
+    "placeholders": [],
+    "values": {
+      "en": "Count only after opt-in",
+      "fr": "Compter après accord explicite",
+      "ar": "الاحتساب بعد الموافقة الصريحة"
+    }
+  },
+  "analytics.mode.unlessDeclined": {
+    "section": "analytics",
+    "description": "Interface text: analytics.mode.unlessDeclined",
+    "placeholders": [],
+    "values": {
+      "en": "Count unless declined",
+      "fr": "Compter sauf refus",
+      "ar": "الاحتساب ما لم يرفض الزائر"
+    }
+  },
+  "analytics.retention": {
+    "section": "analytics",
+    "description": "Interface text: analytics.retention",
+    "placeholders": [],
+    "values": {
+      "en": "Retention in days",
+      "fr": "Conservation en jours",
+      "ar": "مدة الاحتفاظ بالأيام"
+    }
+  },
+  "analytics.exclusions": {
+    "section": "analytics",
+    "description": "Interface text: analytics.exclusions",
+    "placeholders": [],
+    "values": {
+      "en": "Excluded paths",
+      "fr": "Chemins exclus",
+      "ar": "المسارات المستثناة"
+    }
+  },
+  "analytics.exclusionsHelp": {
+    "section": "analytics",
+    "description": "Interface text: analytics.exclusionsHelp",
+    "placeholders": [],
+    "values": {
+      "en": "Enter one path per line, such as /en/about or /en/learn/*. End a path with /* to exclude its subpages too.",
+      "fr": "Saisissez un chemin par ligne, par exemple /fr/about ou /fr/learn/*. Ajoutez /* pour exclure aussi les sous-pages.",
+      "ar": "أدخل مساراً واحداً في كل سطر، مثل /ar/about أو /ar/learn/*. أضف /* لاستثناء الصفحات الفرعية أيضاً."
+    }
+  },
+  "analytics.save": {
+    "section": "analytics",
+    "description": "Interface text: analytics.save",
+    "placeholders": [],
+    "values": {
+      "en": "Save analytics settings",
+      "fr": "Enregistrer les statistiques",
+      "ar": "حفظ إعدادات الإحصاءات"
+    }
+  },
+  "analytics.saveFailed": {
+    "section": "analytics",
+    "description": "Interface text: analytics.saveFailed",
+    "placeholders": [],
+    "values": {
+      "en": "Could not save analytics settings. Check the paths and retention period.",
+      "fr": "Impossible d’enregistrer les paramètres. Vérifiez les chemins et la durée de conservation.",
+      "ar": "تعذّر حفظ إعدادات الإحصاءات. تحقّق من المسارات ومدة الاحتفاظ."
+    }
+  },
+  "analytics.conflict": {
+    "section": "analytics",
+    "description": "Interface text: analytics.conflict",
+    "placeholders": [],
+    "values": {
+      "en": "Settings changed in another session. Refresh the report and try again.",
+      "fr": "Les paramètres ont changé dans une autre session. Actualisez le rapport et réessayez.",
+      "ar": "تغيّرت الإعدادات في جلسة أخرى. حدّث التقرير وحاول مجدداً."
+    }
+  },
+  "analytics.privacy": {
+    "section": "analytics",
+    "description": "Interface text: analytics.privacy",
+    "placeholders": [],
+    "values": {
+      "en": "Analytics preference",
+      "fr": "Préférence de statistiques",
+      "ar": "تفضيلات الإحصاءات"
+    }
+  },
+  "analytics.allow": {
+    "section": "analytics",
+    "description": "Interface text: analytics.allow",
+    "placeholders": [],
+    "values": {
+      "en": "Allow analytics",
+      "fr": "Autoriser les statistiques",
+      "ar": "السماح بالإحصاءات"
+    }
+  },
+  "analytics.decline": {
+    "section": "analytics",
+    "description": "Interface text: analytics.decline",
+    "placeholders": [],
+    "values": {
+      "en": "Decline analytics",
+      "fr": "Refuser les statistiques",
+      "ar": "رفض الإحصاءات"
+    }
+  },
+  "analytics.reader.optIn": {
+    "section": "analytics",
+    "description": "Interface text: analytics.reader.optIn",
+    "placeholders": [],
+    "values": {
+      "en": "Allow this site to count public pageviews and accepted forms in aggregate.",
+      "fr": "Autorisez le comptage agrégé des pages publiques vues et des formulaires acceptés.",
+      "ar": "اسمح للموقع باحتساب مشاهدات الصفحات العامة وإرسالات النماذج المقبولة بصورة مجمّعة."
+    }
+  },
+  "analytics.reader.unlessDeclined": {
+    "section": "analytics",
+    "description": "Interface text: analytics.reader.unlessDeclined",
+    "placeholders": [],
+    "values": {
+      "en": "This site counts public pageviews and accepted forms in aggregate. You can opt out below.",
+      "fr": "Ce site compte les pages publiques vues et les formulaires acceptés de façon agrégée. Vous pouvez refuser ci-dessous.",
+      "ar": "يحتسب هذا الموقع مشاهدات الصفحات العامة وإرسالات النماذج المقبولة بصورة مجمّعة. يمكنك الرفض أدناه."
+    }
+  },
   "owner.social": {
     "section": "owner",
     "description": "Interface text: owner.social",

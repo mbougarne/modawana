@@ -38,6 +38,7 @@ const pages = [
   'plugins',
   'forms',
   'social',
+  'analytics',
   'layout',
 ];
 async function mount(current = 'posts', locale = 'en', extra = {}, children) {

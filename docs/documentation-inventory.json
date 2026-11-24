@@ -291,6 +291,16 @@
       "companion": "docs/getting-started.ar.md"
     },
     {
+      "path": "docs/integrations/analytics.ar.md",
+      "coverage": "ar",
+      "companion": "docs/integrations/analytics.md"
+    },
+    {
+      "path": "docs/integrations/analytics.md",
+      "coverage": "en",
+      "companion": "docs/integrations/analytics.ar.md"
+    },
+    {
       "path": "docs/integrations/lesson-delivery.ar.md",
       "coverage": "ar",
       "companion": "docs/integrations/lesson-delivery.md"

@@ -1092,3 +1092,40 @@
   max-inline-size: min(100%, 28rem);
   block-size: auto;
 }
+
+.analytics-totals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.analytics-totals dd {
+  margin-inline: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.analytics-table-wrap {
+  overflow-x: auto;
+}
+
+.analytics-table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  margin-block-end: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.analytics-table caption {
+  font-weight: 600;
+  text-align: start;
+  margin-block-end: 0.5rem;
+}
+
+.analytics-table th,
+.analytics-table td {
+  text-align: start;
+  padding: 0.4rem 0.7rem;
+  border-block-end: 1px solid var(--hairline);
+  overflow-wrap: anywhere;
+}

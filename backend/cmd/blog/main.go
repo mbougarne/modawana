@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/mbougarne/modawana/backend/internal/analytics"
 	"github.com/mbougarne/modawana/backend/internal/auth"
 	"github.com/mbougarne/modawana/backend/internal/learning"
 	"github.com/mbougarne/modawana/backend/internal/operations"
@@ -244,7 +245,12 @@ func run() int {
 		logger.Error("webhook connection configuration rejected")
 		return 1
 	}
-	domain := &httpserver.Domain{Social: socialPublishing, Forms: leadForms, Learning: identities, SiteConfig: settings, Content: contents, Auth: authentication, Media: media.New(database, files, policy), Extensions: host, Plugins: plugins, Deliveries: deliveries, Webhooks: webhooks, Dashboard: &dashboard.Service{DB: database}}
+	siteAnalytics, err := analytics.Open(ctx, database)
+	if err != nil {
+		logger.Error("analytics settings unavailable")
+		return 1
+	}
+	domain := &httpserver.Domain{Analytics: siteAnalytics, Social: socialPublishing, Forms: leadForms, Learning: identities, SiteConfig: settings, Content: contents, Auth: authentication, Media: media.New(database, files, policy), Extensions: host, Plugins: plugins, Deliveries: deliveries, Webhooks: webhooks, Dashboard: &dashboard.Service{DB: database}}
 	publishing, err := publisher.Extensions(cfg.BaseURL, os.Getenv, plugins.Maintenance)
 	if err != nil {
 		logger.Error("publisher extension configuration rejected", "reason", err.Error())
@@ -288,7 +294,7 @@ func run() int {
 	if cfg.Environment == "production" && len(cfg.TrustedProxies) == 0 {
 		logger.Warn("no trusted proxies configured; reverse-proxy deployments must set BLOG_TRUSTED_PROXIES to observed proxy peers for per-client throttling")
 	}
-	handler := httpserver.New(httpserver.Options{Maintenance: func() bool { return operations.Maintenance(cfg.DataRoot) }, SiteConfig: settings, Config: cfg, Assets: assets, Logger: logger, Extensions: host, Ready: database.PingContext, Auth: authentication, Domain: domain})
+	handler := httpserver.New(httpserver.Options{Analytics: siteAnalytics, Maintenance: func() bool { return operations.Maintenance(cfg.DataRoot) }, SiteConfig: settings, Config: cfg, Assets: assets, Logger: logger, Extensions: host, Ready: database.PingContext, Auth: authentication, Domain: domain})
 	srv := &http.Server{Addr: cfg.ListenAddr, Handler: handler, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 30 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16 << 10, ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelError)}
 	done := make(chan error, 1)
 	go func() { done <- srv.ListenAndServe() }()
@@ -306,6 +312,11 @@ func run() int {
 			logger.Error("HTTP shutdown timed out")
 			return 1
 		}
+	}
+	flushCtx, cancelFlush := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancelFlush()
+	if err := siteAnalytics.Flush(flushCtx); err != nil {
+		logger.Warn("analytics batch could not be flushed")
 	}
 	return 0
 }

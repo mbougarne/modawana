@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/mbougarne/modawana/backend/internal/access"
+	"github.com/mbougarne/modawana/backend/internal/analytics"
 	"github.com/mbougarne/modawana/backend/internal/auth"
 	"github.com/mbougarne/modawana/backend/internal/content"
 	"github.com/mbougarne/modawana/backend/internal/dashboard"
@@ -29,6 +30,7 @@ import (
 var uploadHTTPGate = make(chan struct{}, 1)
 
 type Domain struct {
+	Analytics  *analytics.Service
 	Social     *social.Service
 	Forms      *forms.Service
 	Learning   *learning.IdentityService
@@ -52,6 +54,9 @@ func (d *Domain) Builtins() []extension.Extension {
 	modules := []extension.Extension{socialCards{}, publisherTools{domain: d}}
 	if d.Social != nil {
 		modules = append(modules, d.Social)
+	}
+	if d.Analytics != nil {
+		modules = append(modules, d.Analytics)
 	}
 	return modules
 }
@@ -117,6 +122,9 @@ func domainError(w http.ResponseWriter, e error) {
 	}
 }
 func (d *Domain) Handle(w http.ResponseWriter, r *http.Request) bool {
+	if d.Analytics != nil && d.analyticsRoutes(w, r) {
+		return true
+	}
 	if d.Social != nil && d.socialRoutes(w, r) {
 		return true
 	}

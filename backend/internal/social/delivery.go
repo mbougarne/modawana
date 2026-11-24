@@ -145,7 +145,7 @@ func (s *Service) check(ctx context.Context, id string, dispatch bool) (queuedPo
 	if p.first > 0 && !now.Before(time.UnixMilli(p.first).Add(provider.ReplayWindow())) {
 		return p, c, "replay_window_expired", nil
 	}
-	path, err := s.Content.SocialRevision(ctx, tx, p.key, p.locale, p.revision)
+	path, err := s.Content.PublicRevisionPath(ctx, tx, p.key, p.locale, p.revision)
 	if errors.Is(err, sql.ErrNoRows) || err == nil && (path != p.path || !s.matchesOrigin(p)) {
 		return p, c, "publication_changed", nil
 	}

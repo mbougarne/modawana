@@ -42,6 +42,7 @@ const pages = [
   ['plugins', 'plug'],
   ['forms', 'page'],
   ['social', 'link'],
+  ['analytics', 'ul'],
   ['layout', 'settings'],
 ] as const satisfies readonly (readonly [string, IconName])[];
 

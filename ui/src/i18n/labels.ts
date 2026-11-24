@@ -10,6 +10,82 @@ export type L = Partial<Record<Locale, LabelText>> & Record<'en' | 'fr' | 'ar', 
 const l = (en: LabelText, fr: LabelText, ar: LabelText): L => ({ en, fr, ar });
 
 export const DEFAULT_LABELS = {
+  'owner.analytics': l('Analytics', 'Statistiques', 'الإحصاءات'),
+  'analytics.help': l(
+    'See public pageviews and accepted lead submissions. Counts are saved in batches.',
+    'Consultez les pages publiques vues et les demandes reçues. Les compteurs sont enregistrés par lots.',
+    'اطّلع على مشاهدات الصفحات العامة وإرسالات النماذج المقبولة. تُحفظ الإحصاءات على دفعات.',
+  ),
+  'analytics.refresh': l('Refresh report', 'Actualiser le rapport', 'تحديث التقرير'),
+  'analytics.saved': l(
+    'Analytics settings saved.',
+    'Paramètres des statistiques enregistrés.',
+    'حُفظت إعدادات الإحصاءات.',
+  ),
+  'analytics.summary': l('Traffic and conversions', 'Trafic et conversions', 'الزيارات والتحويلات'),
+  'analytics.pageViews': l('Pageviews', 'Pages vues', 'مشاهدات الصفحات'),
+  'analytics.leads': l('Lead submissions', 'Demandes reçues', 'إرسالات النماذج'),
+  'analytics.empty': l(
+    'No counts have been saved for the retention period.',
+    'Aucun compteur enregistré pour la période de conservation.',
+    'لا توجد إحصاءات محفوظة خلال مدة الاحتفاظ.',
+  ),
+  'analytics.days': l('Daily counts', 'Totaux quotidiens', 'الإحصاءات اليومية'),
+  'analytics.day': l('Day (UTC)', 'Jour (UTC)', 'اليوم (بالتوقيت العالمي)'),
+  'analytics.topPages': l('Top pages', 'Pages principales', 'الصفحات الأكثر زيارة'),
+  'analytics.path': l('Page path', 'Chemin de la page', 'مسار الصفحة'),
+  'analytics.settings': l('Collection settings', 'Paramètres de collecte', 'إعدادات جمع الإحصاءات'),
+  'analytics.enabled': l(
+    'Enable aggregate analytics',
+    'Activer les statistiques agrégées',
+    'تفعيل الإحصاءات المجمّعة',
+  ),
+  'analytics.consent': l('Visitor choice', 'Choix des visiteurs', 'اختيار الزائر'),
+  'analytics.mode.optIn': l(
+    'Count only after opt-in',
+    'Compter après accord explicite',
+    'الاحتساب بعد الموافقة الصريحة',
+  ),
+  'analytics.mode.unlessDeclined': l(
+    'Count unless declined',
+    'Compter sauf refus',
+    'الاحتساب ما لم يرفض الزائر',
+  ),
+  'analytics.retention': l('Retention in days', 'Conservation en jours', 'مدة الاحتفاظ بالأيام'),
+  'analytics.exclusions': l('Excluded paths', 'Chemins exclus', 'المسارات المستثناة'),
+  'analytics.exclusionsHelp': l(
+    'Enter one path per line, such as /en/about or /en/learn/*. End a path with /* to exclude its subpages too.',
+    'Saisissez un chemin par ligne, par exemple /fr/about ou /fr/learn/*. Ajoutez /* pour exclure aussi les sous-pages.',
+    'أدخل مساراً واحداً في كل سطر، مثل /ar/about أو /ar/learn/*. أضف /* لاستثناء الصفحات الفرعية أيضاً.',
+  ),
+  'analytics.save': l(
+    'Save analytics settings',
+    'Enregistrer les statistiques',
+    'حفظ إعدادات الإحصاءات',
+  ),
+  'analytics.saveFailed': l(
+    'Could not save analytics settings. Check the paths and retention period.',
+    'Impossible d’enregistrer les paramètres. Vérifiez les chemins et la durée de conservation.',
+    'تعذّر حفظ إعدادات الإحصاءات. تحقّق من المسارات ومدة الاحتفاظ.',
+  ),
+  'analytics.conflict': l(
+    'Settings changed in another session. Refresh the report and try again.',
+    'Les paramètres ont changé dans une autre session. Actualisez le rapport et réessayez.',
+    'تغيّرت الإعدادات في جلسة أخرى. حدّث التقرير وحاول مجدداً.',
+  ),
+  'analytics.privacy': l('Analytics preference', 'Préférence de statistiques', 'تفضيلات الإحصاءات'),
+  'analytics.allow': l('Allow analytics', 'Autoriser les statistiques', 'السماح بالإحصاءات'),
+  'analytics.decline': l('Decline analytics', 'Refuser les statistiques', 'رفض الإحصاءات'),
+  'analytics.reader.optIn': l(
+    'Allow this site to count public pageviews and accepted forms in aggregate.',
+    'Autorisez le comptage agrégé des pages publiques vues et des formulaires acceptés.',
+    'اسمح للموقع باحتساب مشاهدات الصفحات العامة وإرسالات النماذج المقبولة بصورة مجمّعة.',
+  ),
+  'analytics.reader.unlessDeclined': l(
+    'This site counts public pageviews and accepted forms in aggregate. You can opt out below.',
+    'Ce site compte les pages publiques vues et les formulaires acceptés de façon agrégée. Vous pouvez refuser ci-dessous.',
+    'يحتسب هذا الموقع مشاهدات الصفحات العامة وإرسالات النماذج المقبولة بصورة مجمّعة. يمكنك الرفض أدناه.',
+  ),
   'owner.social': l(
     'Social publishing',
     'Publication sur les réseaux sociaux',
