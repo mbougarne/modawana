@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { StoreWorkspace } from '../owner/StoreWorkspace';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Button, useI18n } from '@ui';
 import { call } from './api';
@@ -90,6 +91,9 @@ export function StaffPage() {
                 {t('auth.signout')}
               </Button>
             </div>
+            {['owner', 'store_manager'].includes(session.data.member.role) && (
+              <StoreWorkspace csrf={session.data.csrf} staff />
+            )}
             {session.data.member.role !== 'store_manager' && (
               <StaffContent session={session.data} />
             )}

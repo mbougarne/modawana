@@ -1,3 +1,4 @@
+import type { PublicStore } from './store';
 import type { Locale } from '@ui/types';
 import type { QuizDefinition, ReaderLearningState } from './learning';
 import type { MediaRecord } from './contracts';
@@ -262,6 +263,7 @@ export interface PublicCollection {
 }
 
 export interface PageRoute {
+  store?: PublicStore;
   kind: string;
   locale: Locale;
   url: string;

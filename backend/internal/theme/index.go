@@ -99,6 +99,8 @@ type Field struct {
 }
 
 type Discovery struct {
+	ProductHeading                                          string
+	ProductResults                                          []Year
 	Title, Intro, URL, Query, QueryLabel, Submit, KindLabel string
 	Search                                                  bool
 	Kinds                                                   []Choice

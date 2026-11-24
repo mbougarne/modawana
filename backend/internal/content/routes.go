@@ -10,11 +10,13 @@ import (
 
 	"github.com/mbougarne/modawana/backend/internal/access"
 	"github.com/mbougarne/modawana/backend/internal/siteconfig"
+	"github.com/mbougarne/modawana/backend/internal/store"
 )
 
 // PageRoute is the public contract shared by HTML delivery and SPA navigation.
 // It never accepts an owner principal: owning a session cannot turn a public URL into a preview.
 type PageRoute struct {
+	Store        *store.PublicPage `json:"store,omitempty"`
 	Kind         string            `json:"kind"`
 	Locale       string            `json:"locale"`
 	URL          string            `json:"url"`

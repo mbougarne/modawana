@@ -89,7 +89,11 @@ func (s *Server) themeDiscovery(ctx context.Context, query url.Values, page cont
 			}
 		}
 		view.Kinds = append(view.Kinds, theme.Choice{Label: label("public.any"), Selected: filter.Kind == ""})
-		for _, kind := range []string{"article", "lesson", "doc", "page"} {
+		kinds := []string{"article", "lesson", "doc", "page"}
+		if s.storeEnabled(ctx) {
+			kinds = append(kinds, "product")
+		}
+		for _, kind := range kinds {
 			view.Kinds = append(view.Kinds, theme.Choice{Value: kind, Label: label("public." + kind), Selected: filter.Kind == kind})
 		}
 	} else {
@@ -128,9 +132,11 @@ func (s *Server) themeDiscovery(ctx context.Context, query url.Values, page cont
 		active = append(active, value)
 	}
 	view.Active = strings.Join(active, " · ")
-	view.Count = interpolate(label("public.results"), map[string]string{"n": strconv.Itoa(result.Total)})
+	view.Count = interpolate(label("public.results"), map[string]string{"n": strconv.Itoa(result.Total + len(result.Products))})
 	view.Empty = label("public.noResults")
 	view.Posts = themePosts(result.Items, terms, page.Locale, label)
+	view.ProductHeading = label("store.products")
+	view.ProductResults = themePosts(result.Products, nil, page.Locale, label)
 	if filter.Cursor != "" {
 		previous := query["previous"]
 		if n := len(previous); n > 0 {

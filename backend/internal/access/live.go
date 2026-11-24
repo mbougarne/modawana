@@ -10,8 +10,9 @@ import (
 // A missing implementation fails closed for lesson bodies, including their media.
 type GateCheck func(context.Context, *sql.Tx, string, Principal) (bool, error)
 type Live struct {
-	DB    *sql.DB
-	Gates GateCheck
+	DB         *sql.DB
+	Gates      GateCheck
+	StoreImage func(context.Context, *sql.Tx, string) (bool, error)
 }
 
 func (s *Live) Resolve(ctx context.Context, r Request) (Decision, error) {
@@ -59,6 +60,15 @@ func (s *Live) ResolveIn(ctx context.Context, tx *sql.Tx, r Request) (Decision, 
 				return Decision{}, e
 			}
 			if d.AllowsBody() {
+				return Decision{Visibility: Full, RevisionID: r.ResourceID}, nil
+			}
+		}
+		if s.StoreImage != nil {
+			visible, err := s.StoreImage(ctx, tx, r.ResourceID)
+			if err != nil {
+				return Decision{}, err
+			}
+			if visible {
 				return Decision{Visibility: Full, RevisionID: r.ResourceID}, nil
 			}
 		}

@@ -254,7 +254,7 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 	if private && len(parts) == 5 && (parts[2] == "preview" || parts[2] == "editor") && pageLocale(parts[0]) {
 		locale, status = parts[0], 200
 	}
-	if private && len(parts) == 3 && (parts[2] == "oauth" || parts[2] == "settings" || parts[2] == "themes" || parts[2] == "menus" || parts[2] == "profile" || parts[2] == "labels" || parts[2] == "posts" || parts[2] == "pages" || parts[2] == "new" || parts[2] == "collections" || parts[2] == "taxonomy" || parts[2] == "media" || parts[2] == "transfer" || parts[2] == "plugins" || parts[2] == "dashboard" || parts[2] == "layout" || parts[2] == "forms" || parts[2] == "social" || parts[2] == "analytics" || parts[2] == "editorial") && pageLocale(parts[0]) {
+	if private && len(parts) == 3 && (parts[2] == "oauth" || parts[2] == "settings" || parts[2] == "themes" || parts[2] == "menus" || parts[2] == "profile" || parts[2] == "labels" || parts[2] == "posts" || parts[2] == "pages" || parts[2] == "new" || parts[2] == "collections" || parts[2] == "taxonomy" || parts[2] == "media" || parts[2] == "transfer" || parts[2] == "plugins" || parts[2] == "dashboard" || parts[2] == "layout" || parts[2] == "forms" || parts[2] == "social" || parts[2] == "analytics" || parts[2] == "editorial" || parts[2] == "store") && pageLocale(parts[0]) {
 		locale, status = parts[0], 200
 	}
 	if staffUI {
@@ -323,7 +323,7 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 			var err error
 			ctx = s.readerContext(r)
 			page, err = resolver.ResolvePage(ctx, path)
-			if public && errors.Is(err, sql.ErrNoRows) {
+			if public && errors.Is(err, sql.ErrNoRows) && !storePath(path) {
 				var destination content.PageRoute
 				destination, err = s.resolveEditorialRedirect(ctx, resolver, path)
 				if err == nil {
@@ -439,6 +439,9 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 			w.Header().Set("X-Robots-Tag", "noindex")
 		}
 		head.Structured = structuredMetadata(page.Content, head)
+		if page.Store != nil && page.Store.Product != nil {
+			head.Structured = productMetadata(page.Store.Product, head)
+		}
 		analyticsPath := s.analyticsPage(ctx, r, page, status, public)
 		if analyticsPath != "" {
 			head.Analytics = analyticsFooter(r, analyticsPath, settings, locale, s.options.Analytics.Settings().Consent)

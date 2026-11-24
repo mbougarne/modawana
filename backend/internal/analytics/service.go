@@ -138,7 +138,7 @@ func Path(raw string) (string, bool) {
 			return "", false
 		}
 	}
-	if len(parts) > 1 && !slices.Contains([]string{"about", "writing", "search", "learn", "docs", "doc", "articles", "pages"}, parts[1]) {
+	if len(parts) > 1 && !slices.Contains([]string{"about", "writing", "search", "learn", "docs", "doc", "articles", "pages", "store"}, parts[1]) {
 		return "", false
 	}
 	out := (&url.URL{Path: decoded}).EscapedPath()

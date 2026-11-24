@@ -40,6 +40,7 @@ const pages = [
   'social',
   'analytics',
   'editorial',
+  'store',
   'layout',
 ];
 async function mount(current = 'posts', locale = 'en', extra = {}, children) {

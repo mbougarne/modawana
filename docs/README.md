@@ -20,6 +20,7 @@
 - [Social publishing](integrations/social-publishing.md)
 - [Site analytics](integrations/analytics.md)
 - [Editorial AI](integrations/editorial-ai.md)
+- [Store catalog and inventory](integrations/store.md)
 - [Lesson scheduler](integrations/remote-publishing.md): optional generation and a disabled-by-default service example.
 
 ## Development reference

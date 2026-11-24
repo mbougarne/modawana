@@ -36,7 +36,7 @@
 {{define "page-menu-link"}}{{if .Children}}<div class="public-nav-group">{{end}}<a href="{{.URL}}"{{if .Current}} aria-current="page"{{end}}{{if .Language}} lang="{{.Language}}" dir="auto"{{end}}>{{.Label}}</a>{{if .Children}}<ul class="public-nav-children">{{range .Children}}<li>{{template "page-menu-link" .}}</li>{{end}}</ul></div>{{end}}{{end}}
 {{define "page-content"}}
 <main id="content" tabindex="-1" class="public-main{{if not .Article}} public-themed-index{{end}}">
-{{if .Error}}<section class="public-section"><h1 class="vb-title">{{.Error}}</h1><a class="vb-link" href="{{.Brand.HomeURL}}">{{.HomeLabel}}</a></section>{{else if .Article}}{{template "public-article" .Article}}{{else if .Home}}{{template "public-home" .Home}}{{else if .About}}{{template "public-about" .About}}{{else if .Discovery}}{{template "public-discovery" .Discovery}}{{else if .Reading}}{{template "public-reading" .Reading}}{{end}}
+{{if .Error}}<section class="public-section"><h1 class="vb-title">{{.Error}}</h1><a class="vb-link" href="{{.Brand.HomeURL}}">{{.HomeLabel}}</a></section>{{else if .Article}}{{template "public-article" .Article}}{{else if .Home}}{{template "public-home" .Home}}{{else if .About}}{{template "public-about" .About}}{{else if .Discovery}}{{template "public-discovery" .Discovery}}{{else if .Reading}}{{template "public-reading" .Reading}}{{else if .Store}}{{template "public-store" .Store}}{{end}}
 </main>
 {{end}}
 {{define "page-footer"}}

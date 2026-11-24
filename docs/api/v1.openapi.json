@@ -8028,6 +8028,1289 @@
           }
         }
       }
+    },
+    "/api/v1/owner/store": {
+      "get": {
+        "operationId": "storeWorkspaceOwner",
+        "description": "Read a catalog workspace. / اقرأ مساحة عمل الكتالوج.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreWorkspace"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "query",
+            "name": "locale",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/owner/store/settings": {
+      "put": {
+        "operationId": "storeSettingsOwner",
+        "description": "Update storefront settings. / حدّث إعدادات المتجر.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreSettings"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreSettingsInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/owner/store/categories": {
+      "put": {
+        "operationId": "storeCategoryOwner",
+        "description": "Create or edit a localized category. / أنشئ فئة مترجمة أو عدّلها.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreCategory"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreCategory"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/owner/store/products/{key}/{locale}": {
+      "get": {
+        "operationId": "storeReadDraftOwner",
+        "description": "Read a localized draft. / اقرأ مسوّدة باللغة المحددة.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreDraft"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "locale",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "put": {
+        "operationId": "storeSaveDraftOwner",
+        "description": "Write a localized draft. / اكتب مسوّدة باللغة المحددة.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreDraft"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "locale",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreDraftInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/owner/store/products/{key}/{locale}/publication": {
+      "put": {
+        "operationId": "storePublicationOwner",
+        "description": "Publish or unpublish the version. / انشر النسخة أو ألغ نشرها.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreDraft"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "locale",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "version",
+                  "published"
+                ],
+                "properties": {
+                  "version": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "published": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/owner/store/products/{key}/variants/{sku}": {
+      "put": {
+        "operationId": "storeVariantOwner",
+        "description": "Create or edit a variant. / أنشئ خياراً أو عدّله.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreVariant"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "sku",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 48
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreVariantInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/owner/store/inventory/{sku}": {
+      "get": {
+        "operationId": "storeStockHistoryOwner",
+        "description": "Read the latest adjustments. / اقرأ آخر تعديلات المخزون.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StoreAdjustment"
+                  },
+                  "maxItems": 50
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sku",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 48
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "storeAdjustStockOwner",
+        "description": "Adjust stock with a stable operation ID. / عدّل المخزون بمعرّف عملية ثابت.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreAdjustment"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sku",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 48
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreAdjustmentInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/owner/store/images": {
+      "post": {
+        "operationId": "storeImageUploadOwner",
+        "description": "Upload a store image. / ارفع صورة للمتجر.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "url"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{32}$"
+                    },
+                    "url": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/owner/store/images/{id}": {
+      "get": {
+        "operationId": "storeImageReadOwner",
+        "description": "Read a store image. / اقرأ صورة من المتجر.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "image/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/staff/store": {
+      "get": {
+        "operationId": "storeWorkspaceStaff",
+        "description": "Read a catalog workspace. / اقرأ مساحة عمل الكتالوج.",
+        "security": [
+          {
+            "staffCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreWorkspace"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "query",
+            "name": "locale",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/staff/store/categories": {
+      "put": {
+        "operationId": "storeCategoryStaff",
+        "description": "Create or edit a localized category. / أنشئ فئة مترجمة أو عدّلها.",
+        "security": [
+          {
+            "staffCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreCategory"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreCategory"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/staff/store/products/{key}/{locale}": {
+      "get": {
+        "operationId": "storeReadDraftStaff",
+        "description": "Read a localized draft. / اقرأ مسوّدة باللغة المحددة.",
+        "security": [
+          {
+            "staffCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreDraft"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "locale",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      },
+      "put": {
+        "operationId": "storeSaveDraftStaff",
+        "description": "Write a localized draft. / اكتب مسوّدة باللغة المحددة.",
+        "security": [
+          {
+            "staffCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreDraft"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "locale",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreDraftInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/staff/store/products/{key}/{locale}/publication": {
+      "put": {
+        "operationId": "storePublicationStaff",
+        "description": "Publish or unpublish the version. / انشر النسخة أو ألغ نشرها.",
+        "security": [
+          {
+            "staffCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreDraft"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "locale",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "version",
+                  "published"
+                ],
+                "properties": {
+                  "version": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "published": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/staff/store/products/{key}/variants/{sku}": {
+      "put": {
+        "operationId": "storeVariantStaff",
+        "description": "Create or edit a variant. / أنشئ خياراً أو عدّله.",
+        "security": [
+          {
+            "staffCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreVariant"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
+            }
+          },
+          {
+            "in": "path",
+            "name": "sku",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 48
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreVariantInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/staff/store/inventory/{sku}": {
+      "get": {
+        "operationId": "storeStockHistoryStaff",
+        "description": "Read the latest adjustments. / اقرأ آخر تعديلات المخزون.",
+        "security": [
+          {
+            "staffCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StoreAdjustment"
+                  },
+                  "maxItems": 50
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sku",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 48
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "storeAdjustStockStaff",
+        "description": "Adjust stock with a stable operation ID. / عدّل المخزون بمعرّف عملية ثابت.",
+        "security": [
+          {
+            "staffCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreAdjustment"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sku",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 48
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreAdjustmentInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/staff/store/images": {
+      "post": {
+        "operationId": "storeImageUploadStaff",
+        "description": "Upload a store image. / ارفع صورة للمتجر.",
+        "security": [
+          {
+            "staffCookie": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "url"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{32}$"
+                    },
+                    "url": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/staff/store/images/{id}": {
+      "get": {
+        "operationId": "storeImageReadStaff",
+        "description": "Read a store image. / اقرأ صورة من المتجر.",
+        "security": [
+          {
+            "staffCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "image/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -10967,7 +12250,9 @@
               "article",
               "lesson",
               "doc",
-              "page"
+              "page",
+              "store",
+              "product"
             ]
           },
           "locale": {
@@ -11050,6 +12335,9 @@
           },
           "collection": {
             "$ref": "#/components/schemas/PublicCollection"
+          },
+          "store": {
+            "$ref": "#/components/schemas/StorePublicPage"
           }
         }
       },
@@ -12596,6 +13884,551 @@
             "maxLength": 320
           }
         }
+      },
+      "StoreSettings": {
+        "type": "object",
+        "required": [
+          "version",
+          "enabled",
+          "currency",
+          "digits"
+        ],
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "digits": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4
+          }
+        }
+      },
+      "StoreSettingsInput": {
+        "type": "object",
+        "required": [
+          "version",
+          "enabled",
+          "currency"
+        ],
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          }
+        }
+      },
+      "StoreImage": {
+        "type": "object",
+        "required": [
+          "id",
+          "alt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "alt": {
+            "type": "string",
+            "maxLength": 300
+          }
+        }
+      },
+      "StoreCategory": {
+        "type": "object",
+        "required": [
+          "key",
+          "locale",
+          "version",
+          "title"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
+          },
+          "locale": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 120
+          }
+        }
+      },
+      "StoreDraftInput": {
+        "type": "object",
+        "required": [
+          "version",
+          "slug",
+          "title",
+          "description"
+        ],
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "slug": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 4096
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StoreImage"
+            },
+            "maxItems": 8
+          }
+        }
+      },
+      "StoreDraft": {
+        "type": "object",
+        "required": [
+          "version",
+          "slug",
+          "title",
+          "description",
+          "category",
+          "images",
+          "key",
+          "locale",
+          "published",
+          "published_version",
+          "variants"
+        ],
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "slug": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 4096
+          },
+          "category": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StoreImage"
+            },
+            "maxItems": 8
+          },
+          "key": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
+          },
+          "locale": {
+            "type": "string"
+          },
+          "published": {
+            "type": "boolean"
+          },
+          "published_version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "public_url": {
+            "type": "string"
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StoreVariant"
+            }
+          }
+        }
+      },
+      "StoreVariantInput": {
+        "type": "object",
+        "required": [
+          "version",
+          "price_minor",
+          "active"
+        ],
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 120
+            }
+          },
+          "price_minor": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000000000
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "StoreVariant": {
+        "type": "object",
+        "required": [
+          "version",
+          "labels",
+          "price_minor",
+          "active",
+          "sku",
+          "stock"
+        ],
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 120
+            }
+          },
+          "price_minor": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000000000
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "sku": {
+            "type": "string",
+            "maxLength": 48
+          },
+          "stock": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000
+          }
+        }
+      },
+      "StoreAdjustmentInput": {
+        "type": "object",
+        "required": [
+          "id",
+          "delta",
+          "reason"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "delta": {
+            "type": "integer",
+            "minimum": -1000000000,
+            "maximum": 1000000000
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 300
+          }
+        }
+      },
+      "StoreAdjustment": {
+        "type": "object",
+        "required": [
+          "id",
+          "delta",
+          "reason",
+          "sku",
+          "actor",
+          "before",
+          "after",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "delta": {
+            "type": "integer",
+            "minimum": -1000000000,
+            "maximum": 1000000000
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "sku": {
+            "type": "string",
+            "maxLength": 48
+          },
+          "actor": {
+            "type": "string"
+          },
+          "before": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "after": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "StoreWorkspace": {
+        "type": "object",
+        "required": [
+          "settings",
+          "categories",
+          "products"
+        ],
+        "properties": {
+          "settings": {
+            "$ref": "#/components/schemas/StoreSettings"
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StoreCategory"
+            }
+          },
+          "products": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "key",
+                "title",
+                "localized",
+                "published"
+              ],
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "localized": {
+                  "type": "boolean"
+                },
+                "published": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "next": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
+          }
+        }
+      },
+      "StorePublicProduct": {
+        "type": "object",
+        "required": [
+          "key",
+          "locale",
+          "slug",
+          "url",
+          "title",
+          "description",
+          "published_at",
+          "price_minor",
+          "images"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
+          },
+          "locale": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "url": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "published_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "price_minor": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000000000
+          },
+          "images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StoreImage"
+            }
+          },
+          "category": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "sku",
+                "label",
+                "price_minor",
+                "in_stock"
+              ],
+              "properties": {
+                "sku": {
+                  "type": "string",
+                  "maxLength": 48
+                },
+                "label": {
+                  "type": "string"
+                },
+                "price_minor": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1000000000000
+                },
+                "in_stock": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      },
+      "StorePublicPage": {
+        "type": "object",
+        "required": [
+          "currency",
+          "digits",
+          "total"
+        ],
+        "properties": {
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "digits": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "product": {
+            "$ref": "#/components/schemas/StorePublicProduct"
+          },
+          "products": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StorePublicProduct"
+            }
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "key",
+                "title"
+              ],
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9_-]{0,63}$"
+                },
+                "title": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "alternatives": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "locale",
+                "url"
+              ],
+              "properties": {
+                "locale": {
+                  "type": "string"
+                },
+                "url": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "next_cursor": {
+            "type": "string"
+          }
+        }
       }
     },
     "securitySchemes": {
@@ -12617,6 +14450,11 @@
       "publisherBearer": {
         "type": "http",
         "scheme": "bearer"
+      },
+      "staffCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "__Host-staff"
       }
     }
   }

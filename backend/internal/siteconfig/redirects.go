@@ -48,7 +48,7 @@ func validRedirects(rules []Redirect) bool {
 	for _, rule := range rules {
 		from := redirectParts(rule.From)
 		to := redirectParts(rule.To)
-		if len(from) < 2 || len(to) == 0 || sources[rule.From] {
+		if len(from) < 2 || len(to) == 0 || from[1] == "store" || sources[rule.From] {
 			return false
 		}
 		if len(from) == 2 {

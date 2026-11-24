@@ -123,6 +123,10 @@ func (s *Server) renderedMeta(ctx context.Context, page content.PageRoute, setti
 			}
 		}
 	}
+	if page.Store != nil && page.Store.Product != nil && len(page.Store.Product.Images) > 0 {
+		cover := page.Store.Product.Images[0]
+		out.Image, out.Alt, out.Width, out.Height = origin+"/media/"+cover.ID, cover.Alt, 0, 0
+	}
 	return out
 }
 
