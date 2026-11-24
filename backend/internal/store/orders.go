@@ -41,25 +41,57 @@ type OrderReceipt struct {
 
 type OrderStatus struct {
 	OrderReceipt
-	Snapshot    Snapshot `json:"snapshot"`
-	Status      string   `json:"status"`
-	Payment     string   `json:"payment"`
-	Refund      string   `json:"refund"`
-	Fulfillment string   `json:"fulfillment"`
+	Snapshot      Snapshot  `json:"snapshot"`
+	Status        string    `json:"status"`
+	Payment       string    `json:"payment"`
+	Refund        string    `json:"refund"`
+	Fulfillment   string    `json:"fulfillment"`
+	Shipment      *Shipment `json:"shipment,omitempty"`
+	Notices       []Notice  `json:"notices"`
+	PaidAt        int64     `json:"paid_at,omitempty"`
+	RefundedMinor int64     `json:"refunded_minor"`
 }
 
 type MerchantOrder struct {
 	OrderStatus
-	Customer    Customer     `json:"customer"`
-	Locale      string       `json:"locale"`
-	Operation   string       `json:"operation"`
-	Reservation string       `json:"reservation"`
-	Events      []OrderEvent `json:"events"`
+	Customer      Customer         `json:"customer"`
+	Locale        string           `json:"locale"`
+	Operation     string           `json:"operation"`
+	Reservation   string           `json:"reservation"`
+	Events        []OrderEvent     `json:"events"`
+	Restocked     map[string]int64 `json:"restocked"`
+	PaymentRecord PaymentRecord    `json:"payment_record"`
+	Refunds       []MerchantRefund `json:"refunds"`
 }
 
 type OrderEvent struct {
-	Kind      string `json:"kind"`
-	CreatedAt int64  `json:"created_at"`
+	Kind      string            `json:"kind"`
+	CreatedAt int64             `json:"created_at"`
+	Actor     string            `json:"actor,omitempty"`
+	Detail    *OrderEventDetail `json:"detail,omitempty"`
+}
+
+type OrderEventDetail struct {
+	Reason         string `json:"reason,omitempty"`
+	Carrier        string `json:"carrier,omitempty"`
+	TrackingNumber string `json:"tracking_number,omitempty"`
+	SKU            string `json:"sku,omitempty"`
+	Quantity       int64  `json:"quantity,omitempty"`
+	RefundID       string `json:"refund_id,omitempty"`
+	AmountMinor    int64  `json:"amount_minor,omitempty"`
+}
+
+type PaymentRecord struct {
+	Connection    string `json:"connection,omitempty"`
+	ProviderOrder string `json:"provider_order,omitempty"`
+	Capture       string `json:"capture,omitempty"`
+}
+
+type MerchantRefund struct {
+	ID          string `json:"id"`
+	ProviderID  string `json:"provider_id,omitempty"`
+	AmountMinor int64  `json:"amount_minor"`
+	State       string `json:"state"`
 }
 
 type OrderListItem struct {
@@ -184,20 +216,43 @@ func recordOrderEvent(ctx context.Context, tx *sql.Tx, id, kind string, now time
 	return err
 }
 
-const orderStatusColumns = `o.id,o.created_at,o.expires_at,o.snapshot,o.status,p.state,o.refund_state,o.fulfillment_state`
+func recordMerchantEvent(ctx context.Context, tx *sql.Tx, id, kind, actor, detail string, at int64) error {
+	_, err := tx.ExecContext(ctx, `INSERT INTO store_order_events(order_id,kind,actor,detail,created_at) VALUES(?,?,?,?,?)`, id, kind, actor, detail, at)
+	return err
+}
+
+const orderState = `CASE WHEN o.fulfillment_state='cancelled' AND o.status<>'review' THEN 'cancelled' ELSE o.status END`
+const orderStatusColumns = `o.id,o.created_at,o.expires_at,o.snapshot,` + orderState + `,p.state,o.refund_state,o.fulfillment_state,
+	coalesce((SELECT json_object('shipped_at',shipped_at,'carrier',carrier,'tracking_number',tracking_number)
+		FROM store_shipments WHERE order_id=o.id),'null'),
+	(SELECT json_group_array(json_object('kind',kind,'created_at',created_at)) FROM
+		(SELECT kind,created_at FROM store_order_notices WHERE order_id=o.id ORDER BY created_at,kind)),
+	coalesce((SELECT created_at FROM store_order_events WHERE order_id=o.id AND kind IN ('paid','paid_after_release') ORDER BY id LIMIT 1),0),
+	coalesce((SELECT sum(amount_minor) FROM store_paypal_refunds WHERE order_id=o.id AND state='complete'),0)`
 const orderTables = ` FROM store_orders o JOIN store_payment_operations p ON p.order_id=o.id`
+
+func scanOrderStatus(row scanner, out *OrderStatus, extra ...any) error {
+	var snapshot, shipment, notices string
+	values := []any{&out.Reference, &out.CreatedAt, &out.ExpiresAt, &snapshot, &out.Status, &out.Payment, &out.Refund, &out.Fulfillment,
+		&shipment, &notices, &out.PaidAt, &out.RefundedMinor}
+	if err := row.Scan(append(values, extra...)...); err != nil {
+		return err
+	}
+	if err := json.Unmarshal([]byte(snapshot), &out.Snapshot); err != nil {
+		return err
+	}
+	if err := json.Unmarshal([]byte(shipment), &out.Shipment); err != nil {
+		return err
+	}
+	return json.Unmarshal([]byte(notices), &out.Notices)
+}
 
 func (s *Service) GuestOrder(ctx context.Context, guest, id string) (OrderStatus, error) {
 	var out OrderStatus
 	if !media.ID.MatchString(guest) || !media.ID.MatchString(id) {
 		return out, sql.ErrNoRows
 	}
-	var snapshot string
-	err := s.DB.QueryRowContext(ctx, "SELECT "+orderStatusColumns+orderTables+" WHERE o.id=? AND o.guest_hash=?", id, hash([]byte(guest))).
-		Scan(&out.Reference, &out.CreatedAt, &out.ExpiresAt, &snapshot, &out.Status, &out.Payment, &out.Refund, &out.Fulfillment)
-	if err == nil {
-		err = json.Unmarshal([]byte(snapshot), &out.Snapshot)
-	}
+	err := scanOrderStatus(s.DB.QueryRowContext(ctx, "SELECT "+orderStatusColumns+orderTables+" WHERE o.id=? AND o.guest_hash=?", id, hash([]byte(guest))), &out)
 	return out, err
 }
 
@@ -216,7 +271,7 @@ func (s *Service) Orders(ctx context.Context, cursor string) (OrderPage, error) 
 	if cursor != "" && !media.ID.MatchString(cursor) {
 		return out, ErrInvalid
 	}
-	statement := `SELECT id,created_at,expires_at,status FROM store_orders`
+	statement := `SELECT o.id,o.created_at,o.expires_at,` + orderState + ` FROM store_orders o`
 	var args []any
 	if cursor != "" {
 		statement += ` WHERE (created_at,id)<(SELECT created_at,id FROM store_orders WHERE id=?)`
@@ -251,30 +306,48 @@ func (s *Service) MerchantOrder(ctx context.Context, id string) (MerchantOrder, 
 		return out, err
 	}
 	defer tx.Rollback()
-	var snapshot, customer string
-	err = tx.QueryRowContext(ctx, "SELECT "+orderStatusColumns+",o.customer,o.locale,p.id,o.reservation_state"+orderTables+" WHERE o.id=?", id).
-		Scan(&out.Reference, &out.CreatedAt, &out.ExpiresAt, &snapshot, &out.Status, &out.Payment, &out.Refund, &out.Fulfillment,
-			&customer, &out.Locale, &out.Operation, &out.Reservation)
+	var customer, restocked, refunds string
+	const privateColumns = `,o.customer,o.locale,p.id,o.reservation_state,coalesce(p.connection,''),coalesce(p.provider_order,''),coalesce(p.capture_id,''),
+		(SELECT json_group_object(sku,restocked) FROM store_order_lines WHERE order_id=o.id AND restocked>0),
+		(SELECT json_group_array(json_object('id',id,'provider_id',coalesce(provider_refund,''),'amount_minor',amount_minor,'state',state))
+		  FROM (SELECT id,provider_refund,amount_minor,state FROM store_paypal_refunds WHERE order_id=o.id ORDER BY created_at,id))`
+	err = scanOrderStatus(tx.QueryRowContext(ctx, "SELECT "+orderStatusColumns+privateColumns+orderTables+" WHERE o.id=?", id), &out.OrderStatus,
+		&customer, &out.Locale, &out.Operation, &out.Reservation, &out.PaymentRecord.Connection, &out.PaymentRecord.ProviderOrder, &out.PaymentRecord.Capture,
+		&restocked, &refunds)
 	if err != nil {
-		return out, err
-	}
-	if err = json.Unmarshal([]byte(snapshot), &out.Snapshot); err != nil {
 		return out, err
 	}
 	if err = json.Unmarshal([]byte(customer), &out.Customer); err != nil {
 		return out, err
 	}
-	rows, err := tx.QueryContext(ctx, `SELECT kind,created_at FROM store_order_events WHERE order_id=? ORDER BY id`, id)
-	if err != nil {
+	if err = json.Unmarshal([]byte(restocked), &out.Restocked); err != nil {
 		return out, err
 	}
+	if err = json.Unmarshal([]byte(refunds), &out.Refunds); err != nil {
+		return out, err
+	}
+	out.Events, err = orderHistory(ctx, tx, id)
+	return out, err
+}
+
+func orderHistory(ctx context.Context, tx *sql.Tx, order string) ([]OrderEvent, error) {
+	rows, err := tx.QueryContext(ctx, `SELECT kind,created_at,actor,detail FROM store_order_events
+		WHERE order_id=? ORDER BY created_at,id`, order)
+	if err != nil {
+		return nil, err
+	}
 	defer rows.Close()
+	out := []OrderEvent{}
 	for rows.Next() {
-		var row OrderEvent
-		if err = rows.Scan(&row.Kind, &row.CreatedAt); err != nil {
-			return out, err
+		var event OrderEvent
+		var detail string
+		if err = rows.Scan(&event.Kind, &event.CreatedAt, &event.Actor, &detail); err != nil {
+			return nil, err
 		}
-		out.Events = append(out.Events, row)
+		if err = json.Unmarshal([]byte(detail), &event.Detail); err != nil {
+			return nil, err
+		}
+		out = append(out, event)
 	}
 	return out, rows.Err()
 }

@@ -159,24 +159,28 @@ func (s *Service) Adjust(ctx context.Context, owner, sku string, in AdjustmentIn
 		if !errors.Is(err, sql.ErrNoRows) {
 			return err
 		}
-		var reserved int64
-		if err = tx.QueryRowContext(ctx, "SELECT stock,reserved FROM store_variants WHERE sku=?", sku).Scan(&out.Before, &reserved); err != nil {
-			return err
-		}
-		out.After = out.Before + in.Delta
-		if out.After < reserved || out.After > maxStock {
-			return ErrStock
-		}
-		out.Created = db.UTC(time.Now())
-		if _, err = tx.ExecContext(ctx, "UPDATE store_variants SET stock=? WHERE sku=?", out.After, sku); err != nil {
-			return err
-		}
-		_, err = tx.ExecContext(ctx, `INSERT INTO store_stock_adjustments
-			(id,sku,actor,delta,before_quantity,after_quantity,reason,created_at) VALUES(?,?,?,?,?,?,?,?)`,
-			in.ID, sku, actor, in.Delta, out.Before, out.After, in.Reason, out.Created)
-		return err
+		return recordAdjustment(ctx, tx, &out, time.Now())
 	})
 	return out, err
+}
+
+func recordAdjustment(ctx context.Context, tx *sql.Tx, out *Adjustment, now time.Time) error {
+	var reserved int64
+	if err := tx.QueryRowContext(ctx, "SELECT stock,reserved FROM store_variants WHERE sku=?", out.SKU).Scan(&out.Before, &reserved); err != nil {
+		return err
+	}
+	out.After = out.Before + out.Delta
+	if out.After < reserved || out.After > maxStock {
+		return ErrStock
+	}
+	out.Created = db.UTC(now)
+	if _, err := tx.ExecContext(ctx, "UPDATE store_variants SET stock=? WHERE sku=?", out.After, out.SKU); err != nil {
+		return err
+	}
+	_, err := tx.ExecContext(ctx, `INSERT INTO store_stock_adjustments
+			(id,sku,actor,delta,before_quantity,after_quantity,reason,created_at) VALUES(?,?,?,?,?,?,?,?)`,
+		out.ID, out.SKU, out.Actor, out.Delta, out.Before, out.After, out.Reason, out.Created)
+	return err
 }
 
 func (s *Service) Adjustments(ctx context.Context, sku string) ([]Adjustment, error) {

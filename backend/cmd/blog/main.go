@@ -235,6 +235,9 @@ func run() int {
 			if job.PluginID == "" && job.Event.Name == outbox.LeadCaptured {
 				return forms.PrepareNotification(ctx, job)
 			}
+			if job.PluginID == "" && (job.Event.Name == outbox.OrderPaid || job.Event.Name == outbox.OrderShipped) {
+				return store.PrepareNotice(ctx, job)
+			}
 			if job.PluginID == "" && job.Event.Name == outbox.SocialScheduled {
 				if !host.Installed(social.Slug) {
 					return nil, outbox.ErrUnavailable

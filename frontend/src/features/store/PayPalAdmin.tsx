@@ -191,7 +191,7 @@ export function PayPalOrderTools({
   const attempt = useRef<{ key: string; amount_minor: number }>(undefined);
   const remaining =
     order.snapshot.total_minor -
-    (refunds.data ?? [])
+    order.refunds
       .filter((row) => row.state !== 'failed')
       .reduce((sum, row) => sum + row.amount_minor, 0);
 

@@ -10550,6 +10550,855 @@
           }
         }
       }
+    },
+    "/api/v1/owner/store/orders/export": {
+      "get": {
+        "operationId": "storeExportOrdersOwner",
+        "description": "Download the merchant CSV export. / نزّل ملف طلبات التاجر بصيغة CSV.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/owner/store/orders/{reference}/receipt": {
+      "get": {
+        "operationId": "storeMerchantReceiptOwner",
+        "description": "Open the printable payment receipt. / افتح إيصال الدفع القابل للطباعة.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "reference",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/owner/store/orders/{reference}/cancel": {
+      "post": {
+        "operationId": "storeOrderCancelOwner",
+        "description": "Cancel an unfulfilled order. / ألغِ طلبًا لم يُنفّذ.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreMerchantOperation"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "reference",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "reason"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{32}$"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 300
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/owner/store/orders/{reference}/ship": {
+      "post": {
+        "operationId": "storeOrderShipOwner",
+        "description": "Record shipment and optional tracking. / سجّل الشحن وبيانات التتبّع الاختيارية.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreMerchantOperation"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "reference",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{32}$"
+                  },
+                  "carrier": {
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  "tracking_number": {
+                    "type": "string",
+                    "maxLength": 120
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/owner/store/orders/{reference}/tracking": {
+      "post": {
+        "operationId": "storeOrderTrackingOwner",
+        "description": "Correct shipment tracking. / صحّح بيانات تتبّع الشحنة.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreMerchantOperation"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "reference",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{32}$"
+                  },
+                  "carrier": {
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  "tracking_number": {
+                    "type": "string",
+                    "maxLength": 120
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/owner/store/orders/{reference}/restock": {
+      "post": {
+        "operationId": "storeOrderRestockOwner",
+        "description": "Record returned stock for a sold item. / سجّل إعادة وحدات مباعة إلى المخزون.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreMerchantOperation"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "reference",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "sku",
+                  "quantity",
+                  "reason"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{32}$"
+                  },
+                  "sku": {
+                    "type": "string",
+                    "maxLength": 48
+                  },
+                  "quantity": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 99
+                  },
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 300
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/staff/store/orders/export": {
+      "get": {
+        "operationId": "storeExportOrdersStaff",
+        "description": "Download the merchant CSV export. / نزّل ملف طلبات التاجر بصيغة CSV.",
+        "security": [
+          {
+            "staffCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/staff/store/orders/{reference}/receipt": {
+      "get": {
+        "operationId": "storeMerchantReceiptStaff",
+        "description": "Open the printable payment receipt. / افتح إيصال الدفع القابل للطباعة.",
+        "security": [
+          {
+            "staffCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "reference",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/staff/store/orders/{reference}/cancel": {
+      "post": {
+        "operationId": "storeOrderCancelStaff",
+        "description": "Cancel an unfulfilled order. / ألغِ طلبًا لم يُنفّذ.",
+        "security": [
+          {
+            "staffCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreMerchantOperation"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "reference",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "reason"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{32}$"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 300
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/staff/store/orders/{reference}/ship": {
+      "post": {
+        "operationId": "storeOrderShipStaff",
+        "description": "Record shipment and optional tracking. / سجّل الشحن وبيانات التتبّع الاختيارية.",
+        "security": [
+          {
+            "staffCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreMerchantOperation"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "reference",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{32}$"
+                  },
+                  "carrier": {
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  "tracking_number": {
+                    "type": "string",
+                    "maxLength": 120
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/staff/store/orders/{reference}/tracking": {
+      "post": {
+        "operationId": "storeOrderTrackingStaff",
+        "description": "Correct shipment tracking. / صحّح بيانات تتبّع الشحنة.",
+        "security": [
+          {
+            "staffCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreMerchantOperation"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "reference",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{32}$"
+                  },
+                  "carrier": {
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  "tracking_number": {
+                    "type": "string",
+                    "maxLength": 120
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/staff/store/orders/{reference}/restock": {
+      "post": {
+        "operationId": "storeOrderRestockStaff",
+        "description": "Record returned stock for a sold item. / سجّل إعادة وحدات مباعة إلى المخزون.",
+        "security": [
+          {
+            "staffCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreMerchantOperation"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "reference",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "sku",
+                  "quantity",
+                  "reason"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{32}$"
+                  },
+                  "sku": {
+                    "type": "string",
+                    "maxLength": 48
+                  },
+                  "quantity": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 99
+                  },
+                  "reason": {
+                    "type": "string",
+                    "maxLength": 300
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/public/store/checkout/{locale}/orders/{reference}/receipt": {
+      "get": {
+        "operationId": "storeGuestPaymentReceipt",
+        "description": "Open a printable receipt in the original guest browser. / افتح إيصالًا قابلًا للطباعة من متصفح الضيف الأصلي.",
+        "security": [
+          {
+            "checkoutCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z]{2}$"
+            }
+          },
+          {
+            "name": "reference",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -16156,7 +17005,9 @@
           "status",
           "payment",
           "refund",
-          "fulfillment"
+          "fulfillment",
+          "notices",
+          "refunded_minor"
         ],
         "properties": {
           "reference": {
@@ -16180,7 +17031,8 @@
               "awaiting_payment",
               "confirmed",
               "expired",
-              "review"
+              "review",
+              "cancelled"
             ]
           },
           "payment": {
@@ -16209,6 +17061,23 @@
               "shipped",
               "cancelled"
             ]
+          },
+          "shipment": {
+            "$ref": "#/components/schemas/StoreShipment"
+          },
+          "notices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StoreOrderNotice"
+            }
+          },
+          "paid_at": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "refunded_minor": {
+            "type": "integer",
+            "minimum": 0
           }
         }
       },
@@ -16227,12 +17096,58 @@
               "expired_unpaid",
               "verified_unpaid",
               "paid",
-              "paid_after_release"
+              "paid_after_release",
+              "cancelled",
+              "shipped",
+              "tracking_updated",
+              "restocked",
+              "refund_requested",
+              "refund_retry",
+              "refund_pending",
+              "refund_complete",
+              "refund_failed"
             ]
           },
           "created_at": {
             "type": "integer",
             "minimum": 0
+          },
+          "actor": {
+            "type": "string"
+          },
+          "detail": {
+            "type": "object",
+            "properties": {
+              "reason": {
+                "type": "string",
+                "maxLength": 300
+              },
+              "carrier": {
+                "type": "string",
+                "maxLength": 80
+              },
+              "tracking_number": {
+                "type": "string",
+                "maxLength": 120
+              },
+              "sku": {
+                "type": "string",
+                "maxLength": 48
+              },
+              "quantity": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 99
+              },
+              "refund_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{32}$"
+              },
+              "amount_minor": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
           }
         }
       },
@@ -16251,7 +17166,12 @@
           "locale",
           "operation",
           "reservation",
-          "events"
+          "events",
+          "notices",
+          "refunded_minor",
+          "restocked",
+          "payment_record",
+          "refunds"
         ],
         "properties": {
           "reference": {
@@ -16275,7 +17195,8 @@
               "awaiting_payment",
               "confirmed",
               "expired",
-              "review"
+              "review",
+              "cancelled"
             ]
           },
           "payment": {
@@ -16329,6 +17250,40 @@
             "items": {
               "$ref": "#/components/schemas/StoreOrderEvent"
             }
+          },
+          "shipment": {
+            "$ref": "#/components/schemas/StoreShipment"
+          },
+          "notices": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StoreOrderNotice"
+            }
+          },
+          "paid_at": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "refunded_minor": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "restocked": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 99
+            }
+          },
+          "payment_record": {
+            "$ref": "#/components/schemas/StorePaymentRecord"
+          },
+          "refunds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StoreMerchantRefund"
+            }
           }
         }
       },
@@ -16367,7 +17322,8 @@
                     "awaiting_payment",
                     "confirmed",
                     "expired",
-                    "review"
+                    "review",
+                    "cancelled"
                   ]
                 }
               }
@@ -16505,6 +17461,118 @@
               "pending",
               "complete",
               "failed"
+            ]
+          },
+          "created_at": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "StoreShipment": {
+        "type": "object",
+        "required": [
+          "shipped_at",
+          "carrier",
+          "tracking_number"
+        ],
+        "properties": {
+          "shipped_at": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "carrier": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "tracking_number": {
+            "type": "string",
+            "maxLength": 120
+          }
+        }
+      },
+      "StoreOrderNotice": {
+        "type": "object",
+        "required": [
+          "kind",
+          "created_at"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "order.paid",
+              "order.shipped"
+            ]
+          },
+          "created_at": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "StorePaymentRecord": {
+        "type": "object",
+        "properties": {
+          "connection": {
+            "type": "string"
+          },
+          "provider_order": {
+            "type": "string"
+          },
+          "capture": {
+            "type": "string"
+          }
+        }
+      },
+      "StoreMerchantRefund": {
+        "type": "object",
+        "required": [
+          "id",
+          "amount_minor",
+          "state"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "provider_id": {
+            "type": "string"
+          },
+          "amount_minor": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "complete",
+              "failed"
+            ]
+          }
+        }
+      },
+      "StoreMerchantOperation": {
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "cancelled",
+              "shipped",
+              "tracking_updated",
+              "restocked"
             ]
           },
           "created_at": {

@@ -26,7 +26,7 @@ func (d *Domain) checkoutRoutes(w http.ResponseWriter, r *http.Request) bool {
 		return false
 	}
 	parts := strings.Split(strings.TrimPrefix(r.URL.Path, checkoutAPI), "/")
-	if len(parts) < 2 || len(parts) > 3 || !pageLocale(parts[0]) || r.URL.RawQuery != "" {
+	if len(parts) < 2 || len(parts) > 4 || !pageLocale(parts[0]) || r.URL.RawQuery != "" {
 		writeError(w, NotFound)
 		return true
 	}
@@ -35,6 +35,20 @@ func (d *Domain) checkoutRoutes(w http.ResponseWriter, r *http.Request) bool {
 	ctx := r.Context()
 	guest := guestToken(r)
 	ip := d.Auth.Config.ThrottleIP(r.RemoteAddr, r.Header.Get("X-Forwarded-For"))
+	if len(parts) == 4 && parts[1] == "orders" && parts[3] == "receipt" {
+		if r.Method != http.MethodGet {
+			w.Header().Set("Allow", "GET")
+			writeError(w, MethodNotAllowed)
+		} else if guest == "" {
+			writeError(w, NotFound)
+		} else if err := d.Store.AllowCheckout(ctx, "lookup", ip, 60); err != nil {
+			checkoutReply(w, nil, err)
+		} else {
+			out, err := d.Store.GuestOrder(ctx, guest, parts[2])
+			d.orderReceipt(w, r, parts[0], out, err, "/"+parts[0]+"/store/checkout/cart")
+		}
+		return true
+	}
 	if len(parts) == 3 && (parts[1] == "orders" || parts[1] == "attempts") {
 		if r.Method != http.MethodGet {
 			w.Header().Set("Allow", "GET")
@@ -118,6 +132,8 @@ func (d *Domain) checkoutRoutes(w http.ResponseWriter, r *http.Request) bool {
 
 func checkoutReply(w http.ResponseWriter, out any, err error) {
 	switch {
+	case errors.Is(err, store.ErrOrderState):
+		writeJSON(w, http.StatusConflict, ErrorEnvelope{APIError{Code: "store_order_state", Message: "Order action is unavailable in the current state.", RequestID: w.Header().Get("X-Request-ID")}})
 	case errors.Is(err, store.ErrCheckoutClosed):
 		writeError(w, NotFound)
 	case errors.Is(err, store.ErrPaymentAmount):

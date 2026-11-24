@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/csv"
 	"encoding/json"
+	"github.com/mbougarne/modawana/backend/internal/csvexport"
 	"io"
 	"strconv"
 	"strings"
@@ -153,7 +154,7 @@ func (s *Service) Export(ctx context.Context, out io.Writer) error {
 			return err
 		}
 		if err := w.Write([]string{lead.ID, lead.Form, strconv.FormatInt(lead.Version, 10), lead.Locale, lead.Page, lead.Status,
-			dbTime(lead.Created), string(tags), csvLiteral(lead.Consent), string(values)}); err != nil {
+			dbTime(lead.Created), string(tags), csvexport.Literal(lead.Consent), string(values)}); err != nil {
 			return err
 		}
 	}
@@ -165,11 +166,3 @@ func (s *Service) Export(ctx context.Context, out io.Writer) error {
 }
 
 func dbTime(seconds int64) string { return time.Unix(seconds, 0).UTC().Format(time.RFC3339) }
-
-func csvLiteral(value string) string {
-	if strings.HasPrefix(strings.TrimSpace(value), "=") || strings.HasPrefix(strings.TrimSpace(value), "+") ||
-		strings.HasPrefix(strings.TrimSpace(value), "-") || strings.HasPrefix(strings.TrimSpace(value), "@") {
-		return "'" + value
-	}
-	return value
-}

@@ -124,7 +124,8 @@ const eligibleFrom = `FROM outbox_events e LEFT JOIN plugin_installs p ON p.id=d
 	WHERE e.id=d.event_id AND (
 	  (d.plugin_id='' AND e.contract_version=1 AND (
 	    (d.plugin_slug='forms' AND e.name='lead.captured') OR
-	    (d.plugin_slug='social' AND e.name='social.scheduled')
+	    (d.plugin_slug='social' AND e.name='social.scheduled') OR
+	    (d.plugin_slug='store' AND e.name IN ('order.paid','order.shipped'))
 	  ))
 	  OR (p.enabled=1 AND EXISTS (SELECT 1 FROM outbox_subscriptions s WHERE s.plugin_id=p.id
 	    AND e.name=s.name AND e.contract_version=s.contract_version))

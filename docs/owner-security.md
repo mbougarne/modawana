@@ -163,7 +163,7 @@ with the intended person. Guests enroll and sign in at `/{locale}/staff`.
 | --- | --- |
 | Owner | List and edit Markdown article and page drafts. Publish an exact saved revision with the usual checks. |
 | Editor | List and edit Markdown article and page drafts. |
-| Store Manager | Manage Store catalog and inventory, publish products, and read merchant orders when the Store module is available. |
+| Store Manager | Manage and publish the Store catalog, adjust inventory, and read, fulfill, cancel and export merchant orders. |
 
 Staff sessions expire after 12 hours. Revoking a member blocks their session,
 draft writes, and any outstanding publication deliveries that depend on their
