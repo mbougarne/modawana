@@ -6,6 +6,8 @@ export function checkoutError(error: unknown) {
   if (error instanceof AuthError) {
     const labels: Record<string, string> = {
       store_coupon: 'checkout.couponInvalid',
+      store_payment_amount: 'paypal.badAmount',
+      paypal_review: 'paypal.needsReview',
       store_shipping: 'checkout.shippingInvalid',
       store_stock: 'checkout.stockInvalid',
       store_quote_changed: 'checkout.quoteChanged',

@@ -67,6 +67,9 @@ func TestBackupRestoreDisablesSnapshotCredentialsAndKeepsFiles(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
+	if _, e = d.Exec("UPDATE store_checkout_settings SET enabled=1"); e != nil {
+		t.Fatal(e)
+	}
 	if _, e = d.Exec("UPDATE editorial_settings SET enabled=1,credential=x'cabbed'"); e != nil {
 		t.Fatal(e)
 	}
@@ -101,6 +104,10 @@ func TestBackupRestoreDisablesSnapshotCredentialsAndKeepsFiles(t *testing.T) {
 	var hasSecret bool
 	if e = restored.QueryRow("SELECT password_hash IS NOT NULL OR totp_cipher IS NOT NULL FROM owner").Scan(&hasSecret); e != nil || hasSecret {
 		t.Fatal("restored password/TOTP", e)
+	}
+	var checkoutEnabled, paymentReview bool
+	if e = restored.QueryRow("SELECT enabled,payment_review_required FROM store_checkout_settings WHERE id=1").Scan(&checkoutEnabled, &paymentReview); e != nil || checkoutEnabled || !paymentReview {
+		t.Fatal("restored checkout should wait for provider reconciliation", checkoutEnabled, paymentReview, e)
 	}
 	if e = restored.QueryRow("SELECT enabled OR credential IS NOT NULL FROM editorial_settings").Scan(&hasSecret); e != nil || hasSecret {
 		t.Fatal("restored editorial credential", e)

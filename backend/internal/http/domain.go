@@ -23,6 +23,7 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/learning"
 	"github.com/mbougarne/modawana/backend/internal/media"
 	"github.com/mbougarne/modawana/backend/internal/outbox"
+	"github.com/mbougarne/modawana/backend/internal/paypal"
 	"github.com/mbougarne/modawana/backend/internal/plugin"
 	"github.com/mbougarne/modawana/backend/internal/siteconfig"
 	"github.com/mbougarne/modawana/backend/internal/social"
@@ -34,6 +35,7 @@ var uploadHTTPGate = make(chan struct{}, 1)
 
 type Domain struct {
 	Store      *store.Service
+	PayPal     *paypal.Service
 	Editorial  *editorial.Service
 	Analytics  *analytics.Service
 	Social     *social.Service
@@ -68,6 +70,9 @@ func (d *Domain) Builtins() []extension.Extension {
 	}
 	if d.Store != nil {
 		modules = append(modules, d.Store)
+	}
+	if d.PayPal != nil {
+		modules = append(modules, d.PayPal)
 	}
 	return modules
 }
@@ -133,6 +138,9 @@ func domainError(w http.ResponseWriter, e error) {
 	}
 }
 func (d *Domain) Handle(w http.ResponseWriter, r *http.Request) bool {
+	if d.PayPal != nil && d.paypalRoutes(w, r) {
+		return true
+	}
 	if d.Store != nil && (d.checkoutRoutes(w, r) || d.storeRoutes(w, r)) {
 		return true
 	}

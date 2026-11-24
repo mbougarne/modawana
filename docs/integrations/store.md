@@ -77,8 +77,89 @@ appears in the merchant's review queue through its order status and history.
 It leaves inventory and other orders intact. Payment, refund and fulfillment
 have separate statuses.
 
-Disabling checkout stops new reservations. Prior receipts and order lookup
-remain available. Checkout currently creates unpaid reservations. The PayPal
-adapter will provide payment processing in a subsequent release. See the
-[OpenAPI schema](../api/v1.openapi.json) for catalog, inventory and checkout
-endpoints.
+Disabling checkout stops new reservations and captures. Prior receipts, order
+lookup and reconciliation remain available. See the
+[OpenAPI schema](../api/v1.openapi.json) for Store endpoints.
+
+## PayPal setup
+
+Each store uses a PayPal REST app owned by its merchant. Give the server
+`BLOG_PAYPAL_CONNECTIONS` as JSON through the service environment. Keep the
+secret in a private regular file (0600) outside the checkout and data root.
+The example contains placeholders.
+
+```json
+{
+  "active": "store-sandbox",
+  "connections": [
+    {
+      "id": "store-sandbox",
+      "mode": "sandbox",
+      "merchant_id": "PAYPAL_MERCHANT_ID",
+      "client_id": "PAYPAL_REST_APP_CLIENT_ID",
+      "client_secret_file": "/run/secrets/paypal-client-secret",
+      "webhook_id": "PAYPAL_WEBHOOK_ID"
+    }
+  ]
+}
+```
+
+In the same PayPal app, register your public HTTPS endpoint
+`/api/v1/webhooks/paypal/store-sandbox`. Subscribe to order approval and capture
+events, including `CHECKOUT.ORDER.APPROVED`, `PAYMENT.CAPTURE.PENDING`,
+`PAYMENT.CAPTURE.COMPLETED`, `PAYMENT.CAPTURE.DENIED`,
+`PAYMENT.CAPTURE.REFUNDED`, `PAYMENT.CAPTURE.REVERSED`,
+`PAYMENT.REFUND.PENDING`, and `PAYMENT.REFUND.FAILED` where offered by the app.
+Set the resulting webhook ID and restart Modawana. Connection IDs are anchored
+to one environment, merchant and REST app. Change the connection ID when switching
+any of those. Set `active` to an empty string and restart to disconnect new checkout.
+Keep former credentials available in the list while reconciling their orders
+and refunds. Rotating a secret for the same REST app keeps the operation binding.
+
+Select a [PayPal-supported currency](https://developer.paypal.com/api/codes/currency/)
+before creating variants. Use a currency the merchant can receive. Enable the
+storefront and PayPal checkout under **Store → Checkout settings**. Checkout
+requires a positive payable total. PayPal uses whole units for HUF, JPY and TWD.
+
+## Payment, refunds and recovery
+
+From their reservation, the buyer continues to PayPal and approves on PayPal's
+site. Modawana sends the shipping name and address and the frozen amount to
+PayPal. PayPal handles payment credentials. Modawana checks the provider order,
+merchant, currency, amount, capture status and identifiers before settlement.
+A return to the cart only starts this check. Verified webhook notifications are
+deduplicated and reconciled against current PayPal data. Unmatched operations and
+reversals appear under **PayPal notifications** for review.
+
+In **Store → Orders**, the installation Owner can check the provider status and
+confirm a refund in minor units after fresh authentication. Enter the full
+remaining amount for a full refund or a smaller amount for a partial refund.
+Refunds have independent statuses and do not restock inventory. For an
+interrupted refund, use **Check or resume refund** on its existing entry. The
+system reuses the stored operation ID within its 30-minute retry window. Older
+uncertain attempts require checking PayPal and the receipt history before taking
+further action.
+
+A restored installation closes checkout and pauses refund writes while preserving
+orders, operation IDs and receipt history. After the owner has recovered access,
+compare PayPal activity since the backup against the restored ledger. Resolve
+unmatched captures and refunds in PayPal. Confirm reconciliation under
+**Store → Checkout settings → PayPal**, then enable checkout when ready.
+
+## Sandbox acceptance
+
+Use a dedicated sandbox merchant and buyer, a public HTTPS callback, a distinct
+sandbox connection ID and a supported currency such as USD. Place an order and
+verify approval, capture, the stock change, and the merchant record. Verify that
+cancelling in PayPal preserves the unpaid reservation until it expires and that
+two browsers competing for the final unit produce one reservation. Resend a
+signed notification and resend an older notification after settlement. Verify
+that neither causes a duplicate stock change. Simulate a dropped capture
+response and use the status check to recover. Test one full refund and a partial
+refund followed by refunding the remainder on another order. Record the actual
+sandbox results before configuring a live merchant.
+
+[PayPal Orders v2](https://developer.paypal.com/api/orders/v2/) ·
+[Webhook verification](https://developer.paypal.com/api/webhooks/v1/) ·
+[Payments and refunds](https://developer.paypal.com/api/payments/v2/captures-refund) ·
+[Request idempotency](https://developer.paypal.com/api/rest/requests/)

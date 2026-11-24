@@ -196,6 +196,25 @@ func TestCheckoutPaymentHoldsAndLateCapture(t *testing.T) {
 	s, input := checkoutFixture(t, 1)
 	ctx := t.Context()
 	guest := strings.Repeat("a", 32)
+	if _, err := s.DB.ExecContext(ctx, `INSERT INTO store_paypal_connections(id,mode,merchant,client_hash) VALUES('merchant','sandbox','test','test')`); err != nil {
+		t.Fatal(err)
+	}
+	s.PaymentConnection = func(string) string { return "merchant" }
+	bind := func(id, remote string) Purchase {
+		t.Helper()
+		p, err := s.GuestPurchase(ctx, guest, id)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err = s.BindApproval(ctx, p, PaymentApproval{ProviderOrder: remote, ApprovalURL: "https://www.sandbox.paypal.com/checkoutnow?token=" + remote}); err != nil {
+			t.Fatal(err)
+		}
+		p, err = s.GuestPurchase(ctx, guest, id)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return p
+	}
 	first, err := s.CreateOrder(ctx, guest, guestCheckout(t, s, input))
 	if err != nil {
 		t.Fatal(err)
@@ -204,11 +223,12 @@ func TestCheckoutPaymentHoldsAndLateCapture(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	operation, err := s.BeginCapture(ctx, order.Operation, "merchant", "provider-order-1")
+	purchase := bind(first.Reference, "provider-order-1")
+	operation, err := s.StartProviderCapture(ctx, purchase)
 	if err != nil || operation.AmountMinor != order.Snapshot.TotalMinor {
 		t.Fatal(operation, err)
 	}
-	if retry, err := s.BeginCapture(ctx, order.Operation, "merchant", "provider-order-1"); err != nil || retry != operation {
+	if retry, err := s.StartProviderCapture(ctx, purchase); err != nil || retry != operation {
 		t.Fatal(retry, err)
 	}
 	if err := s.expireOrders(ctx, time.Now().Add(reservationLifetime)); err != nil {
@@ -253,7 +273,7 @@ func TestCheckoutPaymentHoldsAndLateCapture(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	secondOperation, err := s.BeginCapture(ctx, order.Operation, "merchant", "provider-order-2")
+	secondOperation, err := s.StartProviderCapture(ctx, bind(second.Reference, "provider-order-2"))
 	if err != nil {
 		t.Fatal(err)
 	}

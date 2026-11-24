@@ -6,7 +6,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/mbougarne/modawana/backend/internal/media"
 	"github.com/mbougarne/modawana/backend/internal/outbox"
 )
 
@@ -14,9 +13,17 @@ import (
 // replay their StableID for the same operation. Verify obtains provider evidence
 // independently of browser returns. A connection belongs to one merchant.
 type PaymentAdapter interface {
-	Create(ctx context.Context, operation PaymentOperation) (PaymentApproval, error)
+	Create(ctx context.Context, purchase Purchase) (PaymentApproval, error)
 	Capture(ctx context.Context, operation PaymentOperation) error
-	Verify(ctx context.Context, operation PaymentOperation) (PaymentEvidence, error)
+	Verify(ctx context.Context, operation PaymentOperation) (PaymentVerification, error)
+	Refund(ctx context.Context, operation RefundOperation) (RefundEvidence, error)
+	VerifyRefund(ctx context.Context, providerID string) (RefundEvidence, error)
+}
+
+type PaymentVerification struct {
+	Evidence *PaymentEvidence
+	Approved bool
+	Refunded bool
 }
 
 type PaymentApproval struct {
@@ -56,39 +63,6 @@ func readOperation(ctx context.Context, tx *sql.Tx, id string) (operationState, 
 	return out, err
 }
 
-// BeginCapture records uncertainty before an effectful call. Retrying the
-// same operation on the same connection returns the original operation.
-func (s *Service) BeginCapture(ctx context.Context, id, connection, providerOrder string) (PaymentOperation, error) {
-	var out PaymentOperation
-	if !media.ID.MatchString(id) || !validProviderID(connection) || !validProviderID(providerOrder) {
-		return out, ErrInvalid
-	}
-	err := s.write(ctx, "", func(tx *sql.Tx) error {
-		op, err := readOperation(ctx, tx, id)
-		if err != nil {
-			return err
-		}
-		if op.State == "uncertain" && op.Connection == connection && op.ProviderOrder == providerOrder {
-			out = op.PaymentOperation
-			return nil
-		}
-		now := time.Now()
-		if op.State != "pending" || op.Expires <= now.Unix() {
-			return ErrConflict
-		}
-		if _, err = tx.ExecContext(ctx, `UPDATE store_payment_operations SET state='uncertain',connection=?,provider_order=? WHERE id=?`, connection, providerOrder, id); err != nil {
-			return err
-		}
-		if _, err = tx.ExecContext(ctx, `UPDATE store_orders SET status='review' WHERE id=?`, op.Order); err != nil {
-			return err
-		}
-		op.Connection, op.ProviderOrder = connection, providerOrder
-		out = op.PaymentOperation
-		return recordOrderEvent(ctx, tx, op.Order, "capture_pending", now)
-	})
-	return out, err
-}
-
 func (s *Service) RecordPayment(ctx context.Context, e PaymentEvidence) error {
 	if (e.CaptureID == "") != e.DefinitivelyUnpaid ||
 		(e.CaptureID != "" && !validProviderID(e.CaptureID)) {
@@ -105,7 +79,7 @@ func (s *Service) RecordPayment(ctx context.Context, e PaymentEvidence) error {
 		now := time.Now()
 		switch {
 		case e.DefinitivelyUnpaid:
-			if op.State != "uncertain" {
+			if op.State != "uncertain" && op.State != "pending" {
 				return nil
 			}
 			return releaseOrder(ctx, tx, op.Order, "verified_unpaid", now)
@@ -122,7 +96,7 @@ func (s *Service) RecordPayment(ctx context.Context, e PaymentEvidence) error {
 				return err
 			}
 			return recordOrderEvent(ctx, tx, op.Order, "paid_after_release", now)
-		case op.State == "uncertain":
+		case op.State == "uncertain" || op.State == "pending":
 			if err = settleStock(ctx, tx, op.Order, true); err != nil {
 				return err
 			}

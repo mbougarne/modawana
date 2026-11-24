@@ -9841,6 +9841,715 @@
           }
         ]
       }
+    },
+    "/api/v1/public/store/checkout/{locale}/orders/{reference}/paypal/approval": {
+      "post": {
+        "operationId": "storePayPalApproval",
+        "description": "Create or recover the guest approval URL. / أنشئ أو استعد رابط الموافقة للضيف.",
+        "security": [
+          {
+            "checkoutCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PayPal response / استجابة PayPal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayPalApproval"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z]{2}$"
+            }
+          },
+          {
+            "name": "reference",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/public/store/checkout/{locale}/orders/{reference}/paypal/finish": {
+      "post": {
+        "operationId": "storePayPalFinish",
+        "description": "Verify PayPal approval and capture if eligible. / تحقّق من موافقة PayPal وحصّل الدفعة عند استيفاء الشروط.",
+        "security": [
+          {
+            "checkoutCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PayPal response / استجابة PayPal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreOrderStatus"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z]{2}$"
+            }
+          },
+          {
+            "name": "reference",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/public/store/checkout/{locale}/orders/{reference}/paypal/check": {
+      "post": {
+        "operationId": "storePayPalCheck",
+        "description": "Read and reconcile provider payment status. / اقرأ حالة الدفع وطابقها مع المزود.",
+        "security": [
+          {
+            "checkoutCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PayPal response / استجابة PayPal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreOrderStatus"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z]{2}$"
+            }
+          },
+          {
+            "name": "reference",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/owner/store/paypal": {
+      "get": {
+        "operationId": "storePayPalSettings",
+        "description": "Read PayPal connection availability and review status. / اقرأ توفر اتصال PayPal وحالة المراجعة.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PayPal response / استجابة PayPal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayPalStatus"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/owner/store/paypal/resume": {
+      "post": {
+        "operationId": "storePayPalRestoreResume",
+        "description": "Acknowledge payment reconciliation after restore with fresh authentication. / أكّد مطابقة المدفوعات بعد الاستعادة بتحقق حديث من الهوية.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PayPal response / استجابة PayPal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "recorded"
+                  ],
+                  "properties": {
+                    "recorded": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/owner/store/paypal/receipts": {
+      "get": {
+        "operationId": "storePayPalReceipts",
+        "description": "Read verified receipt metadata. / اقرأ البيانات الوصفية للإشعارات المتحقق منها.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PayPal response / استجابة PayPal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PayPalReceipt"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "before",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/owner/store/paypal/receipts/{id}/retry": {
+      "post": {
+        "operationId": "storePayPalRetryReceipt",
+        "description": "Queue a receipt for provider reconciliation. / أعد جدولة مطابقة الإشعار مع المزود.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PayPal response / استجابة PayPal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "queued"
+                  ],
+                  "properties": {
+                    "queued": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/owner/store/paypal/orders/{reference}/reconcile": {
+      "post": {
+        "operationId": "storePayPalReconcile",
+        "description": "Reconcile an order and provider refunds. / طابق الطلب والمبالغ المردودة لدى المزوّد.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PayPal response / استجابة PayPal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "checked"
+                  ],
+                  "properties": {
+                    "checked": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "reference",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/owner/store/paypal/orders/{reference}/refunds": {
+      "get": {
+        "operationId": "storePayPalRefundHistory",
+        "description": "Read refund operations. / اقرأ عمليات رد المبالغ.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PayPal response / استجابة PayPal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PayPalRefund"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "reference",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "storePayPalRefund",
+        "description": "Reserve a full or partial refund with fresh owner authentication. / سجّل ردّ مبلغ كامل أو جزئي بتحقق حديث من هوية المالك.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PayPal response / استجابة PayPal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayPalRefund"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "reference",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PayPalRefundInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/owner/store/paypal/refunds/{id}/retry": {
+      "post": {
+        "operationId": "storePayPalRetryRefund",
+        "description": "Reconcile or resume the same refund operation with fresh authentication. / طابق أو استأنف عملية ردّ المبلغ نفسها بتحقق حديث.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PayPal response / استجابة PayPal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayPalRefund"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/webhooks/paypal/{connection}": {
+      "post": {
+        "operationId": "storePayPalWebhook",
+        "description": "Accept a verified PayPal notification. / اقبل إشعار PayPal متحقّقًا منه.",
+        "security": [],
+        "responses": {
+          "202": {
+            "description": "Accepted / مقبول"
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "connection",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{0,47}$"
+            }
+          },
+          {
+            "name": "PayPal-Auth-Algo",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "PayPal-Cert-Url",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "PayPal-Transmission-Id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "PayPal-Transmission-Sig",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "PayPal-Transmission-Time",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -15668,6 +16377,139 @@
           "next": {
             "type": "string",
             "pattern": "^[0-9a-f]{32}$"
+          }
+        }
+      },
+      "PayPalApproval": {
+        "type": "object",
+        "required": [
+          "approval_url"
+        ],
+        "properties": {
+          "approval_url": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "PayPalStatus": {
+        "type": "object",
+        "required": [
+          "ready",
+          "review_required",
+          "review_receipts"
+        ],
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "sandbox",
+              "live"
+            ]
+          },
+          "ready": {
+            "type": "boolean"
+          },
+          "review_required": {
+            "type": "boolean"
+          },
+          "review_receipts": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "PayPalReceipt": {
+        "type": "object",
+        "required": [
+          "id",
+          "connection",
+          "kind",
+          "resource",
+          "state",
+          "attempts"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "connection": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "resource": {
+            "type": "string"
+          },
+          "provider_order": {
+            "type": "string"
+          },
+          "provider_capture": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "applied",
+              "review"
+            ]
+          },
+          "attempts": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "PayPalRefundInput": {
+        "type": "object",
+        "required": [
+          "key",
+          "amount_minor"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "amount_minor": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000000000
+          }
+        }
+      },
+      "PayPalRefund": {
+        "type": "object",
+        "required": [
+          "id",
+          "amount_minor",
+          "state",
+          "created_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "amount_minor": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000000000
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "complete",
+              "failed"
+            ]
+          },
+          "created_at": {
+            "type": "integer",
+            "minimum": 0
           }
         }
       }

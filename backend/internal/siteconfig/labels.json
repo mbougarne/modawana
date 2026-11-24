@@ -1,4 +1,271 @@
 {
+  "paypal.pay": {
+    "section": "paypal",
+    "description": "Interface text: paypal.pay",
+    "placeholders": [],
+    "values": {
+      "en": "Pay with PayPal",
+      "fr": "Payer avec PayPal",
+      "ar": "ادفع عبر PayPal"
+    }
+  },
+  "paypal.check": {
+    "section": "paypal",
+    "description": "Interface text: paypal.check",
+    "placeholders": [],
+    "values": {
+      "en": "Check payment status",
+      "fr": "Vérifier le paiement",
+      "ar": "تحقّق من حالة الدفع"
+    }
+  },
+  "paypal.retryPayment": {
+    "section": "paypal",
+    "description": "Interface text: paypal.retryPayment",
+    "placeholders": [],
+    "values": {
+      "en": "Resume PayPal payment",
+      "fr": "Reprendre le paiement PayPal",
+      "ar": "استأنف الدفع عبر PayPal"
+    }
+  },
+  "paypal.cancelled": {
+    "section": "paypal",
+    "description": "Interface text: paypal.cancelled",
+    "placeholders": [],
+    "values": {
+      "en": "You returned from PayPal. Your reservation is available while it remains active.",
+      "fr": "Vous êtes revenu de PayPal. La réservation reste disponible jusqu’à son expiration.",
+      "ar": "عدت من PayPal. يمكنك متابعة الحجز ما دام سارياً."
+    }
+  },
+  "paypal.badAmount": {
+    "section": "paypal",
+    "description": "Interface text: paypal.badAmount",
+    "placeholders": [],
+    "values": {
+      "en": "PayPal cannot accept this total. Change the cart or coupon.",
+      "fr": "PayPal ne peut pas accepter ce total. Modifiez votre panier ou le code promotionnel.",
+      "ar": "يتعذّر دفع هذا الإجمالي عبر PayPal. غيّر السلة أو رمز الخصم."
+    }
+  },
+  "paypal.needsReview": {
+    "section": "paypal",
+    "description": "Interface text: paypal.needsReview",
+    "placeholders": [],
+    "values": {
+      "en": "This payment operation requires merchant review.",
+      "fr": "Cette opération doit être vérifiée par le commerçant.",
+      "ar": "تتطلّب عملية الدفع مراجعة التاجر."
+    }
+  },
+  "paypal.updated": {
+    "section": "paypal",
+    "description": "Interface text: paypal.updated",
+    "placeholders": [],
+    "values": {
+      "en": "PayPal details updated.",
+      "fr": "Informations PayPal mises à jour.",
+      "ar": "حُدّثت بيانات PayPal."
+    }
+  },
+  "paypal.connected": {
+    "section": "paypal",
+    "description": "Interface text: paypal.connected",
+    "placeholders": [],
+    "values": {
+      "en": "PayPal is configured for the store currency.",
+      "fr": "PayPal est configuré pour la devise de la boutique.",
+      "ar": "ضُبط PayPal لعملة المتجر."
+    }
+  },
+  "paypal.closed": {
+    "section": "paypal",
+    "description": "Interface text: paypal.closed",
+    "placeholders": [],
+    "values": {
+      "en": "New checkout is unavailable. Check the active PayPal connection and store currency.",
+      "fr": "Les nouvelles commandes sont indisponibles. Vérifiez la connexion PayPal active et la devise de la boutique.",
+      "ar": "إتمام طلبات جديدة غير متاح. تحقّق من اتصال PayPal النشط وعملة المتجر."
+    }
+  },
+  "paypal.mode.sandbox": {
+    "section": "paypal",
+    "description": "Interface text: paypal.mode.sandbox",
+    "placeholders": [],
+    "values": {
+      "en": "Sandbox",
+      "fr": "Environnement de test",
+      "ar": "بيئة الاختبار"
+    }
+  },
+  "paypal.mode.live": {
+    "section": "paypal",
+    "description": "Interface text: paypal.mode.live",
+    "placeholders": [],
+    "values": {
+      "en": "Live",
+      "fr": "Production",
+      "ar": "بيئة الإنتاج"
+    }
+  },
+  "paypal.restoreReview": {
+    "section": "paypal",
+    "description": "Interface text: paypal.restoreReview",
+    "placeholders": [],
+    "values": {
+      "en": "Reconcile PayPal activity since the backup before resuming payments.",
+      "fr": "Rapprochez les opérations PayPal depuis la sauvegarde avant de reprendre les paiements.",
+      "ar": "طابق عمليات PayPal منذ النسخة الاحتياطية قبل استئناف المدفوعات."
+    }
+  },
+  "paypal.confirmReview": {
+    "section": "paypal",
+    "description": "Interface text: paypal.confirmReview",
+    "placeholders": [],
+    "values": {
+      "en": "Confirm payment reconciliation",
+      "fr": "Confirmer le rapprochement des paiements",
+      "ar": "أكّد مطابقة المدفوعات"
+    }
+  },
+  "paypal.receipts": {
+    "section": "paypal",
+    "description": "Interface text: paypal.receipts",
+    "placeholders": [
+      "count"
+    ],
+    "values": {
+      "en": "PayPal notifications · {count} to review",
+      "fr": "Notifications PayPal · {count} à vérifier",
+      "ar": "إشعارات PayPal · {count} للمراجعة"
+    }
+  },
+  "paypal.noReceipts": {
+    "section": "paypal",
+    "description": "Interface text: paypal.noReceipts",
+    "placeholders": [],
+    "values": {
+      "en": "No PayPal notifications received.",
+      "fr": "Aucune notification PayPal reçue.",
+      "ar": "لم تُستلم إشعارات PayPal بعد."
+    }
+  },
+  "paypal.retryCheck": {
+    "section": "paypal",
+    "description": "Interface text: paypal.retryCheck",
+    "placeholders": [],
+    "values": {
+      "en": "Recheck notification",
+      "fr": "Revérifier la notification",
+      "ar": "أعد التحقق من الإشعار"
+    }
+  },
+  "paypal.state.pending": {
+    "section": "paypal",
+    "description": "Interface text: paypal.state.pending",
+    "placeholders": [],
+    "values": {
+      "en": "Pending",
+      "fr": "En attente",
+      "ar": "قيد الانتظار"
+    }
+  },
+  "paypal.state.applied": {
+    "section": "paypal",
+    "description": "Interface text: paypal.state.applied",
+    "placeholders": [],
+    "values": {
+      "en": "Processed",
+      "fr": "Traitée",
+      "ar": "تمت المعالجة"
+    }
+  },
+  "paypal.state.review": {
+    "section": "paypal",
+    "description": "Interface text: paypal.state.review",
+    "placeholders": [],
+    "values": {
+      "en": "Needs review",
+      "fr": "À vérifier",
+      "ar": "تتطلّب مراجعة"
+    }
+  },
+  "paypal.state.complete": {
+    "section": "paypal",
+    "description": "Interface text: paypal.state.complete",
+    "placeholders": [],
+    "values": {
+      "en": "Completed",
+      "fr": "Terminée",
+      "ar": "اكتملت"
+    }
+  },
+  "paypal.state.failed": {
+    "section": "paypal",
+    "description": "Interface text: paypal.state.failed",
+    "placeholders": [],
+    "values": {
+      "en": "Failed",
+      "fr": "Échec",
+      "ar": "تعذّرت"
+    }
+  },
+  "paypal.payment": {
+    "section": "paypal",
+    "description": "Interface text: paypal.payment",
+    "placeholders": [],
+    "values": {
+      "en": "PayPal payment",
+      "fr": "Paiement PayPal",
+      "ar": "الدفع عبر PayPal"
+    }
+  },
+  "paypal.refundAmount": {
+    "section": "paypal",
+    "description": "Interface text: paypal.refundAmount",
+    "placeholders": [
+      "currency"
+    ],
+    "values": {
+      "en": "Refund amount in minor units ({currency})",
+      "fr": "Montant du remboursement en unités mineures ({currency})",
+      "ar": "مبلغ الردّ بالوحدات النقدية الصغرى ({currency})"
+    }
+  },
+  "paypal.confirmRefund": {
+    "section": "paypal",
+    "description": "Interface text: paypal.confirmRefund",
+    "placeholders": [
+      "amount",
+      "currency"
+    ],
+    "values": {
+      "en": "Refund {amount} minor units in {currency}?",
+      "fr": "Rembourser {amount} unités mineures en {currency} ?",
+      "ar": "هل تريد ردّ {amount} وحدة نقدية صغرى بعملة {currency}؟"
+    }
+  },
+  "paypal.refund": {
+    "section": "paypal",
+    "description": "Interface text: paypal.refund",
+    "placeholders": [],
+    "values": {
+      "en": "Issue refund",
+      "fr": "Effectuer le remboursement",
+      "ar": "أصدر ردّ المبلغ"
+    }
+  },
+  "paypal.retryRefund": {
+    "section": "paypal",
+    "description": "Interface text: paypal.retryRefund",
+    "placeholders": [],
+    "values": {
+      "en": "Check or resume refund",
+      "fr": "Vérifier ou reprendre le remboursement",
+      "ar": "تحقّق من ردّ المبلغ أو استأنفه"
+    }
+  },
   "page.checkout": {
     "section": "page",
     "description": "Interface text: page.checkout",
@@ -424,9 +691,9 @@
     "description": "Interface text: checkout.enable",
     "placeholders": [],
     "values": {
-      "en": "Accept guest reservations",
-      "fr": "Accepter les réservations sans compte",
-      "ar": "اسمح للضيوف بحجز الطلبات"
+      "en": "Accept PayPal checkout",
+      "fr": "Accepter les commandes PayPal",
+      "ar": "اسمح بإتمام الطلبات عبر PayPal"
     }
   },
   "checkout.settingsHelp": {

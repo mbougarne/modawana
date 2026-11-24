@@ -120,6 +120,8 @@ func checkoutReply(w http.ResponseWriter, out any, err error) {
 	switch {
 	case errors.Is(err, store.ErrCheckoutClosed):
 		writeError(w, NotFound)
+	case errors.Is(err, store.ErrPaymentAmount):
+		writeJSON(w, http.StatusUnprocessableEntity, ErrorEnvelope{APIError{Code: "store_payment_amount", Message: "Total cannot be paid in this currency.", RequestID: w.Header().Get("X-Request-ID")}})
 	case errors.Is(err, store.ErrCoupon):
 		writeJSON(w, http.StatusUnprocessableEntity, ErrorEnvelope{APIError{Code: "store_coupon", Message: "Coupon is unavailable.", RequestID: w.Header().Get("X-Request-ID")}})
 	case errors.Is(err, store.ErrShipping):

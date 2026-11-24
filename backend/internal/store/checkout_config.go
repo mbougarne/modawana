@@ -18,6 +18,7 @@ const maxCharge = 1_000_000_000_000
 const reservationLifetime = 30 * time.Minute
 
 var (
+	ErrPaymentAmount   = errors.New("checkout total cannot be paid in this currency")
 	ErrCheckoutClosed  = errors.New("checkout is closed")
 	ErrQuoteChanged    = errors.New("checkout quote has changed")
 	ErrShipping        = errors.New("shipping destination is unavailable")
@@ -44,17 +45,18 @@ type Coupon struct {
 }
 
 type CheckoutSettings struct {
-	Version int64          `json:"version"`
-	Enabled bool           `json:"enabled"`
-	Zones   []ShippingZone `json:"zones"`
-	Coupons []Coupon       `json:"coupons"`
+	PaymentReviewRequired bool           `json:"-"`
+	Version               int64          `json:"version"`
+	Enabled               bool           `json:"enabled"`
+	Zones                 []ShippingZone `json:"zones"`
+	Coupons               []Coupon       `json:"coupons"`
 }
 
 func checkoutSettings(ctx context.Context, q querier) (CheckoutSettings, error) {
 	var out CheckoutSettings
 	var zones, coupons string
-	err := q.QueryRowContext(ctx, "SELECT version,enabled,zones,coupons FROM store_checkout_settings WHERE id=1").
-		Scan(&out.Version, &out.Enabled, &zones, &coupons)
+	err := q.QueryRowContext(ctx, "SELECT version,enabled,zones,coupons,payment_review_required FROM store_checkout_settings WHERE id=1").
+		Scan(&out.Version, &out.Enabled, &zones, &coupons, &out.PaymentReviewRequired)
 	if err != nil {
 		return out, err
 	}
@@ -119,6 +121,11 @@ func (s *Service) SaveCheckoutSettings(ctx context.Context, in CheckoutSettings)
 	zones, _ := json.Marshal(in.Zones)
 	coupons, _ := json.Marshal(in.Coupons)
 	err := s.write(ctx, "", func(tx *sql.Tx) error {
+		if in.Enabled {
+			if err := checkPaymentReview(ctx, tx); err != nil {
+				return err
+			}
+		}
 		return changed(tx.ExecContext(ctx, `UPDATE store_checkout_settings SET version=version+1,enabled=?,zones=?,coupons=? WHERE id=1 AND version=?`,
 			in.Enabled, string(zones), string(coupons), in.Version))
 	})
@@ -130,13 +137,13 @@ type CheckoutOptions struct {
 	Countries []string `json:"countries"`
 }
 
-func checkout(ctx context.Context, tx *sql.Tx, locale string) (Settings, CheckoutSettings, error) {
+func (s *Service) checkout(ctx context.Context, tx *sql.Tx, locale string) (Settings, CheckoutSettings, error) {
 	base, err := storefront(ctx, tx, locale)
 	if err != nil {
 		return base, CheckoutSettings{}, err
 	}
 	settings, err := checkoutSettings(ctx, tx)
-	if err == nil && !settings.Enabled {
+	if err == nil && !s.checkoutOpen(settings.Enabled && !settings.PaymentReviewRequired, base.Currency) {
 		err = ErrCheckoutClosed
 	}
 	return base, settings, err
@@ -149,7 +156,7 @@ func (s *Service) CheckoutOptions(ctx context.Context, locale string) (CheckoutO
 		return out, err
 	}
 	defer tx.Rollback()
-	_, cfg, err := checkout(ctx, tx, locale)
+	_, cfg, err := s.checkout(ctx, tx, locale)
 	if err != nil {
 		return out, err
 	}
@@ -174,4 +181,30 @@ func (s *Service) AllowCheckout(ctx context.Context, scope, source string, limit
 		return ErrLimited
 	}
 	return err
+}
+
+func (s *Service) checkoutOpen(enabled bool, currency string) bool {
+	return enabled && (s.PaymentConnection == nil || s.PaymentConnection(currency) != "")
+}
+
+func checkPaymentReview(ctx context.Context, q querier) error {
+	var review bool
+	err := q.QueryRowContext(ctx, `SELECT payment_review_required FROM store_checkout_settings WHERE id=1`).Scan(&review)
+	if err == nil && review {
+		return ErrCheckoutClosed
+	}
+	return err
+}
+
+func (s *Service) AcknowledgePaymentReview(ctx context.Context, fresh func(*sql.Tx) error) error {
+	if fresh == nil {
+		return ErrInvalid
+	}
+	return s.write(ctx, "", func(tx *sql.Tx) error {
+		if err := fresh(tx); err != nil {
+			return err
+		}
+		_, err := tx.ExecContext(ctx, `UPDATE store_checkout_settings SET payment_review_required=0,version=version+1 WHERE id=1 AND payment_review_required=1`)
+		return err
+	})
 }

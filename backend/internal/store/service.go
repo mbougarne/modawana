@@ -32,12 +32,20 @@ var keyPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,63}$`)
 var slugPattern = regexp.MustCompile(`^[\p{L}\p{N}][\p{L}\p{N}_-]{0,159}$`)
 var skuPattern = regexp.MustCompile(`^[A-Z0-9][A-Z0-9._-]{0,47}$`)
 
-type Service struct{ DB *sql.DB }
+type Service struct {
+	DB                *sql.DB
+	PaymentConnection func(currency string) string
+	PaymentAmount     func(currency string, minor int64) bool
+	Paused            func() bool
+}
 
 func (*Service) Slug() string { return Slug }
 
 func (s *Service) Register(r *extension.Registrar) error {
 	return r.Job(extension.Job{Name: "expire-orders", Every: time.Minute, Timeout: 15 * time.Second, Run: func(ctx context.Context) error {
+		if s.Paused != nil && s.Paused() {
+			return nil
+		}
 		return s.expireOrders(ctx, time.Now())
 	}})
 }

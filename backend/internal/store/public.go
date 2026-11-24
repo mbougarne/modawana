@@ -107,9 +107,10 @@ func (s *Service) Catalog(ctx context.Context, f Filter) (PublicPage, error) {
 		return out, err
 	}
 	out.Currency, out.Digits = cfg.Currency, cfg.Digits
-	if err = tx.QueryRowContext(ctx, "SELECT enabled FROM store_checkout_settings WHERE id=1").Scan(&out.CheckoutEnabled); err != nil {
+	if err = tx.QueryRowContext(ctx, "SELECT enabled AND payment_review_required=0 FROM store_checkout_settings WHERE id=1").Scan(&out.CheckoutEnabled); err != nil {
 		return out, err
 	}
+	out.CheckoutEnabled = s.checkoutOpen(out.CheckoutEnabled, cfg.Currency)
 	if err = alternates(ctx, tx, &out, ""); err != nil {
 		return out, err
 	}
@@ -180,9 +181,10 @@ func (s *Service) PublicProduct(ctx context.Context, language, slug string) (Pub
 		return out, err
 	}
 	out.Currency, out.Digits = cfg.Currency, cfg.Digits
-	if err = tx.QueryRowContext(ctx, "SELECT enabled FROM store_checkout_settings WHERE id=1").Scan(&out.CheckoutEnabled); err != nil {
+	if err = tx.QueryRowContext(ctx, "SELECT enabled AND payment_review_required=0 FROM store_checkout_settings WHERE id=1").Scan(&out.CheckoutEnabled); err != nil {
 		return out, err
 	}
+	out.CheckoutEnabled = s.checkoutOpen(out.CheckoutEnabled, cfg.Currency)
 	product, err := productFrom(tx.QueryRowContext(ctx, "SELECT "+publicColumns+publicRows+" AND p.slug=?", language, slug))
 	if err != nil {
 		return out, err

@@ -10,6 +10,92 @@ export type L = Partial<Record<Locale, LabelText>> & Record<'en' | 'fr' | 'ar', 
 const l = (en: LabelText, fr: LabelText, ar: LabelText): L => ({ en, fr, ar });
 
 export const DEFAULT_LABELS = {
+  'paypal.pay': l('Pay with PayPal', 'Payer avec PayPal', 'ادفع عبر PayPal'),
+  'paypal.check': l('Check payment status', 'Vérifier le paiement', 'تحقّق من حالة الدفع'),
+  'paypal.retryPayment': l(
+    'Resume PayPal payment',
+    'Reprendre le paiement PayPal',
+    'استأنف الدفع عبر PayPal',
+  ),
+  'paypal.cancelled': l(
+    'You returned from PayPal. Your reservation is available while it remains active.',
+    'Vous êtes revenu de PayPal. La réservation reste disponible jusqu’à son expiration.',
+    'عدت من PayPal. يمكنك متابعة الحجز ما دام سارياً.',
+  ),
+  'paypal.badAmount': l(
+    'PayPal cannot accept this total. Change the cart or coupon.',
+    'PayPal ne peut pas accepter ce total. Modifiez votre panier ou le code promotionnel.',
+    'يتعذّر دفع هذا الإجمالي عبر PayPal. غيّر السلة أو رمز الخصم.',
+  ),
+  'paypal.needsReview': l(
+    'This payment operation requires merchant review.',
+    'Cette opération doit être vérifiée par le commerçant.',
+    'تتطلّب عملية الدفع مراجعة التاجر.',
+  ),
+  'paypal.updated': l(
+    'PayPal details updated.',
+    'Informations PayPal mises à jour.',
+    'حُدّثت بيانات PayPal.',
+  ),
+  'paypal.connected': l(
+    'PayPal is configured for the store currency.',
+    'PayPal est configuré pour la devise de la boutique.',
+    'ضُبط PayPal لعملة المتجر.',
+  ),
+  'paypal.closed': l(
+    'New checkout is unavailable. Check the active PayPal connection and store currency.',
+    'Les nouvelles commandes sont indisponibles. Vérifiez la connexion PayPal active et la devise de la boutique.',
+    'إتمام طلبات جديدة غير متاح. تحقّق من اتصال PayPal النشط وعملة المتجر.',
+  ),
+  'paypal.mode.sandbox': l('Sandbox', 'Environnement de test', 'بيئة الاختبار'),
+  'paypal.mode.live': l('Live', 'Production', 'بيئة الإنتاج'),
+  'paypal.restoreReview': l(
+    'Reconcile PayPal activity since the backup before resuming payments.',
+    'Rapprochez les opérations PayPal depuis la sauvegarde avant de reprendre les paiements.',
+    'طابق عمليات PayPal منذ النسخة الاحتياطية قبل استئناف المدفوعات.',
+  ),
+  'paypal.confirmReview': l(
+    'Confirm payment reconciliation',
+    'Confirmer le rapprochement des paiements',
+    'أكّد مطابقة المدفوعات',
+  ),
+  'paypal.receipts': l(
+    'PayPal notifications · {count} to review',
+    'Notifications PayPal · {count} à vérifier',
+    'إشعارات PayPal · {count} للمراجعة',
+  ),
+  'paypal.noReceipts': l(
+    'No PayPal notifications received.',
+    'Aucune notification PayPal reçue.',
+    'لم تُستلم إشعارات PayPal بعد.',
+  ),
+  'paypal.retryCheck': l(
+    'Recheck notification',
+    'Revérifier la notification',
+    'أعد التحقق من الإشعار',
+  ),
+  'paypal.state.pending': l('Pending', 'En attente', 'قيد الانتظار'),
+  'paypal.state.applied': l('Processed', 'Traitée', 'تمت المعالجة'),
+  'paypal.state.review': l('Needs review', 'À vérifier', 'تتطلّب مراجعة'),
+  'paypal.state.complete': l('Completed', 'Terminée', 'اكتملت'),
+  'paypal.state.failed': l('Failed', 'Échec', 'تعذّرت'),
+  'paypal.payment': l('PayPal payment', 'Paiement PayPal', 'الدفع عبر PayPal'),
+  'paypal.refundAmount': l(
+    'Refund amount in minor units ({currency})',
+    'Montant du remboursement en unités mineures ({currency})',
+    'مبلغ الردّ بالوحدات النقدية الصغرى ({currency})',
+  ),
+  'paypal.confirmRefund': l(
+    'Refund {amount} minor units in {currency}?',
+    'Rembourser {amount} unités mineures en {currency} ?',
+    'هل تريد ردّ {amount} وحدة نقدية صغرى بعملة {currency}؟',
+  ),
+  'paypal.refund': l('Issue refund', 'Effectuer le remboursement', 'أصدر ردّ المبلغ'),
+  'paypal.retryRefund': l(
+    'Check or resume refund',
+    'Vérifier ou reprendre le remboursement',
+    'تحقّق من ردّ المبلغ أو استأنفه',
+  ),
   'page.checkout': l('Cart and checkout', 'Panier et commande', 'السلة وإتمام الطلب'),
   'checkout.add': l('Add to cart', 'Ajouter au panier', 'أضف إلى السلة'),
   'checkout.added': l('Added to cart', 'Ajouté au panier', 'أُضيف إلى السلة'),
@@ -105,9 +191,9 @@ export const DEFAULT_LABELS = {
   'checkout.catalog': l('Catalogue', 'Catalogue', 'الكتالوج'),
   'checkout.settings': l('Checkout settings', 'Paramètres des commandes', 'إعدادات إتمام الطلب'),
   'checkout.enable': l(
-    'Accept guest reservations',
-    'Accepter les réservations sans compte',
-    'اسمح للضيوف بحجز الطلبات',
+    'Accept PayPal checkout',
+    'Accepter les commandes PayPal',
+    'اسمح بإتمام الطلبات عبر PayPal',
   ),
   'checkout.settingsHelp': l(
     'Set shipping rates in currency minor units. Enter 100 basis points for 1%.',
