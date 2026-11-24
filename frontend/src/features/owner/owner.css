@@ -1129,3 +1129,21 @@
   border-block-end: 1px solid var(--hairline);
   overflow-wrap: anywhere;
 }
+
+.editorial-panel > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.editorial-context p {
+  margin-block: 0.5rem;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.editorial-context img {
+  display: block;
+  max-inline-size: min(100%, 15rem);
+  block-size: auto;
+  margin-block: 0.5rem;
+}

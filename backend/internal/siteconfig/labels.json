@@ -1,4 +1,437 @@
 {
+  "owner.editorial": {
+    "section": "owner",
+    "description": "Interface text: owner.editorial",
+    "placeholders": [],
+    "values": {
+      "en": "Editorial AI",
+      "fr": "IA éditoriale",
+      "ar": "المساعد التحريري"
+    }
+  },
+  "editorial.settingsHelp": {
+    "section": "editorial",
+    "description": "Interface text: editorial.settingsHelp",
+    "placeholders": [],
+    "values": {
+      "en": "Configure an optional OpenAI connection and a daily limit for editorial suggestions.",
+      "fr": "Configurez une connexion OpenAI facultative et une limite quotidienne de suggestions.",
+      "ar": "اضبط اتصالاً اختيارياً بأوبن إيه آي وحدّاً يومياً للاقتراحات التحريرية."
+    }
+  },
+  "editorial.usage": {
+    "section": "editorial",
+    "description": "Interface text: editorial.usage",
+    "placeholders": [
+      "limit",
+      "used"
+    ],
+    "values": {
+      "en": "{used} of {limit} requests reserved today (UTC)",
+      "fr": "{used} requêtes réservées aujourd’hui sur {limit} (UTC)",
+      "ar": "حُجز {used} من أصل {limit} طلباً اليوم بالتوقيت العالمي"
+    }
+  },
+  "editorial.keySaved": {
+    "section": "editorial",
+    "description": "Interface text: editorial.keySaved",
+    "placeholders": [],
+    "values": {
+      "en": "A credential is saved.",
+      "fr": "Un identifiant est enregistré.",
+      "ar": "بيانات الاعتماد محفوظة."
+    }
+  },
+  "editorial.noKey": {
+    "section": "editorial",
+    "description": "Interface text: editorial.noKey",
+    "placeholders": [],
+    "values": {
+      "en": "No credential is saved.",
+      "fr": "Aucun identifiant enregistré.",
+      "ar": "لم تُحفظ بيانات اعتماد."
+    }
+  },
+  "editorial.keyUnavailable": {
+    "section": "editorial",
+    "description": "Interface text: editorial.keyUnavailable",
+    "placeholders": [],
+    "values": {
+      "en": "The credential could not be used. Check the installation key and provider credential.",
+      "fr": "Impossible d’utiliser les identifiants. Vérifiez la clé d’installation et les identifiants du fournisseur.",
+      "ar": "تعذّر استخدام بيانات الاعتماد. تحقّق من مفتاح التثبيت وبيانات اعتماد المزوّد."
+    }
+  },
+  "editorial.credential": {
+    "section": "editorial",
+    "description": "Interface text: editorial.credential",
+    "placeholders": [],
+    "values": {
+      "en": "Replace provider credential",
+      "fr": "Remplacer les identifiants du fournisseur",
+      "ar": "استبدال بيانات اعتماد المزوّد"
+    }
+  },
+  "editorial.removeKey": {
+    "section": "editorial",
+    "description": "Interface text: editorial.removeKey",
+    "placeholders": [],
+    "values": {
+      "en": "Remove the saved credential",
+      "fr": "Supprimer les identifiants enregistrés",
+      "ar": "إزالة بيانات الاعتماد المحفوظة"
+    }
+  },
+  "editorial.enabled": {
+    "section": "editorial",
+    "description": "Interface text: editorial.enabled",
+    "placeholders": [],
+    "values": {
+      "en": "Enable editorial suggestions",
+      "fr": "Activer les suggestions éditoriales",
+      "ar": "تفعيل الاقتراحات التحريرية"
+    }
+  },
+  "editorial.limit": {
+    "section": "editorial",
+    "description": "Interface text: editorial.limit",
+    "placeholders": [],
+    "values": {
+      "en": "Daily request limit",
+      "fr": "Limite quotidienne de requêtes",
+      "ar": "الحدّ اليومي للطلبات"
+    }
+  },
+  "editorial.saveSettings": {
+    "section": "editorial",
+    "description": "Interface text: editorial.saveSettings",
+    "placeholders": [],
+    "values": {
+      "en": "Save editorial settings",
+      "fr": "Enregistrer les paramètres éditoriaux",
+      "ar": "حفظ إعدادات المساعد التحريري"
+    }
+  },
+  "editorial.saved": {
+    "section": "editorial",
+    "description": "Interface text: editorial.saved",
+    "placeholders": [],
+    "values": {
+      "en": "Editorial settings saved.",
+      "fr": "Paramètres éditoriaux enregistrés.",
+      "ar": "حُفظت إعدادات المساعد التحريري."
+    }
+  },
+  "editorial.settingsFailed": {
+    "section": "editorial",
+    "description": "Interface text: editorial.settingsFailed",
+    "placeholders": [],
+    "values": {
+      "en": "Could not save editorial settings.",
+      "fr": "Impossible d’enregistrer les paramètres éditoriaux.",
+      "ar": "تعذّر حفظ إعدادات المساعد التحريري."
+    }
+  },
+  "editorial.contextHelp": {
+    "section": "editorial",
+    "description": "Interface text: editorial.contextHelp",
+    "placeholders": [],
+    "values": {
+      "en": "Choose which fields from the current public revision to send to OpenAI. Review the suggestion before applying it.",
+      "fr": "Choisissez les champs de la révision publique à envoyer à OpenAI, puis relisez la suggestion avant de l’appliquer.",
+      "ar": "اختر حقول المراجعة العامة الحالية التي تريد إرسالها إلى أوبن إيه آي. راجع الاقتراح قبل استخدامه."
+    }
+  },
+  "editorial.task": {
+    "section": "editorial",
+    "description": "Interface text: editorial.task",
+    "placeholders": [],
+    "values": {
+      "en": "Suggestion type",
+      "fr": "Type de suggestion",
+      "ar": "نوع الاقتراح"
+    }
+  },
+  "editorial.kind.summary": {
+    "section": "editorial",
+    "description": "Interface text: editorial.kind.summary",
+    "placeholders": [],
+    "values": {
+      "en": "Summary",
+      "fr": "Résumé",
+      "ar": "ملخّص"
+    }
+  },
+  "editorial.kind.seo": {
+    "section": "editorial",
+    "description": "Interface text: editorial.kind.seo",
+    "placeholders": [],
+    "values": {
+      "en": "Search title and description",
+      "fr": "Titre et description pour la recherche",
+      "ar": "عنوان ووصف محركات البحث"
+    }
+  },
+  "editorial.kind.alt_text": {
+    "section": "editorial",
+    "description": "Interface text: editorial.kind.alt_text",
+    "placeholders": [],
+    "values": {
+      "en": "Cover image alt text",
+      "fr": "Texte alternatif de la couverture",
+      "ar": "نص بديل لصورة الغلاف"
+    }
+  },
+  "editorial.kind.social": {
+    "section": "editorial",
+    "description": "Interface text: editorial.kind.social",
+    "placeholders": [],
+    "values": {
+      "en": "Social post text",
+      "fr": "Texte de publication sociale",
+      "ar": "نص لمنشور على الشبكات الاجتماعية"
+    }
+  },
+  "editorial.kind.translation": {
+    "section": "editorial",
+    "description": "Interface text: editorial.kind.translation",
+    "placeholders": [],
+    "values": {
+      "en": "Translation",
+      "fr": "Traduction",
+      "ar": "ترجمة"
+    }
+  },
+  "editorial.field.title": {
+    "section": "editorial",
+    "description": "Interface text: editorial.field.title",
+    "placeholders": [],
+    "values": {
+      "en": "Public title",
+      "fr": "Titre public",
+      "ar": "العنوان العام"
+    }
+  },
+  "editorial.field.summary": {
+    "section": "editorial",
+    "description": "Interface text: editorial.field.summary",
+    "placeholders": [],
+    "values": {
+      "en": "Public summary",
+      "fr": "Résumé public",
+      "ar": "الملخّص العام"
+    }
+  },
+  "editorial.field.excerpt": {
+    "section": "editorial",
+    "description": "Interface text: editorial.field.excerpt",
+    "placeholders": [],
+    "values": {
+      "en": "Public text excerpt",
+      "fr": "Extrait du texte public",
+      "ar": "مقتطف من النص العام"
+    }
+  },
+  "editorial.field.cover": {
+    "section": "editorial",
+    "description": "Interface text: editorial.field.cover",
+    "placeholders": [],
+    "values": {
+      "en": "Public cover image",
+      "fr": "Image de couverture publique",
+      "ar": "صورة الغلاف العامة"
+    }
+  },
+  "editorial.sourceUnavailable": {
+    "section": "editorial",
+    "description": "Interface text: editorial.sourceUnavailable",
+    "placeholders": [],
+    "values": {
+      "en": "This item has no eligible public revision in the selected language.",
+      "fr": "Cet élément n’a pas de révision publique admissible dans la langue sélectionnée.",
+      "ar": "لا توجد مراجعة عامة مؤهلة لهذا العنصر باللغة المحدّدة."
+    }
+  },
+  "editorial.coverRequired": {
+    "section": "editorial",
+    "description": "Interface text: editorial.coverRequired",
+    "placeholders": [],
+    "values": {
+      "en": "Alt text requires a publicly accessible cover image.",
+      "fr": "Le texte alternatif nécessite une image de couverture accessible au public.",
+      "ar": "يتطلّب النص البديل صورة غلاف متاحة للعامة."
+    }
+  },
+  "editorial.generate": {
+    "section": "editorial",
+    "description": "Interface text: editorial.generate",
+    "placeholders": [],
+    "values": {
+      "en": "Generate suggestion",
+      "fr": "Générer une suggestion",
+      "ar": "إنشاء اقتراح"
+    }
+  },
+  "editorial.suggestion": {
+    "section": "editorial",
+    "description": "Interface text: editorial.suggestion",
+    "placeholders": [],
+    "values": {
+      "en": "Editable suggestion",
+      "fr": "Suggestion modifiable",
+      "ar": "اقتراح قابل للتحرير"
+    }
+  },
+  "editorial.description": {
+    "section": "editorial",
+    "description": "Interface text: editorial.description",
+    "placeholders": [],
+    "values": {
+      "en": "Editable search description",
+      "fr": "Description de recherche modifiable",
+      "ar": "وصف قابل للتحرير لمحركات البحث"
+    }
+  },
+  "editorial.refresh": {
+    "section": "editorial",
+    "description": "Interface text: editorial.refresh",
+    "placeholders": [],
+    "values": {
+      "en": "Reload public context",
+      "fr": "Recharger le contexte public",
+      "ar": "إعادة تحميل السياق العام"
+    }
+  },
+  "editorial.apply": {
+    "section": "editorial",
+    "description": "Interface text: editorial.apply",
+    "placeholders": [],
+    "values": {
+      "en": "Use in draft",
+      "fr": "Utiliser dans le brouillon",
+      "ar": "استخدام في المسوّدة"
+    }
+  },
+  "editorial.toSocial": {
+    "section": "editorial",
+    "description": "Interface text: editorial.toSocial",
+    "placeholders": [],
+    "values": {
+      "en": "Open social composer",
+      "fr": "Ouvrir la rédaction sociale",
+      "ar": "فتح محرّر المنشور الاجتماعي"
+    }
+  },
+  "editorial.copyDraft": {
+    "section": "editorial",
+    "description": "Interface text: editorial.copyDraft",
+    "placeholders": [],
+    "values": {
+      "en": "Copy the suggestion into the appropriate field in your draft.",
+      "fr": "Copiez la suggestion dans le champ approprié du brouillon.",
+      "ar": "انسخ الاقتراح إلى الحقل المناسب في مسوّدتك."
+    }
+  },
+  "editorial.failed": {
+    "section": "editorial",
+    "description": "Interface text: editorial.failed",
+    "placeholders": [],
+    "values": {
+      "en": "Could not generate a suggestion for this selection.",
+      "fr": "Impossible de générer une suggestion pour cette sélection.",
+      "ar": "تعذّر إنشاء اقتراح للحقول المحدّدة."
+    }
+  },
+  "editorial.error.editorial_disabled": {
+    "section": "editorial",
+    "description": "Interface text: editorial.error.editorial_disabled",
+    "placeholders": [],
+    "values": {
+      "en": "Editorial suggestions are disabled.",
+      "fr": "Les suggestions éditoriales sont désactivées.",
+      "ar": "الاقتراحات التحريرية معطّلة."
+    }
+  },
+  "editorial.error.editorial_key": {
+    "section": "editorial",
+    "description": "Interface text: editorial.error.editorial_key",
+    "placeholders": [],
+    "values": {
+      "en": "OpenAI credentials could not be used. Check editorial settings.",
+      "fr": "Impossible d’utiliser les identifiants OpenAI. Vérifiez les paramètres éditoriaux.",
+      "ar": "تعذّر استخدام بيانات اعتماد أوبن إيه آي. تحقّق من إعدادات المساعد التحريري."
+    }
+  },
+  "editorial.error.editorial_quota": {
+    "section": "editorial",
+    "description": "Interface text: editorial.error.editorial_quota",
+    "placeholders": [],
+    "values": {
+      "en": "The daily request limit has been reached. It resets at midnight UTC.",
+      "fr": "La limite quotidienne est atteinte. Elle se réinitialise à minuit UTC.",
+      "ar": "بلغت الحدّ اليومي للطلبات. يُعاد ضبطه عند منتصف الليل بالتوقيت العالمي."
+    }
+  },
+  "editorial.error.editorial_busy": {
+    "section": "editorial",
+    "description": "Interface text: editorial.error.editorial_busy",
+    "placeholders": [],
+    "values": {
+      "en": "Another suggestion is being generated. Try again shortly.",
+      "fr": "Une suggestion est déjà en cours. Réessayez dans un instant.",
+      "ar": "جارٍ إنشاء اقتراح آخر. حاول مجدداً بعد قليل."
+    }
+  },
+  "editorial.error.editorial_timeout": {
+    "section": "editorial",
+    "description": "Interface text: editorial.error.editorial_timeout",
+    "placeholders": [],
+    "values": {
+      "en": "OpenAI did not respond in time.",
+      "fr": "OpenAI n’a pas répondu à temps.",
+      "ar": "لم يستجب أوبن إيه آي في الوقت المحدّد."
+    }
+  },
+  "editorial.error.editorial_provider": {
+    "section": "editorial",
+    "description": "Interface text: editorial.error.editorial_provider",
+    "placeholders": [],
+    "values": {
+      "en": "OpenAI could not complete the request.",
+      "fr": "OpenAI n’a pas pu terminer la requête.",
+      "ar": "تعذّر على أوبن إيه آي إتمام الطلب."
+    }
+  },
+  "editorial.error.editorial_provider_limit": {
+    "section": "editorial",
+    "description": "Interface text: editorial.error.editorial_provider_limit",
+    "placeholders": [],
+    "values": {
+      "en": "OpenAI rejected the request because of a quota or rate limit.",
+      "fr": "OpenAI a refusé la requête en raison d’un quota ou d’une limite de débit.",
+      "ar": "رفض أوبن إيه آي الطلب بسبب الحصة أو حدّ الطلبات."
+    }
+  },
+  "editorial.error.editorial_output": {
+    "section": "editorial",
+    "description": "Interface text: editorial.error.editorial_output",
+    "placeholders": [],
+    "values": {
+      "en": "OpenAI returned an incomplete or unusable suggestion.",
+      "fr": "OpenAI a renvoyé une suggestion incomplète ou inutilisable.",
+      "ar": "أعاد أوبن إيه آي اقتراحاً ناقصاً أو غير قابل للاستخدام."
+    }
+  },
+  "editorial.error.revision_conflict": {
+    "section": "editorial",
+    "description": "Interface text: editorial.error.revision_conflict",
+    "placeholders": [],
+    "values": {
+      "en": "The published revision changed. Reload the public context and select it again.",
+      "fr": "La révision publiée a changé. Rechargez le contexte public et sélectionnez-le à nouveau.",
+      "ar": "تغيّرت المراجعة المنشورة. أعد تحميل السياق العام ثم اختر الحقول مجدداً."
+    }
+  },
   "owner.analytics": {
     "section": "owner",
     "description": "Interface text: owner.analytics",

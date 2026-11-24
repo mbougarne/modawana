@@ -22,6 +22,7 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/content"
 	"github.com/mbougarne/modawana/backend/internal/dashboard"
 	"github.com/mbougarne/modawana/backend/internal/db"
+	"github.com/mbougarne/modawana/backend/internal/editorial"
 	"github.com/mbougarne/modawana/backend/internal/extension"
 	"github.com/mbougarne/modawana/backend/internal/forms"
 	httpserver "github.com/mbougarne/modawana/backend/internal/http"
@@ -250,7 +251,8 @@ func run() int {
 		logger.Error("analytics settings unavailable")
 		return 1
 	}
-	domain := &httpserver.Domain{Analytics: siteAnalytics, Social: socialPublishing, Forms: leadForms, Learning: identities, SiteConfig: settings, Content: contents, Auth: authentication, Media: media.New(database, files, policy), Extensions: host, Plugins: plugins, Deliveries: deliveries, Webhooks: webhooks, Dashboard: &dashboard.Service{DB: database}}
+	editorialAI := editorial.New(database, contents, cfg.BaseURL, cfg.ReadAuthKey, editorial.NewOpenAI())
+	domain := &httpserver.Domain{Editorial: editorialAI, Analytics: siteAnalytics, Social: socialPublishing, Forms: leadForms, Learning: identities, SiteConfig: settings, Content: contents, Auth: authentication, Media: media.New(database, files, policy), Extensions: host, Plugins: plugins, Deliveries: deliveries, Webhooks: webhooks, Dashboard: &dashboard.Service{DB: database}}
 	publishing, err := publisher.Extensions(cfg.BaseURL, os.Getenv, plugins.Maintenance)
 	if err != nil {
 		logger.Error("publisher extension configuration rejected", "reason", err.Error())

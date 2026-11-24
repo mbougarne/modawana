@@ -39,6 +39,7 @@ const pages = [
   'forms',
   'social',
   'analytics',
+  'editorial',
   'layout',
 ];
 async function mount(current = 'posts', locale = 'en', extra = {}, children) {
@@ -333,5 +334,81 @@ test('Admin links use the client router and give unsaved changes a chance to sta
     await m.cleanup();
     localStorage.removeItem('modawana.adminTheme');
     window.history.replaceState({}, '', '/en/admin/posts');
+  }
+});
+
+test('Editorial suggestions send only checked public fields and apply through the editor callback', async () => {
+  const {
+    EditorialPanel,
+  } = require('../.test-output/frontend/src/pages/admin/editor/EditorialPanel');
+  const original = global.fetch;
+  const submissions = [];
+  const applied = [];
+  global.fetch = async (url, options) => {
+    if (url === '/api/v1/owner/editorial') {
+      return Response.json({ enabled: true });
+    }
+    if (url.startsWith('/api/v1/owner/editorial/context?')) {
+      return Response.json({
+        key: 'public-article',
+        locale: 'en',
+        revision_id: 'public-revision',
+        title: 'The current title',
+        summary: 'An unselected summary',
+      });
+    }
+    if (options?.method === 'POST') {
+      submissions.push({
+        url,
+        body: JSON.parse(options.body),
+        csrf: options.headers['X-CSRF-Token'],
+      });
+      return Response.json({ text: 'Suggested summary', description: '' });
+    }
+    return new Response('', { status: 404 });
+  };
+  const component = React.createElement(EditorialPanel, {
+    itemKey: 'public-article',
+    locale: 'en',
+    sourceLocale: 'en',
+    csrf: 'owner-csrf',
+    canApply: () => true,
+    apply: (value) => applied.push(value),
+  });
+  const m = await mount('editorial', 'en', {}, component);
+  try {
+    const panel = m.el.querySelector('.editorial-panel');
+    await act(async () => {
+      panel.open = true;
+      panel.dispatchEvent(new window.Event('toggle'));
+    });
+    assert.equal(submissions.length, 0);
+    assert.equal(panel.querySelector('button').disabled, true);
+    await act(async () => panel.querySelector('input[type="checkbox"]').click());
+    await act(async () => panel.querySelector('button').click());
+    assert.deepEqual(submissions, [
+      {
+        url: '/api/v1/owner/editorial/suggest',
+        body: {
+          kind: 'summary',
+          key: 'public-article',
+          locale: 'en',
+          revision_id: 'public-revision',
+          target_locale: 'en',
+          fields: ['title'],
+        },
+        csrf: 'owner-csrf',
+      },
+    ]);
+    assert.equal(applied.length, 0);
+    const apply = [...panel.querySelectorAll('button')].find(
+      (button) => button.textContent === DEFAULT_LABELS['editorial.apply'].en,
+    );
+    await act(async () => apply.click());
+    assert.equal(applied[0].text, 'Suggested summary');
+    assert.equal(submissions.length, 1);
+  } finally {
+    await m.cleanup();
+    global.fetch = original;
   }
 });

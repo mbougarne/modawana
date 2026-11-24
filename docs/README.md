@@ -19,6 +19,7 @@
 - [Blog and Notion delivery](integrations/lesson-delivery.md): independent destinations and safe retries.
 - [Social publishing](integrations/social-publishing.md)
 - [Site analytics](integrations/analytics.md)
+- [Editorial AI](integrations/editorial-ai.md)
 - [Lesson scheduler](integrations/remote-publishing.md): optional generation and a disabled-by-default service example.
 
 ## Development reference

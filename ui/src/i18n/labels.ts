@@ -10,6 +10,185 @@ export type L = Partial<Record<Locale, LabelText>> & Record<'en' | 'fr' | 'ar', 
 const l = (en: LabelText, fr: LabelText, ar: LabelText): L => ({ en, fr, ar });
 
 export const DEFAULT_LABELS = {
+  'owner.editorial': l('Editorial AI', 'IA éditoriale', 'المساعد التحريري'),
+  'editorial.settingsHelp': l(
+    'Configure an optional OpenAI connection and a daily limit for editorial suggestions.',
+    'Configurez une connexion OpenAI facultative et une limite quotidienne de suggestions.',
+    'اضبط اتصالاً اختيارياً بأوبن إيه آي وحدّاً يومياً للاقتراحات التحريرية.',
+  ),
+  'editorial.usage': l(
+    '{used} of {limit} requests reserved today (UTC)',
+    '{used} requêtes réservées aujourd’hui sur {limit} (UTC)',
+    'حُجز {used} من أصل {limit} طلباً اليوم بالتوقيت العالمي',
+  ),
+  'editorial.keySaved': l(
+    'A credential is saved.',
+    'Un identifiant est enregistré.',
+    'بيانات الاعتماد محفوظة.',
+  ),
+  'editorial.noKey': l(
+    'No credential is saved.',
+    'Aucun identifiant enregistré.',
+    'لم تُحفظ بيانات اعتماد.',
+  ),
+  'editorial.keyUnavailable': l(
+    'The credential could not be used. Check the installation key and provider credential.',
+    'Impossible d’utiliser les identifiants. Vérifiez la clé d’installation et les identifiants du fournisseur.',
+    'تعذّر استخدام بيانات الاعتماد. تحقّق من مفتاح التثبيت وبيانات اعتماد المزوّد.',
+  ),
+  'editorial.credential': l(
+    'Replace provider credential',
+    'Remplacer les identifiants du fournisseur',
+    'استبدال بيانات اعتماد المزوّد',
+  ),
+  'editorial.removeKey': l(
+    'Remove the saved credential',
+    'Supprimer les identifiants enregistrés',
+    'إزالة بيانات الاعتماد المحفوظة',
+  ),
+  'editorial.enabled': l(
+    'Enable editorial suggestions',
+    'Activer les suggestions éditoriales',
+    'تفعيل الاقتراحات التحريرية',
+  ),
+  'editorial.limit': l(
+    'Daily request limit',
+    'Limite quotidienne de requêtes',
+    'الحدّ اليومي للطلبات',
+  ),
+  'editorial.saveSettings': l(
+    'Save editorial settings',
+    'Enregistrer les paramètres éditoriaux',
+    'حفظ إعدادات المساعد التحريري',
+  ),
+  'editorial.saved': l(
+    'Editorial settings saved.',
+    'Paramètres éditoriaux enregistrés.',
+    'حُفظت إعدادات المساعد التحريري.',
+  ),
+  'editorial.settingsFailed': l(
+    'Could not save editorial settings.',
+    'Impossible d’enregistrer les paramètres éditoriaux.',
+    'تعذّر حفظ إعدادات المساعد التحريري.',
+  ),
+  'editorial.contextHelp': l(
+    'Choose which fields from the current public revision to send to OpenAI. Review the suggestion before applying it.',
+    'Choisissez les champs de la révision publique à envoyer à OpenAI, puis relisez la suggestion avant de l’appliquer.',
+    'اختر حقول المراجعة العامة الحالية التي تريد إرسالها إلى أوبن إيه آي. راجع الاقتراح قبل استخدامه.',
+  ),
+  'editorial.task': l('Suggestion type', 'Type de suggestion', 'نوع الاقتراح'),
+  'editorial.kind.summary': l('Summary', 'Résumé', 'ملخّص'),
+  'editorial.kind.seo': l(
+    'Search title and description',
+    'Titre et description pour la recherche',
+    'عنوان ووصف محركات البحث',
+  ),
+  'editorial.kind.alt_text': l(
+    'Cover image alt text',
+    'Texte alternatif de la couverture',
+    'نص بديل لصورة الغلاف',
+  ),
+  'editorial.kind.social': l(
+    'Social post text',
+    'Texte de publication sociale',
+    'نص لمنشور على الشبكات الاجتماعية',
+  ),
+  'editorial.kind.translation': l('Translation', 'Traduction', 'ترجمة'),
+  'editorial.field.title': l('Public title', 'Titre public', 'العنوان العام'),
+  'editorial.field.summary': l('Public summary', 'Résumé public', 'الملخّص العام'),
+  'editorial.field.excerpt': l(
+    'Public text excerpt',
+    'Extrait du texte public',
+    'مقتطف من النص العام',
+  ),
+  'editorial.field.cover': l(
+    'Public cover image',
+    'Image de couverture publique',
+    'صورة الغلاف العامة',
+  ),
+  'editorial.sourceUnavailable': l(
+    'This item has no eligible public revision in the selected language.',
+    'Cet élément n’a pas de révision publique admissible dans la langue sélectionnée.',
+    'لا توجد مراجعة عامة مؤهلة لهذا العنصر باللغة المحدّدة.',
+  ),
+  'editorial.coverRequired': l(
+    'Alt text requires a publicly accessible cover image.',
+    'Le texte alternatif nécessite une image de couverture accessible au public.',
+    'يتطلّب النص البديل صورة غلاف متاحة للعامة.',
+  ),
+  'editorial.generate': l('Generate suggestion', 'Générer une suggestion', 'إنشاء اقتراح'),
+  'editorial.suggestion': l('Editable suggestion', 'Suggestion modifiable', 'اقتراح قابل للتحرير'),
+  'editorial.description': l(
+    'Editable search description',
+    'Description de recherche modifiable',
+    'وصف قابل للتحرير لمحركات البحث',
+  ),
+  'editorial.refresh': l(
+    'Reload public context',
+    'Recharger le contexte public',
+    'إعادة تحميل السياق العام',
+  ),
+  'editorial.apply': l('Use in draft', 'Utiliser dans le brouillon', 'استخدام في المسوّدة'),
+  'editorial.toSocial': l(
+    'Open social composer',
+    'Ouvrir la rédaction sociale',
+    'فتح محرّر المنشور الاجتماعي',
+  ),
+  'editorial.copyDraft': l(
+    'Copy the suggestion into the appropriate field in your draft.',
+    'Copiez la suggestion dans le champ approprié du brouillon.',
+    'انسخ الاقتراح إلى الحقل المناسب في مسوّدتك.',
+  ),
+  'editorial.failed': l(
+    'Could not generate a suggestion for this selection.',
+    'Impossible de générer une suggestion pour cette sélection.',
+    'تعذّر إنشاء اقتراح للحقول المحدّدة.',
+  ),
+  'editorial.error.editorial_disabled': l(
+    'Editorial suggestions are disabled.',
+    'Les suggestions éditoriales sont désactivées.',
+    'الاقتراحات التحريرية معطّلة.',
+  ),
+  'editorial.error.editorial_key': l(
+    'OpenAI credentials could not be used. Check editorial settings.',
+    'Impossible d’utiliser les identifiants OpenAI. Vérifiez les paramètres éditoriaux.',
+    'تعذّر استخدام بيانات اعتماد أوبن إيه آي. تحقّق من إعدادات المساعد التحريري.',
+  ),
+  'editorial.error.editorial_quota': l(
+    'The daily request limit has been reached. It resets at midnight UTC.',
+    'La limite quotidienne est atteinte. Elle se réinitialise à minuit UTC.',
+    'بلغت الحدّ اليومي للطلبات. يُعاد ضبطه عند منتصف الليل بالتوقيت العالمي.',
+  ),
+  'editorial.error.editorial_busy': l(
+    'Another suggestion is being generated. Try again shortly.',
+    'Une suggestion est déjà en cours. Réessayez dans un instant.',
+    'جارٍ إنشاء اقتراح آخر. حاول مجدداً بعد قليل.',
+  ),
+  'editorial.error.editorial_timeout': l(
+    'OpenAI did not respond in time.',
+    'OpenAI n’a pas répondu à temps.',
+    'لم يستجب أوبن إيه آي في الوقت المحدّد.',
+  ),
+  'editorial.error.editorial_provider': l(
+    'OpenAI could not complete the request.',
+    'OpenAI n’a pas pu terminer la requête.',
+    'تعذّر على أوبن إيه آي إتمام الطلب.',
+  ),
+  'editorial.error.editorial_provider_limit': l(
+    'OpenAI rejected the request because of a quota or rate limit.',
+    'OpenAI a refusé la requête en raison d’un quota ou d’une limite de débit.',
+    'رفض أوبن إيه آي الطلب بسبب الحصة أو حدّ الطلبات.',
+  ),
+  'editorial.error.editorial_output': l(
+    'OpenAI returned an incomplete or unusable suggestion.',
+    'OpenAI a renvoyé une suggestion incomplète ou inutilisable.',
+    'أعاد أوبن إيه آي اقتراحاً ناقصاً أو غير قابل للاستخدام.',
+  ),
+  'editorial.error.revision_conflict': l(
+    'The published revision changed. Reload the public context and select it again.',
+    'La révision publiée a changé. Rechargez le contexte public et sélectionnez-le à nouveau.',
+    'تغيّرت المراجعة المنشورة. أعد تحميل السياق العام ثم اختر الحقول مجدداً.',
+  ),
   'owner.analytics': l('Analytics', 'Statistiques', 'الإحصاءات'),
   'analytics.help': l(
     'See public pageviews and accepted lead submissions. Counts are saved in batches.',

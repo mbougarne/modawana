@@ -89,6 +89,8 @@ const failureReasons = new Set([
 export function SocialPublishing({ csrf }: { csrf: string }) {
   const { t, locale, date } = useI18n();
   const location = useLocation();
+  const handoff = location.state?.editorialCopy;
+  const initialText = typeof handoff === 'string' ? handoff.slice(0, 500) : '';
   const [cursor, setCursor] = useState('');
   const account = useResource<{ destinations: Destination[] }>(api + '/connection');
   const history = useResource<{ items: ScheduledPost[]; next?: string }>(
@@ -186,7 +188,12 @@ export function SocialPublishing({ csrf }: { csrf: string }) {
         </p>
       )}
       {connected.length > 0 && (
-        <Composer destinations={connected} csrf={activeCSRF || csrf} refresh={refresh} />
+        <Composer
+          destinations={connected}
+          csrf={activeCSRF || csrf}
+          refresh={refresh}
+          initialText={initialText}
+        />
       )}
       <section className="vb-card">
         <h2>{t('social.history')}</h2>
@@ -252,8 +259,10 @@ function Composer({
   destinations,
   csrf,
   refresh,
+  initialText,
 }: {
   destinations: Connected[];
+  initialText: string;
   csrf: string;
   refresh: () => void;
 }) {
@@ -267,7 +276,7 @@ function Composer({
     api + '/content?' + new URLSearchParams({ locale: language, cursor }),
   );
   const [selected, select] = useState('');
-  const [text, setText] = useState('');
+  const [text, setText] = useState(initialText);
   const [when, setWhen] = useState('');
   const [review, setReview] = useState<ReviewedPost>();
   const [busy, setBusy] = useState(false);

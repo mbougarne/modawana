@@ -91,6 +91,7 @@ export function Plugins({ csrf }: { csrf: string }) {
   const nativeModules = [
     { slug: 'social-publishing', page: 'social' },
     { slug: 'analytics', page: 'analytics' },
+    { slug: 'editorial-ai', page: 'editorial' },
   ].flatMap((module) => {
     const adapters = catalog.filter(
       (entry) => entry.extension === module.slug && entry.kind === 'provider_adapter',
