@@ -19,6 +19,11 @@ const (
 var ErrUnavailable = errors.New("subscriber unavailable")
 var ErrRejected = errors.New("subscriber rejected the event")
 
+// ProviderRetry requests a retry no earlier than a provider-directed deadline.
+type ProviderRetry struct{ At time.Time }
+
+func (r *ProviderRetry) Error() string { return "provider retry requested" }
+
 // Delivery is the handler input. ID is the stable provider operation ID across
 // retries, restarts and operator requeues. Lease tokens are private to the host.
 type Delivery struct {
@@ -117,7 +122,10 @@ func prepare(ctx context.Context, handler Handler, delivery Delivery) (effect Ef
 // survive removal for diagnostics, but a new install cannot inherit them.
 const eligibleFrom = `FROM outbox_events e LEFT JOIN plugin_installs p ON p.id=d.plugin_id
 	WHERE e.id=d.event_id AND (
-	  (d.plugin_id='' AND d.plugin_slug='forms' AND e.name='lead.captured' AND e.contract_version=1)
+	  (d.plugin_id='' AND e.contract_version=1 AND (
+	    (d.plugin_slug='forms' AND e.name='lead.captured') OR
+	    (d.plugin_slug='social' AND e.name='social.scheduled')
+	  ))
 	  OR (p.enabled=1 AND EXISTS (SELECT 1 FROM outbox_subscriptions s WHERE s.plugin_id=p.id
 	    AND e.name=s.name AND e.contract_version=s.contract_version))
 	) AND (e.staff_actor_id IS NULL OR EXISTS (SELECT 1 FROM staff_members m
@@ -225,7 +233,10 @@ func apply(ctx context.Context, tx *sql.Tx, effect Effect) (err error) {
 
 func (w *Worker) fail(ctx context.Context, a attempt, failure error) error {
 	reason := "delivery_failed"
+	var provider *ProviderRetry
 	switch {
+	case errors.As(failure, &provider):
+		reason = "provider_retry"
 	case errors.Is(failure, ErrUnavailable):
 		reason = "subscriber_unavailable"
 	case errors.Is(failure, ErrRejected):
@@ -239,9 +250,13 @@ func (w *Worker) fail(ctx context.Context, a attempt, failure error) error {
 	}
 	now := w.clock()
 	delay := (5 * time.Second) << (a.number - 1)
+	available := now.Add(delay)
+	if provider != nil && provider.At.After(available) {
+		available = provider.At
+	}
 	_, err := w.DB.ExecContext(ctx, `UPDATE outbox_deliveries SET state=?,last_error=?,available_at=?,
 		lease_until=0,lease_token='',updated_at=?
 		WHERE id=? AND state='running' AND lease_token=? AND lease_until>?`,
-		state, reason, now.Add(delay).UnixMilli(), now.UnixMilli(), a.delivery.ID, a.token, now.UnixMilli())
+		state, reason, available.UnixMilli(), now.UnixMilli(), a.delivery.ID, a.token, now.UnixMilli())
 	return err
 }

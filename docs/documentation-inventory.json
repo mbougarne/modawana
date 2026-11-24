@@ -309,6 +309,16 @@
       "coverage": "bilingual"
     },
     {
+      "path": "docs/integrations/social-publishing.ar.md",
+      "coverage": "ar",
+      "companion": "docs/integrations/social-publishing.md"
+    },
+    {
+      "path": "docs/integrations/social-publishing.md",
+      "coverage": "en",
+      "companion": "docs/integrations/social-publishing.ar.md"
+    },
+    {
       "path": "docs/licenses.md",
       "coverage": "bilingual"
     },

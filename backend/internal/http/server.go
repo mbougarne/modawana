@@ -252,7 +252,7 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 	if private && len(parts) == 5 && (parts[2] == "preview" || parts[2] == "editor") && pageLocale(parts[0]) {
 		locale, status = parts[0], 200
 	}
-	if private && len(parts) == 3 && (parts[2] == "oauth" || parts[2] == "settings" || parts[2] == "themes" || parts[2] == "menus" || parts[2] == "profile" || parts[2] == "labels" || parts[2] == "posts" || parts[2] == "pages" || parts[2] == "new" || parts[2] == "collections" || parts[2] == "taxonomy" || parts[2] == "media" || parts[2] == "transfer" || parts[2] == "plugins" || parts[2] == "dashboard" || parts[2] == "layout" || parts[2] == "forms") && pageLocale(parts[0]) {
+	if private && len(parts) == 3 && (parts[2] == "oauth" || parts[2] == "settings" || parts[2] == "themes" || parts[2] == "menus" || parts[2] == "profile" || parts[2] == "labels" || parts[2] == "posts" || parts[2] == "pages" || parts[2] == "new" || parts[2] == "collections" || parts[2] == "taxonomy" || parts[2] == "media" || parts[2] == "transfer" || parts[2] == "plugins" || parts[2] == "dashboard" || parts[2] == "layout" || parts[2] == "forms" || parts[2] == "social") && pageLocale(parts[0]) {
 		locale, status = parts[0], 200
 	}
 	if staffUI {

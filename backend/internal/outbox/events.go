@@ -57,25 +57,35 @@ func RecordPublication(ctx context.Context, tx *sql.Tx, sourceID string, sourceV
 }
 
 const LeadCaptured = "lead.captured"
+const SocialScheduled = "social.scheduled"
 
 // RecordLead queues one private inbox notification without copying lead fields into the event.
 func RecordLead(ctx context.Context, tx *sql.Tx, lead string, at time.Time) error {
-	event, err := db.NewID()
-	if err != nil {
-		return err
-	}
 	job, err := db.NewID()
 	if err != nil {
 		return err
 	}
-	now := at.UnixMilli()
-	if _, err := tx.ExecContext(ctx, `INSERT INTO outbox_events
+	return recordBuiltin(ctx, tx, job, lead, "forms", LeadCaptured, at, at)
+}
+
+// RecordSocial schedules a local delivery. The job ID is also the provider's idempotency key.
+func RecordSocial(ctx context.Context, tx *sql.Tx, job string, created, due time.Time) error {
+	return recordBuiltin(ctx, tx, job, job, "social", SocialScheduled, created, due)
+}
+
+func recordBuiltin(ctx context.Context, tx *sql.Tx, job, source, slug, name string, created, due time.Time) error {
+	event, err := db.NewID()
+	if err != nil {
+		return err
+	}
+	now := created.UnixMilli()
+	if _, err = tx.ExecContext(ctx, `INSERT INTO outbox_events
 		(id,name,contract_version,source_id,source_version,payload,created_at)
-		VALUES(?,?,1,?,1,'{}',?)`, event, LeadCaptured, lead, now); err != nil {
+		VALUES(?,?,1,?,1,'{}',?)`, event, name, source, now); err != nil {
 		return err
 	}
 	_, err = tx.ExecContext(ctx, `INSERT INTO outbox_deliveries
 		(id,event_id,plugin_id,plugin_slug,available_at,updated_at)
-		VALUES(?,?,'','forms',?,?)`, job, event, now, now)
+		VALUES(?,?,'',?,?,?)`, job, event, slug, due.UnixMilli(), now)
 	return err
 }

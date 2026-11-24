@@ -76,7 +76,7 @@ func (w *Worker) List(ctx context.Context, cursor string) (StatusPage, error) {
 			return page, err
 		}
 		item.UpdatedAt = db.UTC(time.UnixMilli(updated))
-		item.CanRetry = eligible && item.State == "failed"
+		item.CanRetry = eligible && item.State == "failed" && (item.Plugin != "social" || item.Event != SocialScheduled)
 		if !eligible && (item.State == "pending" || item.State == "running") {
 			item.State = "paused"
 		}
@@ -97,7 +97,7 @@ func (w *Worker) Retry(ctx context.Context, id string) error {
 	now := w.clock().UnixMilli()
 	result, err := w.DB.ExecContext(ctx, `UPDATE outbox_deliveries AS d SET
 		state='pending',attempts=0,last_error='',available_at=?,updated_at=?
-		WHERE d.id=? AND d.state='failed' AND EXISTS (SELECT 1 `+eligibleFrom+`)`, now, now, id)
+		WHERE d.id=? AND d.state='failed' AND (d.plugin_id!='' OR d.plugin_slug!='social') AND EXISTS (SELECT 1 `+eligibleFrom+`)`, now, now, id)
 	if err != nil {
 		return err
 	}

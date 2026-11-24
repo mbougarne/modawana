@@ -1081,3 +1081,8 @@
 .owner-workspace[data-dashboard-density='compact'] .owner-panel {
   padding-block: var(--space-3);
 }
+
+.social-post-body {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
