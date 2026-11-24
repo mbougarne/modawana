@@ -85,10 +85,16 @@ func (d *Domain) storeRoutes(w http.ResponseWriter, r *http.Request) bool {
 		writeError(w, Unauthenticated)
 		return true
 	}
+	relative := strings.TrimPrefix(path, prefix)
+	parts := strings.Split(strings.TrimPrefix(relative, "/"), "/")
 	var owner string
 	var err error
 	if prefix == staffStore {
-		r, owner, err = d.Auth.StaffRequest(r, auth.StaffManageCatalog)
+		permission := auth.StaffManageCatalog
+		if parts[0] == "orders" {
+			permission = auth.StaffManageOrders
+		}
+		r, owner, err = d.Auth.StaffRequest(r, permission)
 	} else {
 		owner, err = d.Auth.OwnerRequest(r)
 	}
@@ -97,8 +103,6 @@ func (d *Domain) storeRoutes(w http.ResponseWriter, r *http.Request) bool {
 		return true
 	}
 	ctx := r.Context()
-	relative := strings.TrimPrefix(path, prefix)
-	parts := strings.Split(strings.TrimPrefix(relative, "/"), "/")
 	q := r.URL.Query()
 	switch {
 	case relative == "" && r.Method == http.MethodGet:
@@ -134,6 +138,17 @@ func (d *Domain) storeRoutes(w http.ResponseWriter, r *http.Request) bool {
 	case relative == "/orders" && r.Method == http.MethodGet:
 		out, err := d.Store.Orders(ctx, q.Get("cursor"))
 		checkoutReply(w, out, err)
+	case relative == "/orders/export" && r.Method == http.MethodGet:
+		d.exportStoreOrders(w, r)
+	case len(parts) == 3 && parts[0] == "orders" && parts[2] == "receipt" && r.Method == http.MethodGet:
+		order, err := d.Store.MerchantOrder(ctx, parts[1])
+		back := "/" + order.Locale + "/admin/store"
+		if prefix == staffStore {
+			back = "/" + order.Locale + "/staff"
+		}
+		d.orderReceipt(w, r, order.Locale, order.OrderStatus, err, back)
+	case len(parts) == 3 && parts[0] == "orders" && r.Method == http.MethodPost:
+		d.orderAction(w, r, owner, parts[1], parts[2])
 	case len(parts) == 2 && parts[0] == "orders" && r.Method == http.MethodGet:
 		out, err := d.Store.MerchantOrder(ctx, parts[1])
 		checkoutReply(w, out, err)

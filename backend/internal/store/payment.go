@@ -124,6 +124,13 @@ func settleStock(ctx context.Context, tx *sql.Tx, order string, sold bool) error
 }
 
 func releaseOrder(ctx context.Context, tx *sql.Tx, id, reason string, now time.Time) error {
+	if err := releaseUnpaidReservation(ctx, tx, id); err != nil {
+		return err
+	}
+	return recordOrderEvent(ctx, tx, id, reason, now)
+}
+
+func releaseUnpaidReservation(ctx context.Context, tx *sql.Tx, id string) error {
 	if err := settleStock(ctx, tx, id, false); err != nil {
 		return err
 	}
@@ -133,7 +140,7 @@ func releaseOrder(ctx context.Context, tx *sql.Tx, id, reason string, now time.T
 	if _, err := tx.ExecContext(ctx, `UPDATE store_payment_operations SET state='released' WHERE order_id=?`, id); err != nil {
 		return err
 	}
-	return recordOrderEvent(ctx, tx, id, reason, now)
+	return nil
 }
 
 func (s *Service) expireOrders(ctx context.Context, now time.Time) error {

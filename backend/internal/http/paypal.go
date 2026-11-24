@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mbougarne/modawana/backend/internal/access"
 	"github.com/mbougarne/modawana/backend/internal/paypal"
 	"github.com/mbougarne/modawana/backend/internal/store"
 	"github.com/mbougarne/modawana/backend/internal/webhook"
@@ -111,11 +112,12 @@ func (d *Domain) paypalOwner(w http.ResponseWriter, r *http.Request, path string
 		writeError(w, NotFound)
 		return
 	}
-	if _, err := d.Auth.OwnerRequest(r); err != nil {
+	owner, err := d.Auth.OwnerRequest(r)
+	if err != nil {
 		domainError(w, err)
 		return
 	}
-	ctx, cancel := context.WithTimeout(r.Context(), 18*time.Second)
+	ctx, cancel := context.WithTimeout(access.WithMutation(r.Context(), access.Mutation{Actor: owner}), 18*time.Second)
 	defer cancel()
 	r = r.WithContext(ctx)
 	parts := strings.Split(strings.TrimPrefix(path, "/"), "/")

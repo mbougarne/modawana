@@ -12,6 +12,7 @@ import { useResource } from '../../pages/public/api';
 import { ResourceState } from '../../pages/public/ResourceState';
 import { checkoutError, OrderSummary } from './OrderSummary';
 import { PayPalSettings, PayPalOrderTools } from './PayPalAdmin';
+import { MerchantOperations, MerchantHistory } from './MerchantOperations';
 import './checkout.css';
 
 interface Access {
@@ -280,6 +281,9 @@ export function StoreOrders({ access }: { access: Access }) {
   return (
     <section className="owner-panel owner-form">
       <h3>{t('checkout.orders')}</h3>
+      <Button href={root + '/export'} download>
+        {t('order.export')}
+      </Button>
       <ResourceState resource={orders} />
       {orders.data && (
         <>
@@ -309,6 +313,18 @@ export function StoreOrders({ access }: { access: Access }) {
       {order && (
         <>
           <OrderSummary order={order} />
+          {order.paid_at !== undefined && (
+            <Button href={root + '/' + order.reference + '/receipt'}>{t('order.receipt')}</Button>
+          )}
+          <MerchantOperations
+            root={access.root}
+            csrf={access.csrf}
+            order={order}
+            updated={() => {
+              detail.retry();
+              orders.retry();
+            }}
+          />
           {access.root === '/owner/store' && (
             <PayPalOrderTools
               key={order.reference}
@@ -334,14 +350,7 @@ export function StoreOrders({ access }: { access: Access }) {
                 .join(', ')}
             </div>
           </address>
-          <h4>{t('checkout.history')}</h4>
-          <ul>
-            {order.events.map((event, index) => (
-              <li key={index}>
-                {t('checkout.event.' + event.kind)} · {date.format(event.created_at * 1000)}
-              </li>
-            ))}
-          </ul>
+          <MerchantHistory order={order} />
         </>
       )}
     </section>

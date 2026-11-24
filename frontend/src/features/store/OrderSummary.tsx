@@ -7,6 +7,7 @@ export function checkoutError(error: unknown) {
     const labels: Record<string, string> = {
       store_coupon: 'checkout.couponInvalid',
       store_payment_amount: 'paypal.badAmount',
+      store_order_state: 'order.stateConflict',
       paypal_review: 'paypal.needsReview',
       store_shipping: 'checkout.shippingInvalid',
       store_stock: 'checkout.stockInvalid',
@@ -93,6 +94,55 @@ export function OrderSummary({ order }: { order: OrderStatus }) {
         )}
       </dl>
       {order.status === 'awaiting_payment' && <p>{t('checkout.reservationOnly')}</p>}
+      {order.shipment && (
+        <dl className="store-order-totals">
+          <div>
+            <dt>{t('order.shippedAt')}</dt>
+            <dd>{date.format(order.shipment.shipped_at * 1000)}</dd>
+          </div>
+          {order.shipment.carrier && (
+            <div>
+              <dt>{t('order.carrier')}</dt>
+              <dd>
+                <bdi>{order.shipment.carrier}</bdi>
+              </dd>
+            </div>
+          )}
+          {order.shipment.tracking_number && (
+            <div>
+              <dt>{t('order.tracking')}</dt>
+              <dd>
+                <bdi>{order.shipment.tracking_number}</bdi>
+              </dd>
+            </div>
+          )}
+        </dl>
+      )}
+      {order.notices.length > 0 && (
+        <section aria-label={t('order.notices')}>
+          <h4>{t('order.notices')}</h4>
+          <ul>
+            {order.notices.map((notice) => (
+              <li key={notice.kind}>
+                {t('order.notice.' + notice.kind)} · {date.format(notice.created_at * 1000)}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      {order.refunded_minor > 0 && (
+        <p>
+          {t('order.refundedAmount')}{' '}
+          <bdi>
+            {new Intl.NumberFormat(locale, {
+              style: 'currency',
+              currency: order.snapshot.currency,
+              minimumFractionDigits: order.snapshot.digits,
+              maximumFractionDigits: order.snapshot.digits,
+            }).format(order.refunded_minor / 10 ** order.snapshot.digits)}
+          </bdi>
+        </p>
+      )}
       <OrderTotals data={order.snapshot} />
     </div>
   );

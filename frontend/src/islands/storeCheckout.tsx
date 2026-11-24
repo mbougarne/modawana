@@ -488,6 +488,11 @@ function Checkout() {
         <div className="vb-card">
           <OrderSummary order={order} />
           <div className="store-checkout-actions">
+            {order.paid_at !== undefined && (
+              <Button href={'/api/v1' + root + '/orders/' + order.reference + '/receipt'}>
+                {t('order.receipt')}
+              </Button>
+            )}
             {order.status === 'awaiting_payment' && countries && (
               <Button variant="primary" disabled={busy} onClick={() => paymentAction('approval')}>
                 {t('paypal.pay')}

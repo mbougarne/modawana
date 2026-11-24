@@ -60,16 +60,23 @@ const LeadCaptured = "lead.captured"
 const SocialScheduled = "social.scheduled"
 const OrderPaid = "order.paid"
 
-// RecordOrderPaid records the domain event with settlement. Its payload contains no buyer data.
+const OrderShipped = "order.shipped"
+
+// Order events are queued with their state changes and contain no customer data.
 func RecordOrderPaid(ctx context.Context, tx *sql.Tx, order string, at time.Time) error {
-	id, err := db.NewID()
+	return recordStoreNotice(ctx, tx, order, OrderPaid, at)
+}
+
+func RecordOrderShipped(ctx context.Context, tx *sql.Tx, order string, at time.Time) error {
+	return recordStoreNotice(ctx, tx, order, OrderShipped, at)
+}
+
+func recordStoreNotice(ctx context.Context, tx *sql.Tx, order, name string, at time.Time) error {
+	job, err := db.NewID()
 	if err != nil {
 		return err
 	}
-	_, err = tx.ExecContext(ctx, `INSERT INTO outbox_events
-		(id,name,contract_version,source_id,source_version,payload,created_at)
-		VALUES(?,?,1,?,1,'{}',?)`, id, OrderPaid, order, at.UnixMilli())
-	return err
+	return recordBuiltin(ctx, tx, job, order, "store", name, at, at)
 }
 
 // RecordLead queues one private inbox notification without copying lead fields into the event.

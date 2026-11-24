@@ -163,3 +163,40 @@ sandbox results before configuring a live merchant.
 [Webhook verification](https://developer.paypal.com/api/webhooks/v1/) ·
 [Payments and refunds](https://developer.paypal.com/api/payments/v2/captures-refund) ·
 [Request idempotency](https://developer.paypal.com/api/rest/requests/)
+
+## Merchant orders and fulfillment
+
+The installation Owner and delegated Store Managers can open **Store → Orders**,
+read the frozen customer and address snapshots, and inspect the payment
+references, refunds, shipment and activity history. Store Managers use their
+staff workspace. Refunds remain an installation Owner action and require fresh
+authentication. The history records refund requests, retries and verified
+outcomes against their original operation IDs and amounts.
+
+Cancel an unfulfilled order with a reason. An unpaid cancellation releases its
+hold. A payment awaiting provider verification keeps its hold and cannot be
+cancelled. Cancelling a paid order changes its fulfillment state. Use the separate
+refund and stock actions for money and returned inventory. A payment verified
+after an unpaid cancellation remains in review.
+
+Mark a confirmed, paid order as shipped and optionally supply a carrier and
+tracking number. Both values can be corrected together later. Buyers can see
+the shipment and tracking details in their original guest browser. Payment
+confirmation and shipment notices are queued in the same transaction as their
+order changes. The outbox delivers them to the order's private in-app
+notifications and retries interrupted delivery. The notices appear in the
+guest lookup and merchant order detail.
+
+Use **Return units to stock** for a sold item that has actually been returned.
+The action is available for shipped and cancelled orders, or sold orders that
+have been fully refunded. Choose a SKU, a quantity and a reason. The order
+history and inventory adjustment both record the action. Cumulative returns
+cannot exceed that order's sold quantity.
+
+Use **Payment receipt** on a verified payment to open a printable document with
+line items, the original paid total and the total amount refunded. The guest
+copy requires the originating browser cookie. **Export orders (CSV)** is
+available to the Owner and Store Managers. It includes one row per order with
+customer and shipping snapshots, statuses, payment and refund references,
+minor-unit totals, and line and restock details. Handle the file as private
+customer data.

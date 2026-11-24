@@ -266,6 +266,419 @@
       "ar": "تحقّق من ردّ المبلغ أو استأنفه"
     }
   },
+  "order.operations": {
+    "section": "order",
+    "description": "Interface text: order.operations",
+    "placeholders": [],
+    "values": {
+      "en": "Fulfillment and stock",
+      "fr": "Expédition et stock",
+      "ar": "التنفيذ والمخزون"
+    }
+  },
+  "order.action.ship": {
+    "section": "order",
+    "description": "Interface text: order.action.ship",
+    "placeholders": [],
+    "values": {
+      "en": "Mark as shipped",
+      "fr": "Marquer comme expédiée",
+      "ar": "سجّل الشحن"
+    }
+  },
+  "order.action.tracking": {
+    "section": "order",
+    "description": "Interface text: order.action.tracking",
+    "placeholders": [],
+    "values": {
+      "en": "Update tracking",
+      "fr": "Mettre à jour le suivi",
+      "ar": "حدّث التتبّع"
+    }
+  },
+  "order.action.cancel": {
+    "section": "order",
+    "description": "Interface text: order.action.cancel",
+    "placeholders": [],
+    "values": {
+      "en": "Cancel order",
+      "fr": "Annuler la commande",
+      "ar": "ألغِ الطلب"
+    }
+  },
+  "order.action.restock": {
+    "section": "order",
+    "description": "Interface text: order.action.restock",
+    "placeholders": [],
+    "values": {
+      "en": "Return units to stock",
+      "fr": "Remettre des unités en stock",
+      "ar": "أعد وحدات إلى المخزون"
+    }
+  },
+  "order.carrier": {
+    "section": "order",
+    "description": "Interface text: order.carrier",
+    "placeholders": [],
+    "values": {
+      "en": "Carrier",
+      "fr": "Transporteur",
+      "ar": "شركة الشحن"
+    }
+  },
+  "order.tracking": {
+    "section": "order",
+    "description": "Interface text: order.tracking",
+    "placeholders": [],
+    "values": {
+      "en": "Tracking number",
+      "fr": "Numéro de suivi",
+      "ar": "رقم التتبّع"
+    }
+  },
+  "order.trackingPair": {
+    "section": "order",
+    "description": "Interface text: order.trackingPair",
+    "placeholders": [],
+    "values": {
+      "en": "Enter both the carrier and tracking number, or leave both empty.",
+      "fr": "Saisissez le transporteur et le numéro de suivi, ou laissez les deux champs vides.",
+      "ar": "أدخل اسم شركة الشحن ورقم التتبّع معًا أو اترك الحقلين فارغين."
+    }
+  },
+  "order.confirmCancel": {
+    "section": "order",
+    "description": "Interface text: order.confirmCancel",
+    "placeholders": [],
+    "values": {
+      "en": "Cancel this order?",
+      "fr": "Annuler cette commande ?",
+      "ar": "هل تريد إلغاء هذا الطلب؟"
+    }
+  },
+  "order.cancelPaid": {
+    "section": "order",
+    "description": "Interface text: order.cancelPaid",
+    "placeholders": [],
+    "values": {
+      "en": "This order was paid. Any refund and stock return require separate actions.",
+      "fr": "Cette commande a été payée. Enregistrez séparément le remboursement et le retour en stock.",
+      "ar": "هذا الطلب مدفوع. سجّل ردّ المبلغ وإعادة المخزون بإجراءين مستقلّين."
+    }
+  },
+  "order.chooseSKU": {
+    "section": "order",
+    "description": "Interface text: order.chooseSKU",
+    "placeholders": [],
+    "values": {
+      "en": "Select an order item",
+      "fr": "Sélectionnez un article de la commande",
+      "ar": "اختر بندًا من الطلب"
+    }
+  },
+  "order.quantity": {
+    "section": "order",
+    "description": "Interface text: order.quantity",
+    "placeholders": [],
+    "values": {
+      "en": "Quantity",
+      "fr": "Quantité",
+      "ar": "الكمية"
+    }
+  },
+  "order.saved": {
+    "section": "order",
+    "description": "Interface text: order.saved",
+    "placeholders": [],
+    "values": {
+      "en": "Order updated.",
+      "fr": "Commande mise à jour.",
+      "ar": "حُدّث الطلب."
+    }
+  },
+  "order.stateConflict": {
+    "section": "order",
+    "description": "Interface text: order.stateConflict",
+    "placeholders": [],
+    "values": {
+      "en": "This action is unavailable for the current order state.",
+      "fr": "Cette action est indisponible dans l’état actuel de la commande.",
+      "ar": "لا يمكن تنفيذ هذا الإجراء في حالة الطلب الحالية."
+    }
+  },
+  "order.export": {
+    "section": "order",
+    "description": "Interface text: order.export",
+    "placeholders": [],
+    "values": {
+      "en": "Export orders (CSV)",
+      "fr": "Exporter les commandes (CSV)",
+      "ar": "صدّر الطلبات بصيغة CSV"
+    }
+  },
+  "order.receipt": {
+    "section": "order",
+    "description": "Interface text: order.receipt",
+    "placeholders": [],
+    "values": {
+      "en": "Payment receipt",
+      "fr": "Reçu de paiement",
+      "ar": "إيصال الدفع"
+    }
+  },
+  "order.item": {
+    "section": "order",
+    "description": "Interface text: order.item",
+    "placeholders": [],
+    "values": {
+      "en": "Item",
+      "fr": "Article",
+      "ar": "البند"
+    }
+  },
+  "order.paidAt": {
+    "section": "order",
+    "description": "Interface text: order.paidAt",
+    "placeholders": [],
+    "values": {
+      "en": "Payment verified on",
+      "fr": "Paiement vérifié le",
+      "ar": "تاريخ التحقّق من الدفع"
+    }
+  },
+  "order.back": {
+    "section": "order",
+    "description": "Interface text: order.back",
+    "placeholders": [],
+    "values": {
+      "en": "Back to orders",
+      "fr": "Retour aux commandes",
+      "ar": "العودة إلى الطلبات"
+    }
+  },
+  "order.amountPaid": {
+    "section": "order",
+    "description": "Interface text: order.amountPaid",
+    "placeholders": [],
+    "values": {
+      "en": "Amount paid",
+      "fr": "Montant payé",
+      "ar": "المبلغ المدفوع"
+    }
+  },
+  "order.refundedAmount": {
+    "section": "order",
+    "description": "Interface text: order.refundedAmount",
+    "placeholders": [],
+    "values": {
+      "en": "Amount refunded",
+      "fr": "Montant remboursé",
+      "ar": "المبلغ المردود"
+    }
+  },
+  "order.shippedAt": {
+    "section": "order",
+    "description": "Interface text: order.shippedAt",
+    "placeholders": [],
+    "values": {
+      "en": "Shipped on",
+      "fr": "Expédiée le",
+      "ar": "تاريخ الشحن"
+    }
+  },
+  "order.notices": {
+    "section": "order",
+    "description": "Interface text: order.notices",
+    "placeholders": [],
+    "values": {
+      "en": "Order notifications",
+      "fr": "Notifications de commande",
+      "ar": "إشعارات الطلب"
+    }
+  },
+  "order.notice.order.paid": {
+    "section": "order",
+    "description": "Interface text: order.notice.order.paid",
+    "placeholders": [],
+    "values": {
+      "en": "Payment confirmed",
+      "fr": "Paiement confirmé",
+      "ar": "تأكّد الدفع"
+    }
+  },
+  "order.notice.order.shipped": {
+    "section": "order",
+    "description": "Interface text: order.notice.order.shipped",
+    "placeholders": [],
+    "values": {
+      "en": "Order shipped",
+      "fr": "Commande expédiée",
+      "ar": "شُحن الطلب"
+    }
+  },
+  "order.paymentReferences": {
+    "section": "order",
+    "description": "Interface text: order.paymentReferences",
+    "placeholders": [],
+    "values": {
+      "en": "Payment references",
+      "fr": "Références de paiement",
+      "ar": "مراجع الدفع"
+    }
+  },
+  "order.paymentOperation": {
+    "section": "order",
+    "description": "Interface text: order.paymentOperation",
+    "placeholders": [],
+    "values": {
+      "en": "Local payment operation",
+      "fr": "Opération de paiement locale",
+      "ar": "عملية الدفع المحلية"
+    }
+  },
+  "order.connection": {
+    "section": "order",
+    "description": "Interface text: order.connection",
+    "placeholders": [],
+    "values": {
+      "en": "Payment connection",
+      "fr": "Connexion de paiement",
+      "ar": "اتصال الدفع"
+    }
+  },
+  "order.providerOrder": {
+    "section": "order",
+    "description": "Interface text: order.providerOrder",
+    "placeholders": [],
+    "values": {
+      "en": "Provider order",
+      "fr": "Commande du prestataire",
+      "ar": "طلب مزوّد الدفع"
+    }
+  },
+  "order.capture": {
+    "section": "order",
+    "description": "Interface text: order.capture",
+    "placeholders": [],
+    "values": {
+      "en": "Provider capture",
+      "fr": "Collecte du prestataire",
+      "ar": "مرجع التحصيل لدى المزوّد"
+    }
+  },
+  "order.refundReferences": {
+    "section": "order",
+    "description": "Interface text: order.refundReferences",
+    "placeholders": [],
+    "values": {
+      "en": "Refund references",
+      "fr": "Références de remboursement",
+      "ar": "مراجع ردّ المبالغ"
+    }
+  },
+  "order.refundMinor": {
+    "section": "order",
+    "description": "Interface text: order.refundMinor",
+    "placeholders": [
+      "amount",
+      "currency"
+    ],
+    "values": {
+      "en": "{amount} minor units ({currency})",
+      "fr": "{amount} unités mineures ({currency})",
+      "ar": "{amount} وحدة نقدية صغرى ({currency})"
+    }
+  },
+  "checkout.event.cancelled": {
+    "section": "checkout",
+    "description": "Interface text: checkout.event.cancelled",
+    "placeholders": [],
+    "values": {
+      "en": "Order cancelled",
+      "fr": "Commande annulée",
+      "ar": "أُلغي الطلب"
+    }
+  },
+  "checkout.event.shipped": {
+    "section": "checkout",
+    "description": "Interface text: checkout.event.shipped",
+    "placeholders": [],
+    "values": {
+      "en": "Order shipped",
+      "fr": "Commande expédiée",
+      "ar": "شُحن الطلب"
+    }
+  },
+  "checkout.event.tracking_updated": {
+    "section": "checkout",
+    "description": "Interface text: checkout.event.tracking_updated",
+    "placeholders": [],
+    "values": {
+      "en": "Tracking updated",
+      "fr": "Suivi mis à jour",
+      "ar": "حُدّث التتبّع"
+    }
+  },
+  "checkout.event.restocked": {
+    "section": "checkout",
+    "description": "Interface text: checkout.event.restocked",
+    "placeholders": [],
+    "values": {
+      "en": "Units returned to stock",
+      "fr": "Unités remises en stock",
+      "ar": "أُعيدت وحدات إلى المخزون"
+    }
+  },
+  "checkout.event.refund_requested": {
+    "section": "checkout",
+    "description": "Interface text: checkout.event.refund_requested",
+    "placeholders": [],
+    "values": {
+      "en": "Refund requested",
+      "fr": "Remboursement demandé",
+      "ar": "طُلب ردّ المبلغ"
+    }
+  },
+  "checkout.event.refund_retry": {
+    "section": "checkout",
+    "description": "Interface text: checkout.event.refund_retry",
+    "placeholders": [],
+    "values": {
+      "en": "Existing refund retried",
+      "fr": "Remboursement relancé",
+      "ar": "أُعيدت محاولة ردّ المبلغ"
+    }
+  },
+  "checkout.event.refund_pending": {
+    "section": "checkout",
+    "description": "Interface text: checkout.event.refund_pending",
+    "placeholders": [],
+    "values": {
+      "en": "Refund pending",
+      "fr": "Remboursement en attente",
+      "ar": "ردّ المبلغ قيد الانتظار"
+    }
+  },
+  "checkout.event.refund_complete": {
+    "section": "checkout",
+    "description": "Interface text: checkout.event.refund_complete",
+    "placeholders": [],
+    "values": {
+      "en": "Refund completed",
+      "fr": "Remboursement effectué",
+      "ar": "اكتمل ردّ المبلغ"
+    }
+  },
+  "checkout.event.refund_failed": {
+    "section": "checkout",
+    "description": "Interface text: checkout.event.refund_failed",
+    "placeholders": [],
+    "values": {
+      "en": "Refund failed",
+      "fr": "Échec du remboursement",
+      "ar": "تعذّر ردّ المبلغ"
+    }
+  },
   "page.checkout": {
     "section": "page",
     "description": "Interface text: page.checkout",

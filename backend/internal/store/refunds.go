@@ -3,9 +3,11 @@ package store
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"time"
 
+	"github.com/mbougarne/modawana/backend/internal/access"
 	"github.com/mbougarne/modawana/backend/internal/db"
 	"github.com/mbougarne/modawana/backend/internal/media"
 )
@@ -93,6 +95,9 @@ func (s *Service) PrepareRefund(ctx context.Context, id string, in RefundInput, 
 			VALUES(?,?,?,?,?,'pending',?)`, out.ID, id, in.Key, out.AmountMinor, out.Connection, out.Created); err != nil {
 			return err
 		}
+		if err = recordRefundEvent(ctx, tx, out, "refund_requested", access.Actor(ctx, ""), out.Created); err != nil {
+			return err
+		}
 		return updateRefundState(ctx, tx, id, out.CaptureTotal)
 	})
 	return out, err
@@ -137,7 +142,8 @@ func (s *Service) RecordRefund(ctx context.Context, operation RefundOperation, p
 			(current.ProviderID != "" && current.ProviderID != providerID) {
 			return ErrPaymentEvidence
 		}
-		if current.State == "complete" || (current.State == "failed" && state == "pending") {
+		if current.State == "complete" || (current.State == "failed" && state == "pending") ||
+			(current.State == state && current.ProviderID == providerID) {
 			return nil
 		}
 		if current.State == "failed" && state == "complete" {
@@ -149,6 +155,9 @@ func (s *Service) RecordRefund(ctx context.Context, operation RefundOperation, p
 			return err
 		}
 		current.State, current.ProviderID = state, providerID
+		if err = recordRefundEvent(ctx, tx, current, "refund_"+state, "", time.Now().Unix()); err != nil {
+			return err
+		}
 		return updateRefundState(ctx, tx, current.Order, current.CaptureTotal)
 	})
 	return current, err
@@ -189,7 +198,15 @@ func (s *Service) ResumeRefund(ctx context.Context, id string, fresh func(*sql.T
 		}
 		var err error
 		op, err = readRefund(tx.QueryRowContext(ctx, "SELECT "+refundColumns+refundTables+" WHERE r.id=?", id))
-		return err
+		if err != nil || op.State != "pending" {
+			return err
+		}
+		return recordRefundEvent(ctx, tx, op, "refund_retry", access.Actor(ctx, ""), time.Now().Unix())
 	})
 	return op, err
+}
+
+func recordRefundEvent(ctx context.Context, tx *sql.Tx, op RefundOperation, kind, actor string, at int64) error {
+	data, _ := json.Marshal(OrderEventDetail{RefundID: op.ID, AmountMinor: op.AmountMinor})
+	return recordMerchantEvent(ctx, tx, op.Order, kind, actor, string(data), at)
 }

@@ -61,12 +61,27 @@ export interface OrderReceipt {
   expires_at: number;
 }
 
+export interface Shipment {
+  shipped_at: number;
+  carrier: string;
+  tracking_number: string;
+}
+
+export interface OrderNotice {
+  kind: 'order.paid' | 'order.shipped';
+  created_at: number;
+}
+
 export interface OrderStatus extends OrderReceipt {
   snapshot: Snapshot;
   status: string;
   payment: string;
   refund: string;
   fulfillment: string;
+  shipment?: Shipment;
+  notices: OrderNotice[];
+  paid_at?: number;
+  refunded_minor: number;
 }
 
 export interface MerchantOrder extends OrderStatus {
@@ -74,7 +89,25 @@ export interface MerchantOrder extends OrderStatus {
   locale: Locale;
   operation: string;
   reservation: string;
-  events: { kind: string; created_at: number }[];
+  events: OrderEvent[];
+  restocked: Record<string, number>;
+  payment_record: { connection?: string; provider_order?: string; capture?: string };
+  refunds: { id: string; provider_id?: string; amount_minor: number; state: string }[];
+}
+
+export interface OrderEvent {
+  kind: string;
+  created_at: number;
+  actor?: string;
+  detail?: {
+    reason?: string;
+    carrier?: string;
+    tracking_number?: string;
+    sku?: string;
+    quantity?: number;
+    refund_id?: string;
+    amount_minor?: number;
+  };
 }
 
 export interface Orders {
