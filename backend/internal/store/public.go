@@ -43,14 +43,15 @@ type Alternate struct {
 }
 
 type PublicPage struct {
-	Currency     string           `json:"currency"`
-	Digits       int              `json:"digits"`
-	Product      *PublicProduct   `json:"product,omitempty"`
-	Products     []PublicProduct  `json:"products,omitempty"`
-	Categories   []PublicCategory `json:"categories,omitempty"`
-	Alternatives []Alternate      `json:"alternatives,omitempty"`
-	Total        int              `json:"total"`
-	Next         string           `json:"next_cursor,omitempty"`
+	CheckoutEnabled bool             `json:"checkout_enabled"`
+	Currency        string           `json:"currency"`
+	Digits          int              `json:"digits"`
+	Product         *PublicProduct   `json:"product,omitempty"`
+	Products        []PublicProduct  `json:"products,omitempty"`
+	Categories      []PublicCategory `json:"categories,omitempty"`
+	Alternatives    []Alternate      `json:"alternatives,omitempty"`
+	Total           int              `json:"total"`
+	Next            string           `json:"next_cursor,omitempty"`
 }
 
 type Filter struct {
@@ -106,6 +107,9 @@ func (s *Service) Catalog(ctx context.Context, f Filter) (PublicPage, error) {
 		return out, err
 	}
 	out.Currency, out.Digits = cfg.Currency, cfg.Digits
+	if err = tx.QueryRowContext(ctx, "SELECT enabled FROM store_checkout_settings WHERE id=1").Scan(&out.CheckoutEnabled); err != nil {
+		return out, err
+	}
 	if err = alternates(ctx, tx, &out, ""); err != nil {
 		return out, err
 	}
@@ -176,6 +180,9 @@ func (s *Service) PublicProduct(ctx context.Context, language, slug string) (Pub
 		return out, err
 	}
 	out.Currency, out.Digits = cfg.Currency, cfg.Digits
+	if err = tx.QueryRowContext(ctx, "SELECT enabled FROM store_checkout_settings WHERE id=1").Scan(&out.CheckoutEnabled); err != nil {
+		return out, err
+	}
 	product, err := productFrom(tx.QueryRowContext(ctx, "SELECT "+publicColumns+publicRows+" AND p.slug=?", language, slug))
 	if err != nil {
 		return out, err
@@ -193,7 +200,7 @@ func (s *Service) PublicProduct(ctx context.Context, language, slug string) (Pub
 		if label == "" {
 			label = v.SKU
 		}
-		product.Variants = append(product.Variants, PublicVariant{v.SKU, label, v.PriceMinor, v.Stock > 0})
+		product.Variants = append(product.Variants, PublicVariant{v.SKU, label, v.PriceMinor, v.Stock > v.Reserved})
 	}
 	out.Product = &product
 	if err = alternates(ctx, tx, &out, product.Key); err != nil {

@@ -1,4 +1,866 @@
 {
+  "page.checkout": {
+    "section": "page",
+    "description": "Interface text: page.checkout",
+    "placeholders": [],
+    "values": {
+      "en": "Cart and checkout",
+      "fr": "Panier et commande",
+      "ar": "السلة وإتمام الطلب"
+    }
+  },
+  "checkout.add": {
+    "section": "checkout",
+    "description": "Interface text: checkout.add",
+    "placeholders": [],
+    "values": {
+      "en": "Add to cart",
+      "fr": "Ajouter au panier",
+      "ar": "أضف إلى السلة"
+    }
+  },
+  "checkout.added": {
+    "section": "checkout",
+    "description": "Interface text: checkout.added",
+    "placeholders": [],
+    "values": {
+      "en": "Added to cart",
+      "fr": "Ajouté au panier",
+      "ar": "أُضيف إلى السلة"
+    }
+  },
+  "checkout.cartFull": {
+    "section": "checkout",
+    "description": "Interface text: checkout.cartFull",
+    "placeholders": [],
+    "values": {
+      "en": "Cart is full",
+      "fr": "Le panier est plein",
+      "ar": "السلة ممتلئة"
+    }
+  },
+  "checkout.cartFailed": {
+    "section": "checkout",
+    "description": "Interface text: checkout.cartFailed",
+    "placeholders": [],
+    "values": {
+      "en": "Could not save the cart in this browser.",
+      "fr": "Impossible d’enregistrer le panier dans ce navigateur.",
+      "ar": "تعذّر حفظ السلة في هذا المتصفح."
+    }
+  },
+  "checkout.cart": {
+    "section": "checkout",
+    "description": "Interface text: checkout.cart",
+    "placeholders": [],
+    "values": {
+      "en": "Your cart",
+      "fr": "Votre panier",
+      "ar": "سلتك"
+    }
+  },
+  "checkout.empty": {
+    "section": "checkout",
+    "description": "Interface text: checkout.empty",
+    "placeholders": [],
+    "values": {
+      "en": "Your cart is empty.",
+      "fr": "Votre panier est vide.",
+      "ar": "سلتك فارغة."
+    }
+  },
+  "checkout.closed": {
+    "section": "checkout",
+    "description": "Interface text: checkout.closed",
+    "placeholders": [],
+    "values": {
+      "en": "Checkout is currently closed. Order lookup is available below.",
+      "fr": "Les commandes sont momentanément fermées. Vous pouvez consulter une commande ci-dessous.",
+      "ar": "إتمام الطلبات مغلق حاليًا. يمكنك الاستعلام عن طلب أدناه."
+    }
+  },
+  "checkout.remove": {
+    "section": "checkout",
+    "description": "Interface text: checkout.remove",
+    "placeholders": [],
+    "values": {
+      "en": "Remove",
+      "fr": "Retirer",
+      "ar": "إزالة"
+    }
+  },
+  "checkout.country": {
+    "section": "checkout",
+    "description": "Interface text: checkout.country",
+    "placeholders": [],
+    "values": {
+      "en": "Shipping country",
+      "fr": "Pays de livraison",
+      "ar": "بلد الشحن"
+    }
+  },
+  "checkout.chooseCountry": {
+    "section": "checkout",
+    "description": "Interface text: checkout.chooseCountry",
+    "placeholders": [],
+    "values": {
+      "en": "Select a country",
+      "fr": "Sélectionner un pays",
+      "ar": "اختر بلدًا"
+    }
+  },
+  "checkout.coupon": {
+    "section": "checkout",
+    "description": "Interface text: checkout.coupon",
+    "placeholders": [],
+    "values": {
+      "en": "Coupon code",
+      "fr": "Code promotionnel",
+      "ar": "رمز الخصم"
+    }
+  },
+  "checkout.calculate": {
+    "section": "checkout",
+    "description": "Interface text: checkout.calculate",
+    "placeholders": [],
+    "values": {
+      "en": "Calculate total",
+      "fr": "Calculer le total",
+      "ar": "احسب الإجمالي"
+    }
+  },
+  "checkout.review": {
+    "section": "checkout",
+    "description": "Interface text: checkout.review",
+    "placeholders": [],
+    "values": {
+      "en": "Review total and shipping details",
+      "fr": "Vérifier le total et les informations de livraison",
+      "ar": "راجع الإجمالي وبيانات الشحن"
+    }
+  },
+  "checkout.subtotal": {
+    "section": "checkout",
+    "description": "Interface text: checkout.subtotal",
+    "placeholders": [],
+    "values": {
+      "en": "Subtotal",
+      "fr": "Sous-total",
+      "ar": "المجموع الفرعي"
+    }
+  },
+  "checkout.discount": {
+    "section": "checkout",
+    "description": "Interface text: checkout.discount",
+    "placeholders": [],
+    "values": {
+      "en": "Discount",
+      "fr": "Remise",
+      "ar": "الخصم"
+    }
+  },
+  "checkout.shipping": {
+    "section": "checkout",
+    "description": "Interface text: checkout.shipping",
+    "placeholders": [],
+    "values": {
+      "en": "Shipping",
+      "fr": "Livraison",
+      "ar": "الشحن"
+    }
+  },
+  "checkout.tax": {
+    "section": "checkout",
+    "description": "Interface text: checkout.tax",
+    "placeholders": [],
+    "values": {
+      "en": "Tax",
+      "fr": "Taxe",
+      "ar": "الضريبة"
+    }
+  },
+  "checkout.total": {
+    "section": "checkout",
+    "description": "Interface text: checkout.total",
+    "placeholders": [],
+    "values": {
+      "en": "Total",
+      "fr": "Total",
+      "ar": "الإجمالي"
+    }
+  },
+  "checkout.place": {
+    "section": "checkout",
+    "description": "Interface text: checkout.place",
+    "placeholders": [],
+    "values": {
+      "en": "Reserve order",
+      "fr": "Réserver la commande",
+      "ar": "احجز الطلب"
+    }
+  },
+  "checkout.reservationOnly": {
+    "section": "checkout",
+    "description": "Interface text: checkout.reservationOnly",
+    "placeholders": [],
+    "values": {
+      "en": "Stock is held for 30 minutes while payment is pending.",
+      "fr": "Le stock est réservé pendant 30 minutes en attente du paiement.",
+      "ar": "يُحجز المخزون لمدة 30 دقيقة في انتظار الدفع."
+    }
+  },
+  "checkout.retrySame": {
+    "section": "checkout",
+    "description": "Interface text: checkout.retrySame",
+    "placeholders": [],
+    "values": {
+      "en": "Retry this same order",
+      "fr": "Réessayer cette commande",
+      "ar": "أعد محاولة الطلب نفسه"
+    }
+  },
+  "checkout.reserved": {
+    "section": "checkout",
+    "description": "Interface text: checkout.reserved",
+    "placeholders": [],
+    "values": {
+      "en": "Order reserved. Reference",
+      "fr": "Commande réservée. Référence",
+      "ar": "حُجز الطلب. رقم الطلب"
+    }
+  },
+  "checkout.lookup": {
+    "section": "checkout",
+    "description": "Interface text: checkout.lookup",
+    "placeholders": [],
+    "values": {
+      "en": "Look up an order",
+      "fr": "Consulter une commande",
+      "ar": "استعلم عن طلب"
+    }
+  },
+  "checkout.reference": {
+    "section": "checkout",
+    "description": "Interface text: checkout.reference",
+    "placeholders": [],
+    "values": {
+      "en": "Order reference",
+      "fr": "Référence de commande",
+      "ar": "رقم الطلب"
+    }
+  },
+  "checkout.find": {
+    "section": "checkout",
+    "description": "Interface text: checkout.find",
+    "placeholders": [],
+    "values": {
+      "en": "Find order",
+      "fr": "Rechercher la commande",
+      "ar": "ابحث عن الطلب"
+    }
+  },
+  "checkout.holdUntil": {
+    "section": "checkout",
+    "description": "Interface text: checkout.holdUntil",
+    "placeholders": [],
+    "values": {
+      "en": "Reserved until",
+      "fr": "Réservé jusqu’au",
+      "ar": "محجوز حتى"
+    }
+  },
+  "checkout.couponInvalid": {
+    "section": "checkout",
+    "description": "Interface text: checkout.couponInvalid",
+    "placeholders": [],
+    "values": {
+      "en": "This coupon is currently unavailable.",
+      "fr": "Ce code promotionnel est indisponible.",
+      "ar": "رمز الخصم هذا غير متاح حاليًا."
+    }
+  },
+  "checkout.shippingInvalid": {
+    "section": "checkout",
+    "description": "Interface text: checkout.shippingInvalid",
+    "placeholders": [],
+    "values": {
+      "en": "Shipping is unavailable for this country.",
+      "fr": "La livraison est indisponible pour ce pays.",
+      "ar": "الشحن غير متاح إلى هذا البلد."
+    }
+  },
+  "checkout.stockInvalid": {
+    "section": "checkout",
+    "description": "Interface text: checkout.stockInvalid",
+    "placeholders": [],
+    "values": {
+      "en": "An item is unavailable in the requested quantity.",
+      "fr": "Un article est indisponible dans la quantité demandée.",
+      "ar": "أحد المنتجات غير متاح بالكمية المطلوبة."
+    }
+  },
+  "checkout.quoteChanged": {
+    "section": "checkout",
+    "description": "Interface text: checkout.quoteChanged",
+    "placeholders": [],
+    "values": {
+      "en": "The total changed. Calculate it again and review the new amount.",
+      "fr": "Le total a changé. Recalculez-le et vérifiez le nouveau montant.",
+      "ar": "تغيّر الإجمالي. احسبه مجددًا وراجع المبلغ الجديد."
+    }
+  },
+  "checkout.alreadyUsed": {
+    "section": "checkout",
+    "description": "Interface text: checkout.alreadyUsed",
+    "placeholders": [],
+    "values": {
+      "en": "This attempt belongs to a different order. Check your saved order reference.",
+      "fr": "Cette tentative concerne une autre commande. Vérifiez la référence enregistrée.",
+      "ar": "ترتبط هذه المحاولة بطلب آخر. تحقّق من رقم الطلب المحفوظ."
+    }
+  },
+  "checkout.customer": {
+    "section": "checkout",
+    "description": "Interface text: checkout.customer",
+    "placeholders": [],
+    "values": {
+      "en": "Shipping details",
+      "fr": "Informations de livraison",
+      "ar": "بيانات الشحن"
+    }
+  },
+  "checkout.customer.name": {
+    "section": "checkout",
+    "description": "Interface text: checkout.customer.name",
+    "placeholders": [],
+    "values": {
+      "en": "Full name",
+      "fr": "Nom complet",
+      "ar": "الاسم الكامل"
+    }
+  },
+  "checkout.customer.email": {
+    "section": "checkout",
+    "description": "Interface text: checkout.customer.email",
+    "placeholders": [],
+    "values": {
+      "en": "Email address",
+      "fr": "Adresse e-mail",
+      "ar": "البريد الإلكتروني"
+    }
+  },
+  "checkout.customer.address": {
+    "section": "checkout",
+    "description": "Interface text: checkout.customer.address",
+    "placeholders": [],
+    "values": {
+      "en": "Street address",
+      "fr": "Adresse",
+      "ar": "عنوان الشارع"
+    }
+  },
+  "checkout.customer.address_2": {
+    "section": "checkout",
+    "description": "Interface text: checkout.customer.address_2",
+    "placeholders": [],
+    "values": {
+      "en": "Apartment or unit (optional)",
+      "fr": "Appartement ou unité (facultatif)",
+      "ar": "الشقة أو الوحدة (اختياري)"
+    }
+  },
+  "checkout.customer.city": {
+    "section": "checkout",
+    "description": "Interface text: checkout.customer.city",
+    "placeholders": [],
+    "values": {
+      "en": "City",
+      "fr": "Ville",
+      "ar": "المدينة"
+    }
+  },
+  "checkout.customer.region": {
+    "section": "checkout",
+    "description": "Interface text: checkout.customer.region",
+    "placeholders": [],
+    "values": {
+      "en": "Region (optional)",
+      "fr": "Région (facultatif)",
+      "ar": "المنطقة (اختياري)"
+    }
+  },
+  "checkout.customer.postal_code": {
+    "section": "checkout",
+    "description": "Interface text: checkout.customer.postal_code",
+    "placeholders": [],
+    "values": {
+      "en": "Postal code (optional)",
+      "fr": "Code postal (facultatif)",
+      "ar": "الرمز البريدي (اختياري)"
+    }
+  },
+  "checkout.catalog": {
+    "section": "checkout",
+    "description": "Interface text: checkout.catalog",
+    "placeholders": [],
+    "values": {
+      "en": "Catalogue",
+      "fr": "Catalogue",
+      "ar": "الكتالوج"
+    }
+  },
+  "checkout.settings": {
+    "section": "checkout",
+    "description": "Interface text: checkout.settings",
+    "placeholders": [],
+    "values": {
+      "en": "Checkout settings",
+      "fr": "Paramètres des commandes",
+      "ar": "إعدادات إتمام الطلب"
+    }
+  },
+  "checkout.enable": {
+    "section": "checkout",
+    "description": "Interface text: checkout.enable",
+    "placeholders": [],
+    "values": {
+      "en": "Accept guest reservations",
+      "fr": "Accepter les réservations sans compte",
+      "ar": "اسمح للضيوف بحجز الطلبات"
+    }
+  },
+  "checkout.settingsHelp": {
+    "section": "checkout",
+    "description": "Interface text: checkout.settingsHelp",
+    "placeholders": [],
+    "values": {
+      "en": "Set shipping rates in currency minor units. Enter 100 basis points for 1%.",
+      "fr": "Saisissez les frais de livraison en unités monétaires mineures. 100 points de base correspondent à 1 %.",
+      "ar": "أدخل رسوم الشحن بأصغر وحدة نقدية. كل 100 نقطة أساس تعادل 1٪."
+    }
+  },
+  "checkout.zones": {
+    "section": "checkout",
+    "description": "Interface text: checkout.zones",
+    "placeholders": [],
+    "values": {
+      "en": "Shipping zones",
+      "fr": "Zones de livraison",
+      "ar": "مناطق الشحن"
+    }
+  },
+  "checkout.zoneName": {
+    "section": "checkout",
+    "description": "Interface text: checkout.zoneName",
+    "placeholders": [],
+    "values": {
+      "en": "Zone name",
+      "fr": "Nom de la zone",
+      "ar": "اسم المنطقة"
+    }
+  },
+  "checkout.zoneCountries": {
+    "section": "checkout",
+    "description": "Interface text: checkout.zoneCountries",
+    "placeholders": [],
+    "values": {
+      "en": "Country codes, separated by commas",
+      "fr": "Codes de pays séparés par des virgules",
+      "ar": "رموز البلدان مفصولة بفواصل"
+    }
+  },
+  "checkout.shippingMinor": {
+    "section": "checkout",
+    "description": "Interface text: checkout.shippingMinor",
+    "placeholders": [],
+    "values": {
+      "en": "Shipping rate in minor units",
+      "fr": "Frais de livraison en unités mineures",
+      "ar": "رسوم الشحن بالوحدات النقدية الصغرى"
+    }
+  },
+  "checkout.taxBPS": {
+    "section": "checkout",
+    "description": "Interface text: checkout.taxBPS",
+    "placeholders": [],
+    "values": {
+      "en": "Tax in basis points",
+      "fr": "Taxe en points de base",
+      "ar": "الضريبة بنقاط الأساس"
+    }
+  },
+  "checkout.taxShipping": {
+    "section": "checkout",
+    "description": "Interface text: checkout.taxShipping",
+    "placeholders": [],
+    "values": {
+      "en": "Tax the shipping charge",
+      "fr": "Taxer les frais de livraison",
+      "ar": "أخضع رسوم الشحن للضريبة"
+    }
+  },
+  "checkout.addZone": {
+    "section": "checkout",
+    "description": "Interface text: checkout.addZone",
+    "placeholders": [],
+    "values": {
+      "en": "Add shipping zone",
+      "fr": "Ajouter une zone de livraison",
+      "ar": "أضف منطقة شحن"
+    }
+  },
+  "checkout.removeZone": {
+    "section": "checkout",
+    "description": "Interface text: checkout.removeZone",
+    "placeholders": [],
+    "values": {
+      "en": "Remove zone",
+      "fr": "Supprimer la zone",
+      "ar": "أزل المنطقة"
+    }
+  },
+  "checkout.coupons": {
+    "section": "checkout",
+    "description": "Interface text: checkout.coupons",
+    "placeholders": [],
+    "values": {
+      "en": "Coupons",
+      "fr": "Codes promotionnels",
+      "ar": "رموز الخصم"
+    }
+  },
+  "checkout.discountMinor": {
+    "section": "checkout",
+    "description": "Interface text: checkout.discountMinor",
+    "placeholders": [],
+    "values": {
+      "en": "Fixed discount in minor units",
+      "fr": "Remise fixe en unités mineures",
+      "ar": "الخصم الثابت بالوحدات النقدية الصغرى"
+    }
+  },
+  "checkout.discountBPS": {
+    "section": "checkout",
+    "description": "Interface text: checkout.discountBPS",
+    "placeholders": [],
+    "values": {
+      "en": "Percentage discount in basis points",
+      "fr": "Remise en points de base",
+      "ar": "الخصم النسبي بنقاط الأساس"
+    }
+  },
+  "checkout.addCoupon": {
+    "section": "checkout",
+    "description": "Interface text: checkout.addCoupon",
+    "placeholders": [],
+    "values": {
+      "en": "Add coupon",
+      "fr": "Ajouter un code",
+      "ar": "أضف رمز خصم"
+    }
+  },
+  "checkout.removeCoupon": {
+    "section": "checkout",
+    "description": "Interface text: checkout.removeCoupon",
+    "placeholders": [],
+    "values": {
+      "en": "Remove coupon",
+      "fr": "Supprimer le code",
+      "ar": "أزل رمز الخصم"
+    }
+  },
+  "checkout.orders": {
+    "section": "checkout",
+    "description": "Interface text: checkout.orders",
+    "placeholders": [],
+    "values": {
+      "en": "Orders",
+      "fr": "Commandes",
+      "ar": "الطلبات"
+    }
+  },
+  "checkout.noOrders": {
+    "section": "checkout",
+    "description": "Interface text: checkout.noOrders",
+    "placeholders": [],
+    "values": {
+      "en": "No orders yet.",
+      "fr": "Aucune commande pour le moment.",
+      "ar": "لا توجد طلبات بعد."
+    }
+  },
+  "checkout.history": {
+    "section": "checkout",
+    "description": "Interface text: checkout.history",
+    "placeholders": [],
+    "values": {
+      "en": "Order history",
+      "fr": "Historique de la commande",
+      "ar": "سجل الطلب"
+    }
+  },
+  "checkout.stockReserved": {
+    "section": "checkout",
+    "description": "Interface text: checkout.stockReserved",
+    "placeholders": [
+      "quantity"
+    ],
+    "values": {
+      "en": "Reserved stock {quantity}",
+      "fr": "Stock réservé {quantity}",
+      "ar": "المخزون المحجوز {quantity}"
+    }
+  },
+  "checkout.orderState": {
+    "section": "checkout",
+    "description": "Interface text: checkout.orderState",
+    "placeholders": [],
+    "values": {
+      "en": "Order status",
+      "fr": "État de la commande",
+      "ar": "حالة الطلب"
+    }
+  },
+  "checkout.paymentState": {
+    "section": "checkout",
+    "description": "Interface text: checkout.paymentState",
+    "placeholders": [],
+    "values": {
+      "en": "Payment",
+      "fr": "Paiement",
+      "ar": "الدفع"
+    }
+  },
+  "checkout.refundState": {
+    "section": "checkout",
+    "description": "Interface text: checkout.refundState",
+    "placeholders": [],
+    "values": {
+      "en": "Refund",
+      "fr": "Remboursement",
+      "ar": "رد المبلغ"
+    }
+  },
+  "checkout.fulfillmentState": {
+    "section": "checkout",
+    "description": "Interface text: checkout.fulfillmentState",
+    "placeholders": [],
+    "values": {
+      "en": "Fulfillment",
+      "fr": "Expédition",
+      "ar": "تنفيذ الطلب"
+    }
+  },
+  "checkout.state.awaiting_payment": {
+    "section": "checkout",
+    "description": "Interface text: checkout.state.awaiting_payment",
+    "placeholders": [],
+    "values": {
+      "en": "Awaiting payment",
+      "fr": "En attente de paiement",
+      "ar": "في انتظار الدفع"
+    }
+  },
+  "checkout.state.confirmed": {
+    "section": "checkout",
+    "description": "Interface text: checkout.state.confirmed",
+    "placeholders": [],
+    "values": {
+      "en": "Confirmed",
+      "fr": "Confirmée",
+      "ar": "مؤكّد"
+    }
+  },
+  "checkout.state.expired": {
+    "section": "checkout",
+    "description": "Interface text: checkout.state.expired",
+    "placeholders": [],
+    "values": {
+      "en": "Expired",
+      "fr": "Expirée",
+      "ar": "منتهي الصلاحية"
+    }
+  },
+  "checkout.state.review": {
+    "section": "checkout",
+    "description": "Interface text: checkout.state.review",
+    "placeholders": [],
+    "values": {
+      "en": "Needs merchant review",
+      "fr": "À vérifier par le commerçant",
+      "ar": "يتطلب مراجعة التاجر"
+    }
+  },
+  "checkout.state.pending": {
+    "section": "checkout",
+    "description": "Interface text: checkout.state.pending",
+    "placeholders": [],
+    "values": {
+      "en": "Pending",
+      "fr": "En attente",
+      "ar": "قيد الانتظار"
+    }
+  },
+  "checkout.state.uncertain": {
+    "section": "checkout",
+    "description": "Interface text: checkout.state.uncertain",
+    "placeholders": [],
+    "values": {
+      "en": "Awaiting verification",
+      "fr": "En attente de vérification",
+      "ar": "في انتظار التحقق"
+    }
+  },
+  "checkout.state.paid": {
+    "section": "checkout",
+    "description": "Interface text: checkout.state.paid",
+    "placeholders": [],
+    "values": {
+      "en": "Paid",
+      "fr": "Payé",
+      "ar": "مدفوع"
+    }
+  },
+  "checkout.state.released": {
+    "section": "checkout",
+    "description": "Interface text: checkout.state.released",
+    "placeholders": [],
+    "values": {
+      "en": "Reservation released",
+      "fr": "Réservation libérée",
+      "ar": "أُلغي حجز المخزون"
+    }
+  },
+  "checkout.state.late_paid": {
+    "section": "checkout",
+    "description": "Interface text: checkout.state.late_paid",
+    "placeholders": [],
+    "values": {
+      "en": "Paid after release",
+      "fr": "Payé après libération",
+      "ar": "دُفع بعد إلغاء الحجز"
+    }
+  },
+  "checkout.state.none": {
+    "section": "checkout",
+    "description": "Interface text: checkout.state.none",
+    "placeholders": [],
+    "values": {
+      "en": "None",
+      "fr": "Aucun",
+      "ar": "لا يوجد"
+    }
+  },
+  "checkout.state.partial": {
+    "section": "checkout",
+    "description": "Interface text: checkout.state.partial",
+    "placeholders": [],
+    "values": {
+      "en": "Partially refunded",
+      "fr": "Partiellement remboursé",
+      "ar": "رُدّ جزء من المبلغ"
+    }
+  },
+  "checkout.state.refunded": {
+    "section": "checkout",
+    "description": "Interface text: checkout.state.refunded",
+    "placeholders": [],
+    "values": {
+      "en": "Refunded",
+      "fr": "Remboursé",
+      "ar": "رُدّ المبلغ"
+    }
+  },
+  "checkout.state.unfulfilled": {
+    "section": "checkout",
+    "description": "Interface text: checkout.state.unfulfilled",
+    "placeholders": [],
+    "values": {
+      "en": "Awaiting fulfillment",
+      "fr": "En attente d’expédition",
+      "ar": "في انتظار التنفيذ"
+    }
+  },
+  "checkout.state.shipped": {
+    "section": "checkout",
+    "description": "Interface text: checkout.state.shipped",
+    "placeholders": [],
+    "values": {
+      "en": "Shipped",
+      "fr": "Expédié",
+      "ar": "تم الشحن"
+    }
+  },
+  "checkout.state.cancelled": {
+    "section": "checkout",
+    "description": "Interface text: checkout.state.cancelled",
+    "placeholders": [],
+    "values": {
+      "en": "Cancelled",
+      "fr": "Annulé",
+      "ar": "أُلغي"
+    }
+  },
+  "checkout.event.reserved": {
+    "section": "checkout",
+    "description": "Interface text: checkout.event.reserved",
+    "placeholders": [],
+    "values": {
+      "en": "Stock reserved",
+      "fr": "Stock réservé",
+      "ar": "حُجز المخزون"
+    }
+  },
+  "checkout.event.capture_pending": {
+    "section": "checkout",
+    "description": "Interface text: checkout.event.capture_pending",
+    "placeholders": [],
+    "values": {
+      "en": "Capture awaiting verification",
+      "fr": "Capture en attente de vérification",
+      "ar": "تحصيل الدفعة قيد التحقق"
+    }
+  },
+  "checkout.event.expired_unpaid": {
+    "section": "checkout",
+    "description": "Interface text: checkout.event.expired_unpaid",
+    "placeholders": [],
+    "values": {
+      "en": "Unpaid reservation expired",
+      "fr": "Réservation impayée expirée",
+      "ar": "انتهى حجز غير مدفوع"
+    }
+  },
+  "checkout.event.verified_unpaid": {
+    "section": "checkout",
+    "description": "Interface text: checkout.event.verified_unpaid",
+    "placeholders": [],
+    "values": {
+      "en": "Unpaid result verified",
+      "fr": "Échec de paiement confirmé",
+      "ar": "تأكّد عدم الدفع"
+    }
+  },
+  "checkout.event.paid": {
+    "section": "checkout",
+    "description": "Interface text: checkout.event.paid",
+    "placeholders": [],
+    "values": {
+      "en": "Payment verified",
+      "fr": "Paiement vérifié",
+      "ar": "تم التحقق من الدفع"
+    }
+  },
+  "checkout.event.paid_after_release": {
+    "section": "checkout",
+    "description": "Interface text: checkout.event.paid_after_release",
+    "placeholders": [],
+    "values": {
+      "en": "Payment verified after release",
+      "fr": "Paiement vérifié après libération",
+      "ar": "تم التحقق من الدفع بعد إلغاء الحجز"
+    }
+  },
   "owner.store": {
     "section": "owner",
     "description": "Interface text: owner.store",

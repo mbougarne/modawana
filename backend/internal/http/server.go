@@ -433,7 +433,10 @@ func (s *Server) route(w http.ResponseWriter, r *http.Request, nonce string) {
 			settings.Theme = previewTheme
 		}
 		lockedLesson := status == 403 && page.Kind == "lesson" && page.Content != nil && page.Content.Locked
-		head.NoIndex = status >= 400 || preview || pagePreview ||
+		if page.Kind == "checkout" {
+			w.Header().Set("Referrer-Policy", "no-referrer")
+		}
+		head.NoIndex = status >= 400 || preview || pagePreview || page.Kind == "checkout" ||
 			(page.Content != nil && page.Content.SEO != nil && page.Content.SEO.NoIndex)
 		if head.NoIndex && !pagePreview {
 			w.Header().Set("X-Robots-Tag", "noindex")

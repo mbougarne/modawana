@@ -32,15 +32,15 @@ func buildThemeFixture(t *testing.T, withIsland bool) string {
 	if !withIsland {
 		return root
 	}
-	for _, script := range []string{katexScript, readerScript} {
+	for _, script := range []string{katexScript, readerScript, checkoutScript} {
 		if err := os.WriteFile(filepath.Join(root, script), []byte("island"), 0600); err != nil {
 			t.Fatal(err)
 		}
 	}
 	m := Manifest{
 		Version: 1, Scripts: []string{scriptName}, Styles: []string{styleName},
-		Assets:  []string{scriptName, styleName, katexScript, readerScript},
-		Islands: map[string][]string{"katex": {katexScript}, "reader-learning": {readerScript}},
+		Assets:  []string{scriptName, styleName, katexScript, readerScript, checkoutScript},
+		Islands: map[string][]string{"katex": {katexScript}, "reader-learning": {readerScript}, "store-checkout": {checkoutScript}},
 	}
 	raw, _ := json.Marshal(m)
 	if err := os.WriteFile(filepath.Join(root, "manifest.json"), raw, 0600); err != nil {

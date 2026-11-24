@@ -38,6 +38,7 @@ export interface StoreVariantInput {
 export interface StoreVariant extends StoreVariantInput {
   sku: string;
   stock: number;
+  reserved: number;
 }
 
 export interface StoreDraft extends StoreDraftInput {
@@ -82,6 +83,7 @@ export interface PublicStoreProduct {
 }
 
 export interface PublicStore {
+  checkout_enabled: boolean;
   currency: string;
   digits: number;
   product?: PublicStoreProduct;

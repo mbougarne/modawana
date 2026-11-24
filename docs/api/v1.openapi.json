@@ -9311,6 +9311,536 @@
           }
         ]
       }
+    },
+    "/api/v1/public/store/checkout/{locale}/options": {
+      "get": {
+        "operationId": "storeCheckoutOptions",
+        "description": "Get shipping destinations and initialize the guest cookie. / اعرض وجهات الشحن وأنشئ ملف تعريف ارتباط للضيف.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreCheckoutOptions"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z]{2}$"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/public/store/checkout/{locale}/quote": {
+      "post": {
+        "operationId": "storeCheckoutQuote",
+        "description": "Calculate authoritative cart totals. / احسب إجماليات السلة المعتمدة.",
+        "security": [
+          {
+            "checkoutCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreQuote"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z]{2}$"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreQuoteInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/public/store/checkout/{locale}/orders": {
+      "post": {
+        "operationId": "storeReserveOrder",
+        "description": "Reserve stock or replay the original receipt. / احجز المخزون أو أعد الإيصال الأصلي.",
+        "security": [
+          {
+            "checkoutCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreOrderReceipt"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z]{2}$"
+            }
+          },
+          {
+            "name": "Origin",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreOrderInput"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/public/store/checkout/{locale}/orders/{reference}": {
+      "get": {
+        "operationId": "storeGuestOrder",
+        "description": "Read an order in the originating guest session. / اعرض الطلب في جلسة الضيف الأصلية.",
+        "security": [
+          {
+            "checkoutCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreOrderStatus"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z]{2}$"
+            }
+          },
+          {
+            "name": "reference",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/public/store/checkout/{locale}/attempts/{key}": {
+      "get": {
+        "operationId": "storeGuestOrderAttempt",
+        "description": "Recover the original receipt in the guest session. / استعد الإيصال الأصلي في جلسة الضيف.",
+        "security": [
+          {
+            "checkoutCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreOrderReceipt"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z]{2}$"
+            }
+          },
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/owner/store/checkout": {
+      "get": {
+        "operationId": "storeCheckoutSettings",
+        "description": "Read checkout settings. / اقرأ إعدادات إتمام الطلب.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreCheckoutSettings"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "storeSaveCheckoutSettings",
+        "description": "Save checkout settings with version protection. / احفظ إعدادات إتمام الطلب مع التحقق من الإصدار.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreCheckoutSettings"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreCheckoutSettings"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/owner/store/orders": {
+      "get": {
+        "operationId": "storeListOrdersOwner",
+        "description": "List merchant orders. / اعرض قائمة طلبات التاجر.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreMerchantOrders"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/owner/store/orders/{reference}": {
+      "get": {
+        "operationId": "storeReadOrderOwner",
+        "description": "Read a private merchant order. / اعرض طلب التاجر الخاص.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreMerchantOrder"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "reference",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/staff/store/orders": {
+      "get": {
+        "operationId": "storeListOrdersStaff",
+        "description": "List merchant orders. / اعرض قائمة طلبات التاجر.",
+        "security": [
+          {
+            "staffCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreMerchantOrders"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/staff/store/orders/{reference}": {
+      "get": {
+        "operationId": "storeReadOrderStaff",
+        "description": "Read a private merchant order. / اعرض طلب التاجر الخاص.",
+        "security": [
+          {
+            "staffCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store response / استجابة المتجر",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoreMerchantOrder"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "reference",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -14119,7 +14649,8 @@
           "price_minor",
           "active",
           "sku",
-          "stock"
+          "stock",
+          "reserved"
         ],
         "properties": {
           "version": {
@@ -14146,6 +14677,11 @@
             "maxLength": 48
           },
           "stock": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000
+          },
+          "reserved": {
             "type": "integer",
             "minimum": 0,
             "maximum": 1000000000
@@ -14363,7 +14899,8 @@
         "required": [
           "currency",
           "digits",
-          "total"
+          "total",
+          "checkout_enabled"
         ],
         "properties": {
           "currency": {
@@ -14427,6 +14964,710 @@
           },
           "next_cursor": {
             "type": "string"
+          },
+          "checkout_enabled": {
+            "type": "boolean"
+          }
+        }
+      },
+      "StoreCheckoutOptions": {
+        "type": "object",
+        "required": [
+          "countries"
+        ],
+        "properties": {
+          "countries": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Z]{2}$"
+            },
+            "maxItems": 250
+          }
+        }
+      },
+      "StoreShippingZone": {
+        "type": "object",
+        "required": [
+          "name",
+          "countries",
+          "rate_minor",
+          "tax_bps",
+          "tax_shipping"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "countries": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Z]{2}$"
+            },
+            "maxItems": 250
+          },
+          "rate_minor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000
+          },
+          "tax_bps": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "tax_shipping": {
+            "type": "boolean"
+          }
+        }
+      },
+      "StoreCoupon": {
+        "type": "object",
+        "required": [
+          "code",
+          "discount_minor",
+          "discount_bps"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "discount_minor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000
+          },
+          "discount_bps": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000
+          }
+        }
+      },
+      "StoreCheckoutSettings": {
+        "type": "object",
+        "required": [
+          "version",
+          "enabled",
+          "zones",
+          "coupons"
+        ],
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "zones": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StoreShippingZone"
+            },
+            "maxItems": 32
+          },
+          "coupons": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StoreCoupon"
+            },
+            "maxItems": 64
+          }
+        }
+      },
+      "StoreCartItem": {
+        "type": "object",
+        "required": [
+          "sku",
+          "quantity"
+        ],
+        "properties": {
+          "sku": {
+            "type": "string",
+            "maxLength": 48
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 99
+          }
+        }
+      },
+      "StoreQuoteInput": {
+        "type": "object",
+        "required": [
+          "locale",
+          "country",
+          "items"
+        ],
+        "properties": {
+          "locale": {
+            "type": "string",
+            "pattern": "^[a-z]{2}$"
+          },
+          "country": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          },
+          "coupon": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StoreCartItem"
+            },
+            "maxItems": 20
+          }
+        }
+      },
+      "StoreCustomer": {
+        "type": "object",
+        "required": [
+          "name",
+          "email",
+          "address",
+          "city"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 254
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 180
+          },
+          "address_2": {
+            "type": "string",
+            "maxLength": 180
+          },
+          "city": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "region": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "postal_code": {
+            "type": "string",
+            "maxLength": 24
+          }
+        }
+      },
+      "StoreOrderLine": {
+        "type": "object",
+        "required": [
+          "sku",
+          "quantity",
+          "title",
+          "variant",
+          "unit_minor",
+          "line_minor"
+        ],
+        "properties": {
+          "sku": {
+            "type": "string",
+            "maxLength": 48
+          },
+          "quantity": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 99
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 180
+          },
+          "variant": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "unit_minor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000
+          },
+          "line_minor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000
+          }
+        }
+      },
+      "StoreOrderSnapshot": {
+        "type": "object",
+        "required": [
+          "currency",
+          "digits",
+          "country",
+          "lines",
+          "shipping_zone",
+          "coupon",
+          "tax_bps",
+          "tax_shipping",
+          "subtotal_minor",
+          "discount_minor",
+          "shipping_minor",
+          "tax_minor",
+          "total_minor"
+        ],
+        "properties": {
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "digits": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4
+          },
+          "country": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StoreOrderLine"
+            },
+            "maxItems": 20
+          },
+          "shipping_zone": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "coupon": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "tax_bps": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "tax_shipping": {
+            "type": "boolean"
+          },
+          "subtotal_minor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000
+          },
+          "discount_minor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000
+          },
+          "shipping_minor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000
+          },
+          "tax_minor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000
+          },
+          "total_minor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000
+          }
+        }
+      },
+      "StoreQuote": {
+        "type": "object",
+        "required": [
+          "currency",
+          "digits",
+          "country",
+          "lines",
+          "shipping_zone",
+          "coupon",
+          "tax_bps",
+          "tax_shipping",
+          "subtotal_minor",
+          "discount_minor",
+          "shipping_minor",
+          "tax_minor",
+          "total_minor",
+          "fingerprint"
+        ],
+        "properties": {
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "digits": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4
+          },
+          "country": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StoreOrderLine"
+            },
+            "maxItems": 20
+          },
+          "shipping_zone": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "coupon": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "tax_bps": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "tax_shipping": {
+            "type": "boolean"
+          },
+          "subtotal_minor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000
+          },
+          "discount_minor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000
+          },
+          "shipping_minor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000
+          },
+          "tax_minor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000
+          },
+          "total_minor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000000000
+          },
+          "fingerprint": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      },
+      "StoreOrderInput": {
+        "type": "object",
+        "required": [
+          "locale",
+          "country",
+          "items",
+          "customer",
+          "key",
+          "quote_fingerprint"
+        ],
+        "properties": {
+          "locale": {
+            "type": "string",
+            "pattern": "^[a-z]{2}$"
+          },
+          "country": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          },
+          "coupon": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StoreCartItem"
+            },
+            "maxItems": 20
+          },
+          "customer": {
+            "$ref": "#/components/schemas/StoreCustomer"
+          },
+          "key": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "quote_fingerprint": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      },
+      "StoreOrderReceipt": {
+        "type": "object",
+        "required": [
+          "reference",
+          "created_at",
+          "expires_at"
+        ],
+        "properties": {
+          "reference": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "created_at": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "expires_at": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "StoreOrderStatus": {
+        "type": "object",
+        "required": [
+          "reference",
+          "created_at",
+          "expires_at",
+          "snapshot",
+          "status",
+          "payment",
+          "refund",
+          "fulfillment"
+        ],
+        "properties": {
+          "reference": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "created_at": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "expires_at": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/StoreOrderSnapshot"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "awaiting_payment",
+              "confirmed",
+              "expired",
+              "review"
+            ]
+          },
+          "payment": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "uncertain",
+              "paid",
+              "released",
+              "late_paid"
+            ]
+          },
+          "refund": {
+            "type": "string",
+            "enum": [
+              "none",
+              "pending",
+              "partial",
+              "refunded"
+            ]
+          },
+          "fulfillment": {
+            "type": "string",
+            "enum": [
+              "unfulfilled",
+              "shipped",
+              "cancelled"
+            ]
+          }
+        }
+      },
+      "StoreOrderEvent": {
+        "type": "object",
+        "required": [
+          "kind",
+          "created_at"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "reserved",
+              "capture_pending",
+              "expired_unpaid",
+              "verified_unpaid",
+              "paid",
+              "paid_after_release"
+            ]
+          },
+          "created_at": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "StoreMerchantOrder": {
+        "type": "object",
+        "required": [
+          "reference",
+          "created_at",
+          "expires_at",
+          "snapshot",
+          "status",
+          "payment",
+          "refund",
+          "fulfillment",
+          "customer",
+          "locale",
+          "operation",
+          "reservation",
+          "events"
+        ],
+        "properties": {
+          "reference": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "created_at": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "expires_at": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/StoreOrderSnapshot"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "awaiting_payment",
+              "confirmed",
+              "expired",
+              "review"
+            ]
+          },
+          "payment": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "uncertain",
+              "paid",
+              "released",
+              "late_paid"
+            ]
+          },
+          "refund": {
+            "type": "string",
+            "enum": [
+              "none",
+              "pending",
+              "partial",
+              "refunded"
+            ]
+          },
+          "fulfillment": {
+            "type": "string",
+            "enum": [
+              "unfulfilled",
+              "shipped",
+              "cancelled"
+            ]
+          },
+          "customer": {
+            "$ref": "#/components/schemas/StoreCustomer"
+          },
+          "locale": {
+            "type": "string",
+            "pattern": "^[a-z]{2}$"
+          },
+          "operation": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "reservation": {
+            "type": "string",
+            "enum": [
+              "held",
+              "sold",
+              "released"
+            ]
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StoreOrderEvent"
+            }
+          }
+        }
+      },
+      "StoreMerchantOrders": {
+        "type": "object",
+        "required": [
+          "orders"
+        ],
+        "properties": {
+          "orders": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "reference",
+                "created_at",
+                "expires_at",
+                "status"
+              ],
+              "properties": {
+                "reference": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{32}$"
+                },
+                "created_at": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "expires_at": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "awaiting_payment",
+                    "confirmed",
+                    "expired",
+                    "review"
+                  ]
+                }
+              }
+            },
+            "maxItems": 30
+          },
+          "next": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
           }
         }
       }
@@ -14455,6 +15696,11 @@
         "type": "apiKey",
         "in": "cookie",
         "name": "__Host-staff"
+      },
+      "checkoutCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "__Host-modawana_checkout"
       }
     }
   }

@@ -51,6 +51,7 @@ module.exports = (_, argv) => ({
     katex: './src/islands/katex.ts',
     'public-controls': './src/islands/publicControls.ts',
     'reader-learning': './src/islands/readerLearning.tsx',
+    'store-checkout': './src/islands/storeCheckout.tsx',
   },
   output: {
     path: path.resolve(__dirname, 'dist'),

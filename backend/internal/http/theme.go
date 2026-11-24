@@ -71,7 +71,7 @@ func (s *Server) renderThemed(ctx context.Context, r *http.Request, page content
 	}
 	view.Footer.Analytics = head.Analytics
 	if page.Kind != "error" && s.storeEnabled(ctx) {
-		link := theme.Link{Label: label("page.store"), URL: "/" + locale + "/store", Current: page.Kind == "store" || page.Kind == "product"}
+		link := theme.Link{Label: label("page.store"), URL: "/" + locale + "/store", Current: page.Kind == "store" || page.Kind == "product" || page.Kind == "checkout"}
 		view.Nav = append(view.Nav, link)
 		view.MenuNav = append(view.MenuNav, link)
 	}
@@ -108,6 +108,22 @@ func (s *Server) renderThemed(ctx context.Context, r *http.Request, page content
 		view.Reading, err = s.themeReading(ctx, r.URL.Query(), page, settings, &head, label)
 	case "store", "product":
 		view.Store, err = s.themeStore(ctx, r, page, label)
+		if page.Kind == "product" && view.Store != nil && view.Store.CartURL != "" {
+			s.addThemeIsland(&head, "store-checkout")
+		}
+	case "checkout":
+		if !s.addThemeIsland(&head, "store-checkout") {
+			err = errThemeUnavailable
+			break
+		}
+		view.Store = &theme.StoreView{Title: label("page.checkout"), Back: label("page.store"), BackURL: "/" + locale + "/store", Checkout: true}
+		if len(settings.Labels) > 0 {
+			raw, marshalErr := json.Marshal(settings.Labels)
+			if marshalErr != nil {
+				return nil, false
+			}
+			head.ReaderLabels = template.JS(raw)
+		}
 	case "error":
 		view.Error, view.HomeLabel = head.Title, label("slot.home")
 	default:

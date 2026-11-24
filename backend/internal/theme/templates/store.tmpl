@@ -1,6 +1,11 @@
 {{define "public-store"}}
-{{if .Product}}
+{{if .Checkout}}
 <a class="vb-link" href="{{.BackURL}}">{{.Back}}</a>
+<header class="vb-pagehead"><h1>{{.Title}}</h1></header>
+<section data-store-checkout class="public-section"></section>
+{{else if .Product}}
+<a class="vb-link" href="{{.BackURL}}">{{.Back}}</a>
+{{if .CartURL}}<a class="vb-btn vb-btn-secondary" href="{{.CartURL}}">{{.CartLabel}}</a>{{end}}
 <article class="public-section">
 {{with .Product}}
 <header class="vb-pagehead"><h1 dir="auto">{{.Title}}</h1></header>
@@ -11,11 +16,12 @@
 {{if ne .Name .SKU}}<span class="vb-meta"><bdi>{{.SKU}}</bdi></span>{{end}}
 <bdi>{{.Price}}</bdi>
 <span>{{.Availability}}</span>
+{{if and $.CartURL .InStock}}<button type="button" class="vb-btn vb-btn-secondary" data-store-add="{{.SKU}}" data-added="{{$.AddedLabel}}" data-cart-full="{{$.CartFull}}" data-cart-failed="{{$.CartFailed}}" aria-live="polite" hidden>{{$.AddLabel}}</button>{{end}}
 </li>{{end}}</ul>
 {{end}}
 </article>
 {{else}}
-<header class="vb-pagehead"><h1>{{.Title}}</h1></header>
+<header class="vb-pagehead"><h1>{{.Title}}</h1>{{if .CartURL}}<a class="vb-btn vb-btn-secondary" href="{{.CartURL}}">{{.CartLabel}}</a>{{end}}</header>
 <form class="public-search-panel" method="get" action="{{.URL}}">
 <label><span>{{.SearchLabel}}</span><input name="q" type="search" maxlength="200" value="{{.Search}}"></label>
 <label><span>{{.CategoryLabel}}</span><select name="category">{{range .Categories}}<option value="{{.Value}}"{{if .Selected}} selected{{end}}>{{.Label}}</option>{{end}}</select></label>

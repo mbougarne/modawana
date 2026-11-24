@@ -133,7 +133,7 @@ func domainError(w http.ResponseWriter, e error) {
 	}
 }
 func (d *Domain) Handle(w http.ResponseWriter, r *http.Request) bool {
-	if d.Store != nil && d.storeRoutes(w, r) {
+	if d.Store != nil && (d.checkoutRoutes(w, r) || d.storeRoutes(w, r)) {
 		return true
 	}
 	if d.Editorial != nil && d.editorialRoutes(w, r) {
