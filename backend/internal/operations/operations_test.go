@@ -67,6 +67,9 @@ func TestBackupRestoreDisablesSnapshotCredentialsAndKeepsFiles(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
+	if _, e = d.Exec("UPDATE editorial_settings SET enabled=1,credential=x'cabbed'"); e != nil {
+		t.Fatal(e)
+	}
 	archive := filepath.Join(t.TempDir(), "backup.zip")
 	f, _ := os.Create(archive)
 	if e = Backup(ctx, d, files, root, f); e != nil {
@@ -98,6 +101,9 @@ func TestBackupRestoreDisablesSnapshotCredentialsAndKeepsFiles(t *testing.T) {
 	var hasSecret bool
 	if e = restored.QueryRow("SELECT password_hash IS NOT NULL OR totp_cipher IS NOT NULL FROM owner").Scan(&hasSecret); e != nil || hasSecret {
 		t.Fatal("restored password/TOTP", e)
+	}
+	if e = restored.QueryRow("SELECT enabled OR credential IS NOT NULL FROM editorial_settings").Scan(&hasSecret); e != nil || hasSecret {
+		t.Fatal("restored editorial credential", e)
 	}
 	authentication := auth.New(restored, config.Config{})
 	grant, e := authentication.Grant(ctx, true)

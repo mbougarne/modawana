@@ -16,6 +16,7 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/content"
 	"github.com/mbougarne/modawana/backend/internal/dashboard"
 	"github.com/mbougarne/modawana/backend/internal/db"
+	"github.com/mbougarne/modawana/backend/internal/editorial"
 	"github.com/mbougarne/modawana/backend/internal/extension"
 	"github.com/mbougarne/modawana/backend/internal/forms"
 	"github.com/mbougarne/modawana/backend/internal/learning"
@@ -30,6 +31,7 @@ import (
 var uploadHTTPGate = make(chan struct{}, 1)
 
 type Domain struct {
+	Editorial  *editorial.Service
 	Analytics  *analytics.Service
 	Social     *social.Service
 	Forms      *forms.Service
@@ -57,6 +59,9 @@ func (d *Domain) Builtins() []extension.Extension {
 	}
 	if d.Analytics != nil {
 		modules = append(modules, d.Analytics)
+	}
+	if d.Editorial != nil {
+		modules = append(modules, d.Editorial)
 	}
 	return modules
 }
@@ -122,6 +127,9 @@ func domainError(w http.ResponseWriter, e error) {
 	}
 }
 func (d *Domain) Handle(w http.ResponseWriter, r *http.Request) bool {
+	if d.Editorial != nil && d.editorialRoutes(w, r) {
+		return true
+	}
 	if d.Analytics != nil && d.analyticsRoutes(w, r) {
 		return true
 	}

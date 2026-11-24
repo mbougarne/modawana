@@ -84,7 +84,7 @@ func Backup(ctx context.Context, d *sql.DB, files *storage.Store, dataRoot strin
 		if e = db.Snapshot(ctx, d, filepath.Join(root, "blog.sqlite")); e != nil {
 			return e
 		}
-		if e = stripPluginSecrets(ctx, root); e != nil {
+		if e = stripExtensionSecrets(ctx, root); e != nil {
 			return e
 		}
 		snapshot, e := openSnapshot(root)
@@ -171,7 +171,7 @@ func openSnapshot(root string) (*sql.DB, error) {
 	return openSnapshotMode(root, "ro")
 }
 
-func stripPluginSecrets(ctx context.Context, root string) error {
+func stripExtensionSecrets(ctx context.Context, root string) error {
 	database, err := openSnapshotMode(root, "rw")
 	if err != nil {
 		return err
@@ -179,8 +179,8 @@ func stripPluginSecrets(ctx context.Context, root string) error {
 	defer database.Close()
 	database.SetMaxOpenConns(1)
 	// Rebuild pages as well as deleting rows, so old deleted ciphertext is
-	// removed even when the plugin_secrets table is already empty.
-	for _, statement := range []string{"PRAGMA secure_delete=ON", "DELETE FROM plugin_secrets", "VACUUM"} {
+	// removed even when the extension credentials are already empty.
+	for _, statement := range []string{"PRAGMA secure_delete=ON", "DELETE FROM plugin_secrets", "UPDATE editorial_settings SET enabled=0,credential=NULL", "VACUUM"} {
 		if _, err := database.ExecContext(ctx, statement); err != nil {
 			return err
 		}
@@ -327,7 +327,7 @@ func Restore(ctx context.Context, archive, target string) error {
 		d.Close()
 		return e
 	}
-	for _, q := range []string{"DELETE FROM social_oauth_flows", "DELETE FROM social_connections", "DELETE FROM plugin_secrets", "DELETE FROM oauth_clients", "DELETE FROM auth_flows", "DELETE FROM staff_flows", "DELETE FROM staff_sessions", "UPDATE staff_members SET revoked_at=coalesce(revoked_at,strftime('%Y-%m-%dT%H:%M:%fZ','now'))", "UPDATE staff_invites SET revoked_at=coalesce(revoked_at,strftime('%Y-%m-%dT%H:%M:%fZ','now')) WHERE consumed_at IS NULL", "DELETE FROM auth_grants", "DELETE FROM sessions", "DELETE FROM recovery_codes", "DELETE FROM passkeys", "DELETE FROM api_tokens", "DELETE FROM auth_throttles", "DELETE FROM idempotency_records", "DELETE FROM learning_identities", "UPDATE owner SET password_hash=NULL,totp_cipher=NULL,totp_step=-1,auth_version=auth_version+1"} {
+	for _, q := range []string{"UPDATE editorial_settings SET enabled=0,credential=NULL", "DELETE FROM social_oauth_flows", "DELETE FROM social_connections", "DELETE FROM plugin_secrets", "DELETE FROM oauth_clients", "DELETE FROM auth_flows", "DELETE FROM staff_flows", "DELETE FROM staff_sessions", "UPDATE staff_members SET revoked_at=coalesce(revoked_at,strftime('%Y-%m-%dT%H:%M:%fZ','now'))", "UPDATE staff_invites SET revoked_at=coalesce(revoked_at,strftime('%Y-%m-%dT%H:%M:%fZ','now')) WHERE consumed_at IS NULL", "DELETE FROM auth_grants", "DELETE FROM sessions", "DELETE FROM recovery_codes", "DELETE FROM passkeys", "DELETE FROM api_tokens", "DELETE FROM auth_throttles", "DELETE FROM idempotency_records", "DELETE FROM learning_identities", "UPDATE owner SET password_hash=NULL,totp_cipher=NULL,totp_step=-1,auth_version=auth_version+1"} {
 		if _, e = tx.ExecContext(ctx, q); e != nil {
 			tx.Rollback()
 			d.Close()

@@ -1,3 +1,4 @@
+import { EditorialPanel, type Suggestion } from './EditorialPanel';
 import { SEOFields } from './SEOFields';
 import { isLocale, localeCodes } from '../../../../../ui/src/i18n/locales';
 import { useOwnerLeaveGuard } from '../../../features/owner/useOwnerLeaveGuard';
@@ -577,6 +578,58 @@ export function EditorPage({ csrf }: { csrf: string }) {
       { ...old, [field]: value },
     ]);
   }
+  function canApplyEditorial(suggestion: Suggestion) {
+    if (suggestion.kind === 'alt_text') {
+      return (
+        !blockMode && media.some((item) => item.id === suggestion.coverID && item.kind === 'image')
+      );
+    }
+    return suggestion.kind !== 'translation' || suggestion.field !== 'excerpt' || !blockMode;
+  }
+  function applyEditorial(suggestion: Suggestion) {
+    const value = suggestion.text.trim();
+    switch (suggestion.kind) {
+      case 'summary':
+        change('summary', value);
+        break;
+      case 'seo':
+        change('seo', { ...working.seo, title: value, description: suggestion.description.trim() });
+        break;
+      case 'alt_text': {
+        const image = media.find((item) => item.id === suggestion.coverID && item.kind === 'image');
+        if (image && !blockMode) {
+          setSelected(image);
+          setAlt(value);
+          setTab('media');
+        }
+        break;
+      }
+      case 'social':
+        void navigate(`/${locale}/admin/social`, { state: { editorialCopy: value } });
+        break;
+      case 'translation':
+        if (suggestion.field === 'title') {
+          setWorking((old) => ({
+            ...old,
+            title: value,
+            slug: titleSlugChange(
+              old.title,
+              old.slug,
+              value,
+              slugManual.current,
+              !!base?.slug_locked,
+            ),
+          }));
+        } else if (suggestion.field === 'summary') {
+          change('summary', value);
+        } else if (!blockMode) {
+          const plain = value.replace(/[\x21-\x2f\x3a-\x40\x5b-\x60\x7b-\x7e]/g, '\\$&');
+          change('markdown', [working.markdown.trimEnd(), plain].filter(Boolean).join('\n\n'));
+          setTab('write');
+        }
+        break;
+    }
+  }
   const toolbar = Object.fromEntries(
     [
       'h2',
@@ -691,6 +744,17 @@ export function EditorPage({ csrf }: { csrf: string }) {
                   value={working.summary || ''}
                   onChange={(e) => change('summary', e.target.value)}
                 />
+                {params.key && ready && (
+                  <EditorialPanel
+                    key={params.key + ':' + lang + ':' + working.source_locale}
+                    itemKey={params.key}
+                    locale={lang}
+                    sourceLocale={working.source_locale}
+                    csrf={csrf}
+                    canApply={canApplyEditorial}
+                    apply={applyEditorial}
+                  />
+                )}
                 <EditorTabs
                   current={tab}
                   onChange={setTab}

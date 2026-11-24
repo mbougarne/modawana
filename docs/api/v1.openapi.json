@@ -7843,6 +7843,191 @@
           }
         }
       }
+    },
+    "/api/v1/owner/editorial": {
+      "get": {
+        "operationId": "editorialSettings",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Editorial response / استجابة المساعد التحريري",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EditorialSettings"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "editorialUpdate",
+        "description": "Requires fresh owner authentication. / يتطلب مصادقة حديثة للمالك.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditorialUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Editorial response / استجابة المساعد التحريري",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EditorialSettings"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/owner/editorial/context": {
+      "get": {
+        "operationId": "editorialContext",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "locale",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Editorial response / استجابة المساعد التحريري",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EditorialContext"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/owner/editorial/suggest": {
+      "post": {
+        "operationId": "editorialSuggest",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditorialInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Editorial response / استجابة المساعد التحريري",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EditorialOutput"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -12236,6 +12421,179 @@
                 }
               }
             }
+          }
+        }
+      },
+      "EditorialSettings": {
+        "type": "object",
+        "required": [
+          "version",
+          "enabled",
+          "daily_limit",
+          "configured",
+          "key_available",
+          "used"
+        ],
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "daily_limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "configured": {
+            "type": "boolean"
+          },
+          "key_available": {
+            "type": "boolean"
+          },
+          "used": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          }
+        }
+      },
+      "EditorialUpdate": {
+        "type": "object",
+        "required": [
+          "version",
+          "enabled",
+          "daily_limit"
+        ],
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "daily_limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "credential": {
+            "type": "string",
+            "maxLength": 1024,
+            "writeOnly": true
+          },
+          "remove_credential": {
+            "type": "boolean"
+          }
+        }
+      },
+      "EditorialContext": {
+        "type": "object",
+        "required": [
+          "key",
+          "locale",
+          "revision_id",
+          "title",
+          "summary"
+        ],
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "locale": {
+            "type": "string"
+          },
+          "revision_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "title": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "excerpt": {
+            "type": "string",
+            "maxLength": 1800
+          },
+          "cover": {
+            "type": "string"
+          },
+          "cover_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          }
+        }
+      },
+      "EditorialInput": {
+        "type": "object",
+        "required": [
+          "kind",
+          "key",
+          "locale",
+          "revision_id",
+          "target_locale",
+          "fields"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "alt_text",
+              "summary",
+              "seo",
+              "social",
+              "translation"
+            ]
+          },
+          "key": {
+            "type": "string"
+          },
+          "locale": {
+            "type": "string"
+          },
+          "revision_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "target_locale": {
+            "type": "string"
+          },
+          "fields": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 4,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "enum": [
+                "title",
+                "summary",
+                "excerpt",
+                "cover"
+              ]
+            }
+          }
+        }
+      },
+      "EditorialOutput": {
+        "type": "object",
+        "required": [
+          "text",
+          "description"
+        ],
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 1800
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 320
           }
         }
       }

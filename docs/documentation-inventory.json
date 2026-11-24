@@ -301,6 +301,16 @@
       "companion": "docs/integrations/analytics.ar.md"
     },
     {
+      "path": "docs/integrations/editorial-ai.ar.md",
+      "coverage": "ar",
+      "companion": "docs/integrations/editorial-ai.md"
+    },
+    {
+      "path": "docs/integrations/editorial-ai.md",
+      "coverage": "en",
+      "companion": "docs/integrations/editorial-ai.ar.md"
+    },
+    {
       "path": "docs/integrations/lesson-delivery.ar.md",
       "coverage": "ar",
       "companion": "docs/integrations/lesson-delivery.md"
