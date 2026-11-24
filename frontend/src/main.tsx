@@ -65,6 +65,7 @@ function LocaleRoot({
     | 'transfer'
     | 'plugins'
     | 'forms'
+    | 'social'
     | 'dashboard'
     | 'layout';
 }) {
@@ -116,6 +117,7 @@ const router = createBrowserRouter(
         element={<LocaleRoot owner="editor" />}
       />
       <Route path="/:locale/admin/transfer" element={<LocaleRoot owner="transfer" />} />
+      <Route path="/:locale/admin/social" element={<LocaleRoot owner="social" />} />
       <Route path="/:locale/admin/forms" element={<LocaleRoot owner="forms" />} />
       <Route path="/:locale/admin/plugins" element={<LocaleRoot owner="plugins" />} />
       <Route path="/:locale/admin/media" element={<LocaleRoot owner="media" />} />

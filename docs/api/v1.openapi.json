@@ -7115,6 +7115,587 @@
           }
         }
       }
+    },
+    "/api/v1/owner/social": {
+      "get": {
+        "operationId": "socialHistory",
+        "description": "List delivery history. / اعرض سجل الإرسال.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success / نجح الطلب",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "items"
+                  ],
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SocialPost"
+                      }
+                    },
+                    "next": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/owner/social/connection": {
+      "get": {
+        "operationId": "socialConnection",
+        "description": "List configured providers and connected destinations. / اعرض المزوّدين المضبوطين والوجهات المرتبطة.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success / نجح الطلب",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "destinations"
+                  ],
+                  "properties": {
+                    "destinations": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SocialDestination"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/owner/social/content": {
+      "get": {
+        "operationId": "socialCandidates",
+        "description": "List shareable revisions in a locale. / اعرض المراجعات القابلة للمشاركة بلغة معينة.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "locale",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "en",
+                "ar",
+                "fr"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success / نجح الطلب",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "items"
+                  ],
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SocialCandidate"
+                      }
+                    },
+                    "next": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/owner/social/connect": {
+      "post": {
+        "operationId": "socialStartOAuth",
+        "description": "Start OAuth with fresh owner authentication. / ابدأ OAuth بمصادقة مالك حديثة.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "locale",
+                  "provider"
+                ],
+                "properties": {
+                  "locale": {
+                    "type": "string",
+                    "enum": [
+                      "en",
+                      "ar",
+                      "fr"
+                    ]
+                  },
+                  "provider": {
+                    "$ref": "#/components/schemas/SocialProvider"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success / نجح الطلب",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "url"
+                  ],
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "format": "uri"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/owner/social/callback": {
+      "get": {
+        "operationId": "socialOAuthCallback",
+        "description": "OAuth return with a browser proof and an existing fresh owner session binding. / معاودة OAuth بإثبات المتصفح ومعرّف جلسة مالك حديثة.",
+        "parameters": [
+          {
+            "in": "cookie",
+            "name": "__Host-social-oauth",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "state",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "code",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "error",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success / نجح الطلب",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/owner/social/disconnect": {
+      "post": {
+        "operationId": "socialDisconnect",
+        "description": "Remove the connection with fresh owner authentication. / أزل الاتصال بمصادقة مالك حديثة.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success / نجح الطلب",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "saved"
+                  ],
+                  "properties": {
+                    "saved": {
+                      "const": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "provider"
+                ],
+                "properties": {
+                  "provider": {
+                    "$ref": "#/components/schemas/SocialProvider"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/owner/social/preview": {
+      "post": {
+        "operationId": "socialPreview",
+        "description": "Preview text and the canonical URL for the selected revision. / عاين النص والرابط الرسمي للمراجعة المختارة.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SocialDraft"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success / نجح الطلب",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "body",
+                    "path",
+                    "connection_id",
+                    "destination"
+                  ],
+                  "properties": {
+                    "body": {
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "connection_id": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{32}$"
+                    },
+                    "destination": {
+                      "type": "string"
+                    },
+                    "image": {
+                      "type": "string",
+                      "format": "uri"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/owner/social/schedule": {
+      "post": {
+        "operationId": "socialSchedule",
+        "description": "Schedule an exact revision and previewed path. Reusing the same ID with identical input is safe. / جدول المراجعة الدقيقة والمسار المُعاين. إعادة استخدام المعرّف بالمدخلات نفسها آمنة.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SocialSchedule"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success / نجح الطلب",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "saved"
+                  ],
+                  "properties": {
+                    "saved": {
+                      "const": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/owner/social/cancel/{id}": {
+      "post": {
+        "operationId": "socialCancel",
+        "description": "Cancel a post before dispatch. / ألغِ المنشور قبل بدء إرساله.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{32}$"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-CSRF-Token",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success / نجح الطلب",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "saved"
+                  ],
+                  "properties": {
+                    "saved": {
+                      "const": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -11127,6 +11708,259 @@
           },
           "notified_at": {
             "type": "integer"
+          }
+        }
+      },
+      "SocialConnection": {
+        "type": "object",
+        "required": [
+          "id",
+          "instance",
+          "account",
+          "url",
+          "provider"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "instance": {
+            "type": "string",
+            "format": "uri"
+          },
+          "account": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "provider": {
+            "$ref": "#/components/schemas/SocialProvider"
+          }
+        }
+      },
+      "SocialCandidate": {
+        "type": "object",
+        "required": [
+          "key",
+          "revision_id",
+          "title"
+        ],
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "revision_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "title": {
+            "type": "string"
+          }
+        }
+      },
+      "SocialDraft": {
+        "type": "object",
+        "required": [
+          "connection_id",
+          "key",
+          "locale",
+          "revision_id",
+          "text"
+        ],
+        "properties": {
+          "connection_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "key": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "ar",
+              "fr"
+            ]
+          },
+          "revision_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 5000
+          }
+        }
+      },
+      "SocialSchedule": {
+        "type": "object",
+        "required": [
+          "connection_id",
+          "key",
+          "locale",
+          "revision_id",
+          "text",
+          "id",
+          "path"
+        ],
+        "properties": {
+          "connection_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "key": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "ar",
+              "fr"
+            ]
+          },
+          "revision_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "path": {
+            "type": "string"
+          },
+          "scheduled_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "image": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "SocialPost": {
+        "type": "object",
+        "required": [
+          "id",
+          "destination",
+          "body",
+          "locale",
+          "status",
+          "scheduled_at",
+          "updated_at",
+          "attempts",
+          "can_cancel",
+          "provider"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{32}$"
+          },
+          "destination": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "locale": {
+            "type": "string",
+            "enum": [
+              "en",
+              "ar",
+              "fr"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "scheduled",
+              "sending",
+              "retrying",
+              "sent",
+              "blocked",
+              "cancelled",
+              "uncertain",
+              "failed"
+            ]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "scheduled_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "attempts": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "remote_id": {
+            "type": "string"
+          },
+          "remote_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "can_cancel": {
+            "type": "boolean"
+          },
+          "provider": {
+            "$ref": "#/components/schemas/SocialProvider"
+          }
+        }
+      },
+      "SocialProvider": {
+        "type": "string",
+        "enum": [
+          "mastodon",
+          "facebook",
+          "x",
+          "instagram",
+          "linkedin-profile",
+          "linkedin-page"
+        ]
+      },
+      "SocialDestination": {
+        "type": "object",
+        "required": [
+          "provider",
+          "instance",
+          "text_limit",
+          "requires_image"
+        ],
+        "properties": {
+          "provider": {
+            "$ref": "#/components/schemas/SocialProvider"
+          },
+          "instance": {
+            "type": "string",
+            "format": "uri"
+          },
+          "connection": {
+            "$ref": "#/components/schemas/SocialConnection"
+          },
+          "text_limit": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "requires_image": {
+            "type": "boolean"
           }
         }
       }

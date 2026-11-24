@@ -88,11 +88,30 @@ export function Plugins({ csrf }: { csrf: string }) {
     }
   }
   const items = resource.data?.items || [];
+  const socialProviders = catalog.filter(
+    (entry) => entry.extension === 'social-publishing' && entry.kind === 'provider_adapter',
+  );
   return (
     <>
       <OwnerPageHeading title={t('owner.plugins')} description={t('workspace.pluginsHelp')} />
       <ResourceState resource={resource} />
-      {resource.data && items.length === 0 && <p>{t('plugins.empty')}</p>}
+      {socialProviders.length > 0 && (
+        <section id="extension-social-publishing" tabIndex={-1} className="owner-panel owner-form">
+          <h2>
+            <Link to={`/${locale}/admin/social`}>{t('owner.social')}</Link>
+          </h2>
+          <ul>
+            {socialProviders.map((provider) => (
+              <li key={provider.key}>
+                <bdi>{localizedContribution(provider.label, locale)}</bdi>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      {resource.data && items.length === 0 && socialProviders.length === 0 && (
+        <p>{t('plugins.empty')}</p>
+      )}
       {items.map((item) => {
         const manifest = item.next_manifest || item.manifest;
         const contributions = catalog.filter((entry) => entry.extension === item.slug);

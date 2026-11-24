@@ -1,4 +1,624 @@
 {
+  "owner.social": {
+    "section": "owner",
+    "description": "Interface text: owner.social",
+    "placeholders": [],
+    "values": {
+      "en": "Social publishing",
+      "fr": "Publication sur les réseaux sociaux",
+      "ar": "النشر على الشبكات الاجتماعية"
+    }
+  },
+  "social.help": {
+    "section": "social",
+    "description": "Interface text: social.help",
+    "placeholders": [],
+    "values": {
+      "en": "Share a published revision on a connected account now or schedule it for later.",
+      "fr": "Partagez une révision publiée sur un compte connecté ou programmez sa publication.",
+      "ar": "شارك مراجعة منشورة على حساب مرتبط الآن أو جدول نشرها لاحقاً."
+    }
+  },
+  "social.loading": {
+    "section": "social",
+    "description": "Interface text: social.loading",
+    "placeholders": [],
+    "values": {
+      "en": "Loading social publishing…",
+      "fr": "Chargement de la publication sociale…",
+      "ar": "جارٍ تحميل إعدادات النشر…"
+    }
+  },
+  "social.failedRequest": {
+    "section": "social",
+    "description": "Interface text: social.failedRequest",
+    "placeholders": [],
+    "values": {
+      "en": "The request could not be completed.",
+      "fr": "La demande n’a pas pu aboutir.",
+      "ar": "تعذّر إتمام الطلب."
+    }
+  },
+  "social.destination": {
+    "section": "social",
+    "description": "Interface text: social.destination",
+    "placeholders": [],
+    "values": {
+      "en": "Destination",
+      "fr": "Destination",
+      "ar": "وجهة النشر"
+    }
+  },
+  "social.unconfigured": {
+    "section": "social",
+    "description": "Interface text: social.unconfigured",
+    "placeholders": [],
+    "values": {
+      "en": "No social providers are configured for this installation.",
+      "fr": "Aucun réseau social n’est configuré pour cette installation.",
+      "ar": "لم يُضبط أي مزوّد للنشر الاجتماعي لهذا التثبيت."
+    }
+  },
+  "social.disconnect": {
+    "section": "social",
+    "description": "Interface text: social.disconnect",
+    "placeholders": [],
+    "values": {
+      "en": "Disconnect",
+      "fr": "Déconnecter",
+      "ar": "قطع الاتصال"
+    }
+  },
+  "social.connect": {
+    "section": "social",
+    "description": "Interface text: social.connect",
+    "placeholders": [],
+    "values": {
+      "en": "Connect",
+      "fr": "Connecter",
+      "ar": "ربط الحساب"
+    }
+  },
+  "social.disconnected": {
+    "section": "social",
+    "description": "Interface text: social.disconnected",
+    "placeholders": [],
+    "values": {
+      "en": "Account disconnected.",
+      "fr": "Compte déconnecté.",
+      "ar": "تم قطع اتصال الحساب."
+    }
+  },
+  "social.connected": {
+    "section": "social",
+    "description": "Interface text: social.connected",
+    "placeholders": [],
+    "values": {
+      "en": "Account connected.",
+      "fr": "Compte connecté.",
+      "ar": "تم ربط الحساب."
+    }
+  },
+  "social.connectionFailed": {
+    "section": "social",
+    "description": "Interface text: social.connectionFailed",
+    "placeholders": [],
+    "values": {
+      "en": "Could not connect or disconnect this account. Try again.",
+      "fr": "Impossible de connecter ou de déconnecter ce compte. Réessayez.",
+      "ar": "تعذّر ربط هذا الحساب أو قطع اتصاله. حاول مجدداً."
+    }
+  },
+  "social.history": {
+    "section": "social",
+    "description": "Interface text: social.history",
+    "placeholders": [],
+    "values": {
+      "en": "Delivery history",
+      "fr": "Historique des envois",
+      "ar": "سجل الإرسال"
+    }
+  },
+  "social.refresh": {
+    "section": "social",
+    "description": "Interface text: social.refresh",
+    "placeholders": [],
+    "values": {
+      "en": "Refresh",
+      "fr": "Actualiser",
+      "ar": "تحديث"
+    }
+  },
+  "social.empty": {
+    "section": "social",
+    "description": "Interface text: social.empty",
+    "placeholders": [],
+    "values": {
+      "en": "No posts have been scheduled.",
+      "fr": "Aucune publication n’a été programmée.",
+      "ar": "لا توجد منشورات مجدولة."
+    }
+  },
+  "social.uncertainHelp": {
+    "section": "social",
+    "description": "Interface text: social.uncertainHelp",
+    "placeholders": [],
+    "values": {
+      "en": "Check the destination account before scheduling this post again.",
+      "fr": "Vérifiez le compte de destination avant de reprogrammer ce message.",
+      "ar": "تحقّق من حساب الوجهة قبل إعادة جدولة هذا المنشور."
+    }
+  },
+  "social.viewPost": {
+    "section": "social",
+    "description": "Interface text: social.viewPost",
+    "placeholders": [],
+    "values": {
+      "en": "View post",
+      "fr": "Voir la publication",
+      "ar": "عرض المنشور"
+    }
+  },
+  "social.cancel": {
+    "section": "social",
+    "description": "Interface text: social.cancel",
+    "placeholders": [],
+    "values": {
+      "en": "Cancel post",
+      "fr": "Annuler la publication",
+      "ar": "إلغاء المنشور"
+    }
+  },
+  "social.newer": {
+    "section": "social",
+    "description": "Interface text: social.newer",
+    "placeholders": [],
+    "values": {
+      "en": "Previous page",
+      "fr": "Page précédente",
+      "ar": "الصفحة السابقة"
+    }
+  },
+  "social.older": {
+    "section": "social",
+    "description": "Interface text: social.older",
+    "placeholders": [],
+    "values": {
+      "en": "Older posts",
+      "fr": "Publications plus anciennes",
+      "ar": "منشورات أقدم"
+    }
+  },
+  "social.previewFailed": {
+    "section": "social",
+    "description": "Interface text: social.previewFailed",
+    "placeholders": [],
+    "values": {
+      "en": "Cannot preview this post. Check the publication and the destination’s text limit.",
+      "fr": "Vérifiez la publication et la limite de texte de la destination, puis réessayez.",
+      "ar": "تعذّرت المعاينة. تحقّق من النشر والحد الأقصى للنص في الوجهة."
+    }
+  },
+  "social.queued": {
+    "section": "social",
+    "description": "Interface text: social.queued",
+    "placeholders": [],
+    "values": {
+      "en": "Post queued for delivery.",
+      "fr": "Publication mise en file d’attente.",
+      "ar": "أُضيف المنشور إلى قائمة الإرسال."
+    }
+  },
+  "social.compose": {
+    "section": "social",
+    "description": "Interface text: social.compose",
+    "placeholders": [],
+    "values": {
+      "en": "Compose post",
+      "fr": "Rédiger une publication",
+      "ar": "كتابة منشور"
+    }
+  },
+  "social.language": {
+    "section": "social",
+    "description": "Interface text: social.language",
+    "placeholders": [],
+    "values": {
+      "en": "Publication language",
+      "fr": "Langue de publication",
+      "ar": "لغة المحتوى المنشور"
+    }
+  },
+  "social.content": {
+    "section": "social",
+    "description": "Interface text: social.content",
+    "placeholders": [],
+    "values": {
+      "en": "Published revision",
+      "fr": "Révision publiée",
+      "ar": "المراجعة المنشورة"
+    }
+  },
+  "social.chooseContent": {
+    "section": "social",
+    "description": "Interface text: social.chooseContent",
+    "placeholders": [],
+    "values": {
+      "en": "Select published content",
+      "fr": "Choisir un contenu publié",
+      "ar": "اختر محتوى منشوراً"
+    }
+  },
+  "social.noContent": {
+    "section": "social",
+    "description": "Interface text: social.noContent",
+    "placeholders": [],
+    "values": {
+      "en": "No public content in this language.",
+      "fr": "Aucun contenu public dans cette langue.",
+      "ar": "لا يوجد محتوى عام بهذه اللغة."
+    }
+  },
+  "social.moreContent": {
+    "section": "social",
+    "description": "Interface text: social.moreContent",
+    "placeholders": [],
+    "values": {
+      "en": "More content",
+      "fr": "Plus de contenus",
+      "ar": "مزيد من المحتوى"
+    }
+  },
+  "social.text": {
+    "section": "social",
+    "description": "Interface text: social.text",
+    "placeholders": [],
+    "values": {
+      "en": "Post text",
+      "fr": "Texte du message",
+      "ar": "نص المنشور"
+    }
+  },
+  "social.date": {
+    "section": "social",
+    "description": "Interface text: social.date",
+    "placeholders": [],
+    "values": {
+      "en": "Send at (optional, local time)",
+      "fr": "Envoyer le (facultatif, heure locale)",
+      "ar": "وقت الإرسال (اختياري، بالتوقيت المحلي)"
+    }
+  },
+  "social.preview": {
+    "section": "social",
+    "description": "Interface text: social.preview",
+    "placeholders": [],
+    "values": {
+      "en": "Preview post",
+      "fr": "Prévisualiser la publication",
+      "ar": "معاينة المنشور"
+    }
+  },
+  "social.schedule": {
+    "section": "social",
+    "description": "Interface text: social.schedule",
+    "placeholders": [],
+    "values": {
+      "en": "Schedule post",
+      "fr": "Programmer la publication",
+      "ar": "جدولة المنشور"
+    }
+  },
+  "social.send": {
+    "section": "social",
+    "description": "Interface text: social.send",
+    "placeholders": [],
+    "values": {
+      "en": "Send now",
+      "fr": "Envoyer maintenant",
+      "ar": "إرسال الآن"
+    }
+  },
+  "social.callbackTitle": {
+    "section": "social",
+    "description": "Interface text: social.callbackTitle",
+    "placeholders": [],
+    "values": {
+      "en": "Return to Social publishing",
+      "fr": "Retour à la publication sociale",
+      "ar": "العودة إلى النشر على الشبكات الاجتماعية"
+    }
+  },
+  "social.continue": {
+    "section": "social",
+    "description": "Interface text: social.continue",
+    "placeholders": [],
+    "values": {
+      "en": "Continue to Social publishing",
+      "fr": "Continuer vers la publication sociale",
+      "ar": "متابعة إلى النشر على الشبكات الاجتماعية"
+    }
+  },
+  "social.status.scheduled": {
+    "section": "social",
+    "description": "Interface text: social.status.scheduled",
+    "placeholders": [],
+    "values": {
+      "en": "Scheduled",
+      "fr": "Programmée",
+      "ar": "مجدول"
+    }
+  },
+  "social.status.sending": {
+    "section": "social",
+    "description": "Interface text: social.status.sending",
+    "placeholders": [],
+    "values": {
+      "en": "Sending",
+      "fr": "En cours d’envoi",
+      "ar": "جارٍ الإرسال"
+    }
+  },
+  "social.status.retrying": {
+    "section": "social",
+    "description": "Interface text: social.status.retrying",
+    "placeholders": [],
+    "values": {
+      "en": "Retry scheduled",
+      "fr": "Nouvelle tentative programmée",
+      "ar": "مجدول لإعادة المحاولة"
+    }
+  },
+  "social.status.sent": {
+    "section": "social",
+    "description": "Interface text: social.status.sent",
+    "placeholders": [],
+    "values": {
+      "en": "Sent",
+      "fr": "Envoyée",
+      "ar": "أُرسل"
+    }
+  },
+  "social.status.blocked": {
+    "section": "social",
+    "description": "Interface text: social.status.blocked",
+    "placeholders": [],
+    "values": {
+      "en": "Blocked",
+      "fr": "Bloquée",
+      "ar": "موقوف"
+    }
+  },
+  "social.status.cancelled": {
+    "section": "social",
+    "description": "Interface text: social.status.cancelled",
+    "placeholders": [],
+    "values": {
+      "en": "Cancelled",
+      "fr": "Annulée",
+      "ar": "ملغى"
+    }
+  },
+  "social.status.uncertain": {
+    "section": "social",
+    "description": "Interface text: social.status.uncertain",
+    "placeholders": [],
+    "values": {
+      "en": "Delivery unconfirmed",
+      "fr": "Envoi non confirmé",
+      "ar": "الإرسال غير مؤكّد"
+    }
+  },
+  "social.status.failed": {
+    "section": "social",
+    "description": "Interface text: social.status.failed",
+    "placeholders": [],
+    "values": {
+      "en": "Failed",
+      "fr": "Échec",
+      "ar": "فشل الإرسال"
+    }
+  },
+  "social.reason.access_revoked": {
+    "section": "social",
+    "description": "Interface text: social.reason.access_revoked",
+    "placeholders": [],
+    "values": {
+      "en": "The provider denied access. Reconnect the account to schedule future posts.",
+      "fr": "Le réseau a refusé l’accès. Reconnectez le compte pour de nouvelles publications.",
+      "ar": "رفض المزوّد الوصول. أعد ربط الحساب لجدولة منشورات جديدة."
+    }
+  },
+  "social.reason.connection_changed": {
+    "section": "social",
+    "description": "Interface text: social.reason.connection_changed",
+    "placeholders": [],
+    "values": {
+      "en": "The original connection is no longer active.",
+      "fr": "La connexion d’origine n’est plus active.",
+      "ar": "الاتصال الأصلي لم يعد نشطاً."
+    }
+  },
+  "social.reason.credentials_unavailable": {
+    "section": "social",
+    "description": "Interface text: social.reason.credentials_unavailable",
+    "placeholders": [],
+    "values": {
+      "en": "The saved credential could not be read.",
+      "fr": "Impossible de lire les identifiants enregistrés.",
+      "ar": "تعذّرت قراءة بيانات الاعتماد المحفوظة."
+    }
+  },
+  "social.reason.destination_changed": {
+    "section": "social",
+    "description": "Interface text: social.reason.destination_changed",
+    "placeholders": [],
+    "values": {
+      "en": "The provider returned a different account.",
+      "fr": "Le réseau a indiqué un autre compte.",
+      "ar": "أعاد المزوّد حساباً مختلفاً."
+    }
+  },
+  "social.reason.publication_changed": {
+    "section": "social",
+    "description": "Interface text: social.reason.publication_changed",
+    "placeholders": [],
+    "values": {
+      "en": "The original revision is no longer public at its saved URL.",
+      "fr": "La révision d’origine n’est plus publique à son adresse enregistrée.",
+      "ar": "المراجعة الأصلية لم تعد متاحة للعامة على رابطها المحفوظ."
+    }
+  },
+  "social.reason.provider_rejected": {
+    "section": "social",
+    "description": "Interface text: social.reason.provider_rejected",
+    "placeholders": [],
+    "values": {
+      "en": "The provider rejected the request.",
+      "fr": "Le réseau a refusé la demande.",
+      "ar": "رفض المزوّد الطلب."
+    }
+  },
+  "social.reason.provider_retry": {
+    "section": "social",
+    "description": "Interface text: social.reason.provider_retry",
+    "placeholders": [],
+    "values": {
+      "en": "The provider is temporarily unavailable or rate limited.",
+      "fr": "Le réseau est temporairement indisponible ou a limité les requêtes.",
+      "ar": "المزوّد غير متاح مؤقتاً أو بلغ حد الطلبات."
+    }
+  },
+  "social.reason.provider_unavailable": {
+    "section": "social",
+    "description": "Interface text: social.reason.provider_unavailable",
+    "placeholders": [],
+    "values": {
+      "en": "The provider is unavailable or could not verify the account.",
+      "fr": "Le réseau est indisponible ou n’a pas pu vérifier le compte.",
+      "ar": "المزوّد غير متاح أو تعذّر عليه التحقق من الحساب."
+    }
+  },
+  "social.reason.replay_window_expired": {
+    "section": "social",
+    "description": "Interface text: social.reason.replay_window_expired",
+    "placeholders": [],
+    "values": {
+      "en": "The safe retry period has ended.",
+      "fr": "Le délai de renvoi sûr est écoulé.",
+      "ar": "انتهت مهلة إعادة المحاولة الآمنة."
+    }
+  },
+  "social.reason.unexpected_receipt": {
+    "section": "social",
+    "description": "Interface text: social.reason.unexpected_receipt",
+    "placeholders": [],
+    "values": {
+      "en": "The provider returned a receipt for a different account.",
+      "fr": "Le réseau a renvoyé un reçu pour un autre compte.",
+      "ar": "أعاد المزوّد تأكيداً يخص حساباً مختلفاً."
+    }
+  },
+  "social.accounts": {
+    "section": "social",
+    "description": "Interface text: social.accounts",
+    "placeholders": [],
+    "values": {
+      "en": "Connected accounts",
+      "fr": "Comptes connectés",
+      "ar": "الحسابات المرتبطة"
+    }
+  },
+  "social.coverRequired": {
+    "section": "social",
+    "description": "Interface text: social.coverRequired",
+    "placeholders": [],
+    "values": {
+      "en": "Instagram requires a public JPEG cover on this revision.",
+      "fr": "Instagram exige une image de couverture JPEG publique sur cette révision.",
+      "ar": "يتطلّب إنستغرام صورة غلاف JPEG عامة لهذه المراجعة."
+    }
+  },
+  "social.cover": {
+    "section": "social",
+    "description": "Interface text: social.cover",
+    "placeholders": [],
+    "values": {
+      "en": "Published cover image",
+      "fr": "Image de couverture publiée",
+      "ar": "صورة الغلاف المنشورة"
+    }
+  },
+  "social.provider.mastodon": {
+    "section": "social",
+    "description": "Interface text: social.provider.mastodon",
+    "placeholders": [],
+    "values": {
+      "en": "Mastodon",
+      "fr": "Mastodon",
+      "ar": "ماستودون"
+    }
+  },
+  "social.provider.facebook": {
+    "section": "social",
+    "description": "Interface text: social.provider.facebook",
+    "placeholders": [],
+    "values": {
+      "en": "Facebook Page",
+      "fr": "Page Facebook",
+      "ar": "صفحة فيسبوك"
+    }
+  },
+  "social.provider.x": {
+    "section": "social",
+    "description": "Interface text: social.provider.x",
+    "placeholders": [],
+    "values": {
+      "en": "X",
+      "fr": "X",
+      "ar": "إكس"
+    }
+  },
+  "social.provider.instagram": {
+    "section": "social",
+    "description": "Interface text: social.provider.instagram",
+    "placeholders": [],
+    "values": {
+      "en": "Instagram",
+      "fr": "Instagram",
+      "ar": "إنستغرام"
+    }
+  },
+  "social.provider.linkedin-profile": {
+    "section": "social",
+    "description": "Interface text: social.provider.linkedin-profile",
+    "placeholders": [],
+    "values": {
+      "en": "LinkedIn profile",
+      "fr": "Profil LinkedIn",
+      "ar": "الملف الشخصي على لينكدإن"
+    }
+  },
+  "social.provider.linkedin-page": {
+    "section": "social",
+    "description": "Interface text: social.provider.linkedin-page",
+    "placeholders": [],
+    "values": {
+      "en": "LinkedIn company Page",
+      "fr": "Page d’entreprise LinkedIn",
+      "ar": "صفحة شركة على لينكدإن"
+    }
+  },
+  "social.reason.delivery_unconfirmed": {
+    "section": "social",
+    "description": "Interface text: social.reason.delivery_unconfirmed",
+    "placeholders": [],
+    "values": {
+      "en": "The provider did not confirm delivery.",
+      "fr": "Le réseau n’a pas confirmé la publication.",
+      "ar": "لم يؤكّد المزوّد نشر المنشور."
+    }
+  },
   "owner.forms": {
     "section": "owner",
     "description": "Interface text: owner.forms",

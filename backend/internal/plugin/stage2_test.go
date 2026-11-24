@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"github.com/mbougarne/modawana/backend/internal/publichttp"
 	"io"
 	"net/http"
 	"net/netip"
@@ -163,11 +164,11 @@ func TestPluginFetchDestinationPolicy(t *testing.T) {
 	for _, value := range []string{
 		"127.0.0.1", "10.0.0.4", "169.254.0.1", "100.64.0.2", "::1", "::ffff:127.0.0.1", "fc00::2", "64:ff9b::808:808",
 	} {
-		if publicDialAddress(netip.MustParseAddr(value)) {
+		if publichttp.IsPublicAddress(netip.MustParseAddr(value)) {
 			t.Fatal("non-public address accepted", value)
 		}
 	}
-	if !publicDialAddress(netip.MustParseAddr("8.8.8.8")) {
+	if !publichttp.IsPublicAddress(netip.MustParseAddr("8.8.8.8")) {
 		t.Fatal("public address rejected")
 	}
 	for _, raw := range []string{

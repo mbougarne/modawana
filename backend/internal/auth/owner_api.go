@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"database/sql"
 	"net/http"
 )
@@ -22,13 +23,27 @@ func (s *Service) OwnerRequest(r *http.Request) (string, error) {
 // FreshOwnerCheck captures the authenticated session, then rechecks it inside
 // the domain mutation's transaction so concurrent revocation cannot race reset.
 func (s *Service) FreshOwnerCheck(r *http.Request) (func(*sql.Tx) error, error) {
+	id, err := s.FreshOwnerBinding(r)
+	if err != nil {
+		return nil, err
+	}
+	return func(tx *sql.Tx) error { return s.CheckFreshOwnerBinding(r.Context(), tx, id) }, nil
+}
+
+// FreshOwnerBinding returns a server-side session identifier for binding a
+// fresh owner action across an OAuth round trip.
+func (s *Service) FreshOwnerBinding(r *http.Request) (string, error) {
 	raw := cookie(r, ownerCookie)
 	if !s.checkWrite(r, raw) {
-		return nil, ErrForbidden
+		return "", ErrForbidden
 	}
-	session, e := s.Session(r.Context(), raw, true)
-	if e != nil {
-		return nil, e
+	session, err := s.Session(r.Context(), raw, true)
+	if err != nil {
+		return "", err
 	}
-	return func(tx *sql.Tx) error { return s.freshInTx(r.Context(), tx, session) }, nil
+	return session.ID, nil
+}
+
+func (s *Service) CheckFreshOwnerBinding(ctx context.Context, tx *sql.Tx, id string) error {
+	return s.freshInTx(ctx, tx, Session{ID: id})
 }

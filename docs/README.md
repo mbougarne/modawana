@@ -17,6 +17,7 @@
 - [MCP and OAuth](integrations/mcp-oauth.md): optional remote publishing clients and revocation.
 - [WebAssembly plugins](plugins.md): sandboxed plugin directories, manifests and owner approval.
 - [Blog and Notion delivery](integrations/lesson-delivery.md): independent destinations and safe retries.
+- [Social publishing](integrations/social-publishing.md)
 - [Lesson scheduler](integrations/remote-publishing.md): optional generation and a disabled-by-default service example.
 
 ## Development reference

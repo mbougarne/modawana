@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/mbougarne/modawana/backend/internal/publichttp"
 	"github.com/tetratelabs/wazero"
 	"github.com/tetratelabs/wazero/api"
 	"github.com/tetratelabs/wazero/imports/wasi_snapshot_preview1"
@@ -77,7 +78,7 @@ func current(ctx context.Context) *invocation {
 // NewRuntime builds the shared engine. Close releases its resources.
 func NewRuntime(ctx context.Context, database *sql.DB) (*Runtime, error) {
 	config := wazero.NewRuntimeConfig().WithCloseOnContextDone(true).WithMemoryLimitPages(memoryLimitPages)
-	r := &Runtime{wazero: wazero.NewRuntimeWithConfig(ctx, config), storage: storage{db: database}, fetchClient: newFetchClient()}
+	r := &Runtime{wazero: wazero.NewRuntimeWithConfig(ctx, config), storage: storage{db: database}, fetchClient: publichttp.NewClient(3 * time.Second)}
 	if _, err := wasi_snapshot_preview1.Instantiate(ctx, r.wazero); err != nil {
 		_ = r.wazero.Close(ctx)
 		return nil, err

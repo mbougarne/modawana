@@ -4,14 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"net/netip"
 	"regexp"
 	"strings"
+
+	"github.com/mbougarne/modawana/backend/internal/publichttp"
 )
 
 var capabilityName = regexp.MustCompile(`^[a-z][a-z0-9_-]{0,47}$`)
 var digestPattern = regexp.MustCompile(`^[0-9a-f]{64}$`)
-var domainLabel = regexp.MustCompile(`^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$`)
 
 type SettingField struct {
 	Name    string            `json:"name"`
@@ -84,7 +84,7 @@ func (m Manifest) validateStageTwo() error {
 	}
 	clear(names)
 	for _, host := range m.HTTPSHosts {
-		if !validHTTPSHost(host) || names[host] {
+		if !publichttp.ValidHost(host) || names[host] {
 			return fmt.Errorf("%w: invalid HTTPS host declaration", ErrManifest)
 		}
 		names[host] = true
@@ -121,19 +121,4 @@ func validSetting(field SettingField, raw json.RawMessage) bool {
 	default:
 		return false
 	}
-}
-
-func validHTTPSHost(host string) bool {
-	if len(host) > 253 || !strings.Contains(host, ".") {
-		return false
-	}
-	if _, err := netip.ParseAddr(host); err == nil {
-		return false
-	}
-	for _, label := range strings.Split(host, ".") {
-		if !domainLabel.MatchString(label) {
-			return false
-		}
-	}
-	return true
 }

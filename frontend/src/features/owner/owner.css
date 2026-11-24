@@ -1081,3 +1081,14 @@
 .owner-workspace[data-dashboard-density='compact'] .owner-panel {
   padding-block: var(--space-3);
 }
+
+.social-post-body {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.social-post-image {
+  display: block;
+  max-inline-size: min(100%, 28rem);
+  block-size: auto;
+}

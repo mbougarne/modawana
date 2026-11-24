@@ -327,7 +327,7 @@ func Restore(ctx context.Context, archive, target string) error {
 		d.Close()
 		return e
 	}
-	for _, q := range []string{"DELETE FROM plugin_secrets", "DELETE FROM oauth_clients", "DELETE FROM auth_flows", "DELETE FROM staff_flows", "DELETE FROM staff_sessions", "UPDATE staff_members SET revoked_at=coalesce(revoked_at,strftime('%Y-%m-%dT%H:%M:%fZ','now'))", "UPDATE staff_invites SET revoked_at=coalesce(revoked_at,strftime('%Y-%m-%dT%H:%M:%fZ','now')) WHERE consumed_at IS NULL", "DELETE FROM auth_grants", "DELETE FROM sessions", "DELETE FROM recovery_codes", "DELETE FROM passkeys", "DELETE FROM api_tokens", "DELETE FROM auth_throttles", "DELETE FROM idempotency_records", "DELETE FROM learning_identities", "UPDATE owner SET password_hash=NULL,totp_cipher=NULL,totp_step=-1,auth_version=auth_version+1"} {
+	for _, q := range []string{"DELETE FROM social_oauth_flows", "DELETE FROM social_connections", "DELETE FROM plugin_secrets", "DELETE FROM oauth_clients", "DELETE FROM auth_flows", "DELETE FROM staff_flows", "DELETE FROM staff_sessions", "UPDATE staff_members SET revoked_at=coalesce(revoked_at,strftime('%Y-%m-%dT%H:%M:%fZ','now'))", "UPDATE staff_invites SET revoked_at=coalesce(revoked_at,strftime('%Y-%m-%dT%H:%M:%fZ','now')) WHERE consumed_at IS NULL", "DELETE FROM auth_grants", "DELETE FROM sessions", "DELETE FROM recovery_codes", "DELETE FROM passkeys", "DELETE FROM api_tokens", "DELETE FROM auth_throttles", "DELETE FROM idempotency_records", "DELETE FROM learning_identities", "UPDATE owner SET password_hash=NULL,totp_cipher=NULL,totp_step=-1,auth_version=auth_version+1"} {
 		if _, e = tx.ExecContext(ctx, q); e != nil {
 			tx.Rollback()
 			d.Close()

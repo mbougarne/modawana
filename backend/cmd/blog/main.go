@@ -29,6 +29,7 @@ import (
 	"github.com/mbougarne/modawana/backend/internal/plugin"
 	"github.com/mbougarne/modawana/backend/internal/publisher"
 	"github.com/mbougarne/modawana/backend/internal/siteconfig"
+	"github.com/mbougarne/modawana/backend/internal/social"
 	"github.com/mbougarne/modawana/backend/internal/storage"
 	"github.com/mbougarne/modawana/backend/internal/theme"
 	"github.com/mbougarne/modawana/backend/internal/webhook"
@@ -187,10 +188,54 @@ func run() int {
 	runtime.SetKeySource(cfg.ReadAuthKey)
 	plugins := &plugin.Service{DB: database, Dir: filepath.Join(cfg.DataRoot, "plugins"), Host: host, Runtime: runtime, Logger: logger, Maintenance: func() bool { return operations.Maintenance(cfg.DataRoot) }}
 	leadForms := &forms.Service{DB: database}
+	adapter, err := social.NewMastodon(social.MastodonConfig{
+		Instance: os.Getenv("BLOG_MASTODON_ORIGIN"), ClientID: os.Getenv("BLOG_MASTODON_CLIENT_ID"),
+		ClientSecretFile: os.Getenv("BLOG_MASTODON_CLIENT_SECRET_FILE"),
+	}, cfg.BaseURL, cfg.DataRoot)
+	if err != nil {
+		logger.Error("social publishing configuration rejected")
+		return 1
+	}
+	adapters := []social.Provider{adapter}
+	for _, entry := range []struct{ key, prefix, target, version string }{
+		{"facebook", "FACEBOOK", "PAGE_ID", "API_VERSION"},
+		{"x", "X", "", ""},
+		{"instagram", "INSTAGRAM", "", "API_VERSION"},
+		{"linkedin-profile", "LINKEDIN_PROFILE", "", ""},
+		{"linkedin-page", "LINKEDIN_PAGE", "ORGANIZATION_ID", "API_VERSION"},
+	} {
+		prefix := "BLOG_SOCIAL_" + entry.prefix + "_"
+		app := social.AppConfig{
+			ClientID: os.Getenv(prefix + "CLIENT_ID"), ClientSecretFile: os.Getenv(prefix + "CLIENT_SECRET_FILE"),
+		}
+		if entry.target != "" {
+			app.TargetID = os.Getenv(prefix + entry.target)
+		}
+		if entry.version != "" {
+			app.APIVersion = os.Getenv(prefix + entry.version)
+		}
+		adapter, err := social.NewRemote(entry.key, app, cfg.BaseURL, cfg.DataRoot)
+		if err != nil {
+			logger.Error("social provider configuration rejected", "provider", entry.key)
+			return 1
+		}
+		adapters = append(adapters, adapter)
+	}
+	socialPublishing, err := social.Open(cfg, database, contents, adapters...)
+	if err != nil {
+		logger.Error("social publishing requires the installation auth key")
+		return 1
+	}
 	deliveries := &outbox.Worker{DB: database, Paused: plugins.Maintenance, Logger: logger,
 		Handle: func(ctx context.Context, job outbox.Delivery) (outbox.Effect, error) {
 			if job.PluginID == "" && job.Event.Name == outbox.LeadCaptured {
 				return forms.PrepareNotification(ctx, job)
+			}
+			if job.PluginID == "" && job.Event.Name == outbox.SocialScheduled {
+				if !host.Installed(social.Slug) {
+					return nil, outbox.ErrUnavailable
+				}
+				return socialPublishing.Prepare(ctx, job)
 			}
 			return plugins.PrepareEvent(ctx, job)
 		}}
@@ -199,7 +244,7 @@ func run() int {
 		logger.Error("webhook connection configuration rejected")
 		return 1
 	}
-	domain := &httpserver.Domain{Forms: leadForms, Learning: identities, SiteConfig: settings, Content: contents, Auth: authentication, Media: media.New(database, files, policy), Extensions: host, Plugins: plugins, Deliveries: deliveries, Webhooks: webhooks, Dashboard: &dashboard.Service{DB: database}}
+	domain := &httpserver.Domain{Social: socialPublishing, Forms: leadForms, Learning: identities, SiteConfig: settings, Content: contents, Auth: authentication, Media: media.New(database, files, policy), Extensions: host, Plugins: plugins, Deliveries: deliveries, Webhooks: webhooks, Dashboard: &dashboard.Service{DB: database}}
 	publishing, err := publisher.Extensions(cfg.BaseURL, os.Getenv, plugins.Maintenance)
 	if err != nil {
 		logger.Error("publisher extension configuration rejected", "reason", err.Error())
