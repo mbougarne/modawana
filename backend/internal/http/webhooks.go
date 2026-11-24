@@ -30,20 +30,8 @@ func (d *Domain) webhookRoutes(w http.ResponseWriter, r *http.Request) bool {
 		writeError(w, MethodNotAllowed)
 		return true
 	}
-	mediaType, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
-	if err != nil || mediaType != "application/json" || r.Header.Get("Content-Encoding") != "" {
-		writeError(w, UnsupportedMediaType)
-		return true
-	}
-	defer r.Body.Close()
-	body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, webhook.MaxBody))
-	var tooLarge *http.MaxBytesError
-	switch {
-	case errors.As(err, &tooLarge):
-		writeError(w, TooLarge)
-		return true
-	case err != nil:
-		writeError(w, BadRequest)
+	body, ok := readWebhookBody(w, r)
+	if !ok {
 		return true
 	}
 	duplicate, err := d.Webhooks.Accept(r.Context(), adapter, connection, r.Header, body)
@@ -93,4 +81,24 @@ func (d *Domain) webhookReceipts(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, page)
+}
+
+func readWebhookBody(w http.ResponseWriter, r *http.Request) ([]byte, bool) {
+	mediaType, _, err := mime.ParseMediaType(r.Header.Get("Content-Type"))
+	if err != nil || mediaType != "application/json" || r.Header.Get("Content-Encoding") != "" {
+		writeError(w, UnsupportedMediaType)
+		return nil, false
+	}
+	defer r.Body.Close()
+	body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, webhook.MaxBody))
+	var tooLarge *http.MaxBytesError
+	switch {
+	case errors.As(err, &tooLarge):
+		writeError(w, TooLarge)
+		return nil, false
+	case err != nil:
+		writeError(w, BadRequest)
+		return nil, false
+	}
+	return body, true
 }

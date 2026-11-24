@@ -65,12 +65,12 @@ func validCart(in QuoteInput) bool {
 	return true
 }
 
-func quoteCart(ctx context.Context, tx *sql.Tx, in QuoteInput) (Quote, error) {
+func (s *Service) quoteCart(ctx context.Context, tx *sql.Tx, in QuoteInput) (Quote, error) {
 	var out Quote
 	if !validCart(in) {
 		return out, ErrInvalid
 	}
-	base, settings, err := checkout(ctx, tx, in.Locale)
+	base, settings, err := s.checkout(ctx, tx, in.Locale)
 	if err != nil {
 		return out, err
 	}
@@ -102,6 +102,9 @@ func quoteCart(ctx context.Context, tx *sql.Tx, in QuoteInput) (Quote, error) {
 	}
 	out.TaxMinor = percentage(taxBase, out.TaxBPS)
 	out.TotalMinor = out.SubtotalMinor - out.DiscountMinor + out.ShippingMinor + out.TaxMinor
+	if s.PaymentAmount != nil && !s.PaymentAmount(out.Currency, out.TotalMinor) {
+		return Quote{}, ErrPaymentAmount
+	}
 	if out.SubtotalMinor > maxCharge || out.TotalMinor > maxCharge {
 		return Quote{}, ErrInvalid
 	}
@@ -147,5 +150,5 @@ func (s *Service) Quote(ctx context.Context, in QuoteInput) (Quote, error) {
 		return Quote{}, err
 	}
 	defer tx.Rollback()
-	return quoteCart(ctx, tx, in)
+	return s.quoteCart(ctx, tx, in)
 }

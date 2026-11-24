@@ -28,6 +28,7 @@ import (
 	httpserver "github.com/mbougarne/modawana/backend/internal/http"
 	"github.com/mbougarne/modawana/backend/internal/media"
 	"github.com/mbougarne/modawana/backend/internal/outbox"
+	"github.com/mbougarne/modawana/backend/internal/paypal"
 	"github.com/mbougarne/modawana/backend/internal/plugin"
 	"github.com/mbougarne/modawana/backend/internal/publisher"
 	"github.com/mbougarne/modawana/backend/internal/siteconfig"
@@ -253,9 +254,15 @@ func run() int {
 		return 1
 	}
 	editorialAI := editorial.New(database, contents, cfg.BaseURL, cfg.ReadAuthKey, editorial.NewOpenAI())
-	catalog := &store.Service{DB: database}
+	catalog := &store.Service{DB: database, Paused: plugins.Maintenance, PaymentAmount: paypal.Payable}
+	payments, err := paypal.New(ctx, catalog, cfg, os.Getenv("BLOG_PAYPAL_CONNECTIONS"), plugins.Maintenance)
+	if err != nil {
+		logger.Error("PayPal merchant configuration rejected")
+		return 1
+	}
+	catalog.PaymentConnection = payments.Active
 	policy.StoreImage = catalog.ImageVisible
-	domain := &httpserver.Domain{Store: catalog, Editorial: editorialAI, Analytics: siteAnalytics, Social: socialPublishing, Forms: leadForms, Learning: identities, SiteConfig: settings, Content: contents, Auth: authentication, Media: media.New(database, files, policy), Extensions: host, Plugins: plugins, Deliveries: deliveries, Webhooks: webhooks, Dashboard: &dashboard.Service{DB: database}}
+	domain := &httpserver.Domain{Store: catalog, PayPal: payments, Editorial: editorialAI, Analytics: siteAnalytics, Social: socialPublishing, Forms: leadForms, Learning: identities, SiteConfig: settings, Content: contents, Auth: authentication, Media: media.New(database, files, policy), Extensions: host, Plugins: plugins, Deliveries: deliveries, Webhooks: webhooks, Dashboard: &dashboard.Service{DB: database}}
 	publishing, err := publisher.Extensions(cfg.BaseURL, os.Getenv, plugins.Maintenance)
 	if err != nil {
 		logger.Error("publisher extension configuration rejected", "reason", err.Error())

@@ -11,6 +11,7 @@ import { call } from '../auth/api';
 import { useResource } from '../../pages/public/api';
 import { ResourceState } from '../../pages/public/ResourceState';
 import { checkoutError, OrderSummary } from './OrderSummary';
+import { PayPalSettings, PayPalOrderTools } from './PayPalAdmin';
 import './checkout.css';
 
 interface Access {
@@ -27,6 +28,7 @@ export function CheckoutAdmin({ access }: { access: Access }) {
   );
   return (
     <>
+      <PayPalSettings csrf={access.csrf} updated={settings.retry} />
       <ResourceState resource={settings} />
       {settings.data && (
         <SettingsForm
@@ -307,6 +309,14 @@ export function StoreOrders({ access }: { access: Access }) {
       {order && (
         <>
           <OrderSummary order={order} />
+          {access.root === '/owner/store' && (
+            <PayPalOrderTools
+              key={order.reference}
+              csrf={access.csrf}
+              order={order}
+              updated={detail.retry}
+            />
+          )}
           <h4>{t('checkout.customer')}</h4>
           <address dir="auto">
             <div>{order.customer.name}</div>

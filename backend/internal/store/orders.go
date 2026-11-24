@@ -118,14 +118,21 @@ func (s *Service) CreateOrder(ctx context.Context, guest string, in OrderInput) 
 		if held >= 3 {
 			return ErrLimited
 		}
-		quote, err := quoteCart(ctx, tx, in.QuoteInput)
+		quote, err := s.quoteCart(ctx, tx, in.QuoteInput)
 		if err != nil {
 			return err
 		}
 		if in.QuoteFingerprint != quote.Fingerprint {
 			return ErrQuoteChanged
 		}
-		receipt, err = insertOrder(ctx, tx, guestHash, fingerprint, in, quote.Snapshot, now)
+		var connection string
+		if s.PaymentConnection != nil {
+			connection = s.PaymentConnection(quote.Currency)
+			if connection == "" {
+				return ErrCheckoutClosed
+			}
+		}
+		receipt, err = insertOrder(ctx, tx, guestHash, fingerprint, in, quote.Snapshot, now, connection)
 		return err
 	})
 	if err != nil {
@@ -134,7 +141,7 @@ func (s *Service) CreateOrder(ctx context.Context, guest string, in OrderInput) 
 	return receipt, nil
 }
 
-func insertOrder(ctx context.Context, tx *sql.Tx, guestHash, fingerprint string, in OrderInput, snapshot Snapshot, now time.Time) (OrderReceipt, error) {
+func insertOrder(ctx context.Context, tx *sql.Tx, guestHash, fingerprint string, in OrderInput, snapshot Snapshot, now time.Time, connection string) (OrderReceipt, error) {
 	id, err := db.NewID()
 	if err != nil {
 		return OrderReceipt{}, err
@@ -162,6 +169,12 @@ func insertOrder(ctx context.Context, tx *sql.Tx, guestHash, fingerprint string,
 	if _, err = tx.ExecContext(ctx, `INSERT INTO store_payment_operations(id,order_id,amount_minor,currency,state)
 		VALUES(?,?,?,?,'pending')`, operation, id, snapshot.TotalMinor, snapshot.Currency); err != nil {
 		return OrderReceipt{}, err
+	}
+	if connection != "" {
+		if _, err = tx.ExecContext(ctx, `INSERT INTO store_paypal_approvals(operation,connection,created_at) VALUES(?,?,?)`,
+			operation, connection, now.Unix()); err != nil {
+			return OrderReceipt{}, err
+		}
 	}
 	return out, recordOrderEvent(ctx, tx, id, "reserved", now)
 }

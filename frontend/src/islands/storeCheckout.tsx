@@ -142,6 +142,7 @@ function Checkout() {
   const [receipt, setReceipt] = useState<OrderReceipt>();
   const [notice, setNotice] = useState('');
   const [optionsNotice, setOptionsNotice] = useState('');
+  const [paymentNotice, setPaymentNotice] = useState('');
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState<OrderInput>();
   const lock = useRef(false);
@@ -189,6 +190,49 @@ function Checkout() {
         }
       };
       void recover();
+    }
+    const params = new URLSearchParams(window.location.search);
+    const reference = params.get('order') ?? '';
+    const result = params.get('paypal');
+    if (referencePattern.test(reference) && (result === 'return' || result === 'cancel')) {
+      window.history.replaceState(null, '', window.location.pathname);
+      setBusy(true);
+      lock.current = true;
+      const path = root + '/orders/' + reference;
+      const response =
+        result === 'return'
+          ? call<OrderStatus>(path + '/paypal/finish', 'POST', {})
+          : call<OrderStatus>(path);
+      if (result === 'cancel') {
+        setPaymentNotice('paypal.cancelled');
+      }
+      void response
+        .then((status) => {
+          if (active) {
+            setOrder(status);
+            setReceipt(status);
+            remember(orderKey, status.reference);
+          }
+        })
+        .catch(async (error: unknown) => {
+          if (active) {
+            setNotice(checkoutError(error));
+          }
+          try {
+            const status = await call<OrderStatus>(path);
+            if (active) {
+              setOrder(status);
+            }
+          } catch {
+            // Authorized lookup may be unavailable if this is another browser.
+          }
+        })
+        .finally(() => {
+          if (active) {
+            lock.current = false;
+            setBusy(false);
+          }
+        });
     }
     return () => {
       active = false;
@@ -289,6 +333,23 @@ function Checkout() {
     }
   }
 
+  function paymentAction(action: 'approval' | 'check' | 'finish') {
+    if (!order) {
+      return;
+    }
+    const path = root + '/orders/' + order.reference + '/paypal/' + action;
+    setPaymentNotice('');
+    void perform(async () => {
+      if (action === 'approval') {
+        const { approval_url } = await call<{ approval_url: string }>(path, 'POST', {});
+        window.location.assign(approval_url);
+      } else {
+        const status = await call<OrderStatus>(path, 'POST', {});
+        setOrder(status);
+      }
+    });
+  }
+
   return (
     <div className="store-checkout">
       {notice && (
@@ -297,6 +358,7 @@ function Checkout() {
         </p>
       )}
       {optionsNotice && <p className="public-notice">{t(optionsNotice)}</p>}
+      {paymentNotice && <p role="status">{t(paymentNotice)}</p>}
       {!countries && !optionsNotice && <p role="status">{t('public.loading')}</p>}
       {receipt && (
         <p role="status">
@@ -425,6 +487,25 @@ function Checkout() {
       {order && (
         <div className="vb-card">
           <OrderSummary order={order} />
+          <div className="store-checkout-actions">
+            {order.status === 'awaiting_payment' && countries && (
+              <Button variant="primary" disabled={busy} onClick={() => paymentAction('approval')}>
+                {t('paypal.pay')}
+              </Button>
+            )}
+            {(order.status === 'awaiting_payment' ||
+              order.payment === 'uncertain' ||
+              order.status === 'expired') && (
+              <Button disabled={busy} onClick={() => paymentAction('check')}>
+                {t('paypal.check')}
+              </Button>
+            )}
+            {order.payment === 'uncertain' && countries && (
+              <Button disabled={busy} onClick={() => paymentAction('finish')}>
+                {t('paypal.retryPayment')}
+              </Button>
+            )}
+          </div>
         </div>
       )}
     </div>
