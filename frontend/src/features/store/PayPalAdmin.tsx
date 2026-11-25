@@ -25,6 +25,27 @@ interface Receipt {
   provider_capture?: string;
   state: 'pending' | 'applied' | 'review';
   attempts: number;
+  event_id: string;
+  recovered: boolean;
+  review_note?: string;
+  reviewed_at?: number;
+}
+
+interface Recovery {
+  cutoff: number;
+  target: number;
+  pending: number;
+  unresolved: number;
+  uncertain: number;
+  can_confirm: boolean;
+  connections: {
+    id: string;
+    mode: 'sandbox' | 'live';
+    connected: boolean;
+    start: number;
+    through: number;
+    note?: string;
+  }[];
 }
 
 interface Refund {
@@ -84,7 +105,19 @@ export function PayPalSettings({ csrf, updated }: { csrf: string; updated: () =>
     false,
     true,
   );
+  const recovery = useResource<Recovery>(
+    status.data?.review_required ? '/api/v1' + root + '/recovery' : undefined,
+    false,
+    false,
+    true,
+  );
   const action = useAction();
+  function refreshRecovery() {
+    status.retry();
+    recovery.retry();
+    receipts.retry();
+  }
+
   return (
     <section className="owner-panel owner-form">
       <h3>PayPal</h3>
@@ -98,21 +131,30 @@ export function PayPalSettings({ csrf, updated }: { csrf: string; updated: () =>
           {status.data.review_required && (
             <>
               <p>{t('paypal.restoreReview')}</p>
-              <Button
-                disabled={action.busy}
-                onClick={() =>
-                  void action.run(async () => {
-                    if (!window.confirm(t('paypal.confirmReview'))) {
-                      return;
-                    }
-                    await freshPost(root + '/resume', {});
-                    status.retry();
-                    updated();
-                  })
-                }
-              >
-                {t('paypal.confirmReview')}
-              </Button>
+              <ResourceState resource={recovery} />
+              {recovery.data && (
+                <RecoveryControls recovery={recovery.data} csrf={csrf} updated={refreshRecovery} />
+              )}
+              <div className="owner-row">
+                <Button disabled={action.busy} onClick={refreshRecovery}>
+                  {t('paypal.refreshRecovery')}
+                </Button>
+                <Button
+                  disabled={action.busy || !recovery.data?.can_confirm}
+                  onClick={() =>
+                    void action.run(async () => {
+                      if (!window.confirm(t('paypal.confirmRecoveryScope'))) {
+                        return;
+                      }
+                      await freshPost(root + '/resume', {});
+                      refreshRecovery();
+                      updated();
+                    })
+                  }
+                >
+                  {t('paypal.confirmReview')}
+                </Button>
+              </div>
             </>
           )}
           <Button aria-expanded={show} disabled={action.busy} onClick={() => setShow(!show)}>
@@ -133,20 +175,34 @@ export function PayPalSettings({ csrf, updated }: { csrf: string; updated: () =>
                         {row.connection} /{' '}
                         {row.provider_order || row.provider_capture || row.resource}
                       </bdi>
+                      {row.recovered && <> · {t('paypal.recovered')}</>}
                     </p>
                     {row.state === 'review' && (
-                      <Button
-                        disabled={action.busy}
-                        onClick={() =>
-                          void action.run(async () => {
-                            await call(root + '/receipts/' + row.id + '/retry', 'POST', {}, csrf);
-                            receipts.retry();
-                            status.retry();
-                          })
-                        }
-                      >
-                        {t('paypal.retryCheck')}
-                      </Button>
+                      <>
+                        <p>
+                          <bdi>{row.event_id}</bdi>
+                        </p>
+                        {row.review_note && <p dir="auto">{row.review_note}</p>}
+                        {!row.reviewed_at && (
+                          <RecoveryNote
+                            onSave={async (note) => {
+                              await freshPost(root + '/receipts/' + row.id + '/review', { note });
+                              refreshRecovery();
+                            }}
+                          />
+                        )}
+                        <Button
+                          disabled={action.busy}
+                          onClick={() =>
+                            void action.run(async () => {
+                              await call(root + '/receipts/' + row.id + '/retry', 'POST', {}, csrf);
+                              refreshRecovery();
+                            })
+                          }
+                        >
+                          {t('paypal.retryCheck')}
+                        </Button>
+                      </>
                     )}
                   </li>
                 ))}
@@ -165,6 +221,131 @@ export function PayPalSettings({ csrf, updated }: { csrf: string; updated: () =>
       )}
       {action.notice && <p role="status">{t(action.notice)}</p>}
     </section>
+  );
+}
+
+function RecoveryControls({
+  recovery,
+  csrf,
+  updated,
+}: {
+  recovery: Recovery;
+  csrf: string;
+  updated: () => void;
+}) {
+  const { locale, t } = useI18n();
+  const action = useAction();
+  const date = new Intl.DateTimeFormat(locale, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZone: 'UTC',
+  });
+  return (
+    <section>
+      <p>
+        {recovery.cutoff
+          ? t('paypal.recoveryCutoff', { date: date.format(recovery.cutoff * 1000) })
+          : t('paypal.recoveryUnknown')}
+      </p>
+      {recovery.target > 0 && (
+        <p>{t('paypal.recoveryTarget', { date: date.format(recovery.target * 1000) })}</p>
+      )}
+      <p>
+        {t('paypal.recoveryCounts', {
+          pending: recovery.pending,
+          unresolved: recovery.unresolved,
+          uncertain: recovery.uncertain,
+        })}
+      </p>
+      <ul className="store-product-list">
+        {recovery.connections.map((connection) => (
+          <li key={connection.id}>
+            <p>
+              <bdi>{connection.id}</bdi> · {t('paypal.mode.' + connection.mode)}
+            </p>
+            {connection.through > 0 && (
+              <p>{t('paypal.recoveryThrough', { date: date.format(connection.through * 1000) })}</p>
+            )}
+            {connection.note && <p dir="auto">{connection.note}</p>}
+            {connection.through < recovery.target && (
+              <>
+                {connection.connected && recovery.cutoff > 0 && (
+                  <Button
+                    disabled={action.busy}
+                    onClick={() =>
+                      void action.run(async () => {
+                        await call(root + '/recovery', 'POST', { connection: connection.id }, csrf);
+                        updated();
+                      })
+                    }
+                  >
+                    {t('paypal.importHistory')}
+                  </Button>
+                )}
+                <RecoveryNote
+                  manual
+                  onSave={async (note) => {
+                    await freshPost(root + '/recovery/manual', { connection: connection.id, note });
+                    updated();
+                  }}
+                />
+              </>
+            )}
+          </li>
+        ))}
+      </ul>
+      {action.notice && <p role="status">{t(action.notice)}</p>}
+    </section>
+  );
+}
+
+function RecoveryNote({
+  onSave,
+  manual = false,
+}: {
+  onSave: (note: string) => Promise<void>;
+  manual?: boolean;
+}) {
+  const { t } = useI18n();
+  const [open, setOpen] = useState(false);
+  const [note, setNote] = useState('');
+  const action = useAction();
+  const label = t(manual ? 'paypal.manualRecovery' : 'paypal.reviewReceipt');
+
+  return (
+    <div>
+      <Button aria-expanded={open} disabled={action.busy} onClick={() => setOpen(!open)}>
+        {label}
+      </Button>
+      {open && (
+        <form
+          className="owner-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void action.run(async () => {
+              await onSave(note.trim());
+              setNote('');
+              setOpen(false);
+            });
+          }}
+        >
+          <Field label={t('paypal.recoveryNote')}>
+            <input
+              maxLength={300}
+              required
+              disabled={action.busy}
+              value={note}
+              dir="auto"
+              onChange={(event) => setNote(event.target.value)}
+            />
+          </Field>
+          <Button type="submit" disabled={action.busy || !note.trim()}>
+            {label}
+          </Button>
+        </form>
+      )}
+      {action.notice && <p role="status">{t(action.notice)}</p>}
+    </div>
   );
 }
 

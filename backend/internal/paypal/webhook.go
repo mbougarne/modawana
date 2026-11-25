@@ -20,6 +20,7 @@ import (
 type event struct {
 	ID       string `json:"id"`
 	Kind     string `json:"event_type"`
+	Created  string `json:"create_time"`
 	Resource struct {
 		ID            string `json:"id"`
 		Links         []link `json:"links"`
@@ -84,9 +85,22 @@ func (s *Service) Accept(ctx context.Context, id string, h http.Header, body []b
 		return ErrInvalid
 	}
 	var e event
-	if json.Unmarshal(body, &e) != nil || !remoteID.MatchString(e.ID) || !remoteID.MatchString(e.Resource.ID) {
+	if json.Unmarshal(body, &e) != nil {
 		return ErrInvalid
 	}
+	row, relevant, err := c.normalize(e)
+	if err != nil {
+		return err
+	}
+	if err = c.signature(ctx, h, body); err != nil || !relevant {
+		return err
+	}
+	digest := sha256.Sum256(body)
+	return saveReceipt(ctx, s.store.DB, id, row, hex.EncodeToString(digest[:]), false)
+}
+
+func (c *client) normalize(e event) (Receipt, bool, error) {
+
 	orderID, captureID := e.Resource.Supplementary.Related.Order, e.Resource.Supplementary.Related.Capture
 	switch e.Kind {
 	case "CHECKOUT.ORDER.APPROVED", "CHECKOUT.ORDER.COMPLETED":
@@ -100,23 +114,30 @@ func (s *Service) Accept(ctx context.Context, id string, h http.Header, body []b
 			}
 		}
 	default:
-		// Unknown events have no effect. Only accept deliveries through
-		// the verified webhook connection.
-		return c.signature(ctx, h, body)
+		return Receipt{}, false, nil
 	}
-	if (orderID != "" && !remoteID.MatchString(orderID)) || (captureID != "" && !remoteID.MatchString(captureID)) {
-		return ErrInvalid
+	if !remoteID.MatchString(e.ID) || !remoteID.MatchString(e.Resource.ID) ||
+		(orderID != "" && !remoteID.MatchString(orderID)) || (captureID != "" && !remoteID.MatchString(captureID)) {
+		return Receipt{}, false, ErrInvalid
 	}
-	if err := c.signature(ctx, h, body); err != nil {
-		return err
-	}
-	digest := sha256.Sum256(body)
-	hash := hex.EncodeToString(digest[:])
+	return Receipt{EventID: e.ID, Kind: e.Kind, Resource: e.Resource.ID, Order: orderID, Capture: captureID}, true, nil
+}
+
+type receiptWriter interface {
+	QueryRowContext(context.Context, string, ...any) *sql.Row
+}
+
+func saveReceipt(ctx context.Context, q receiptWriter, connection string, row Receipt, fingerprint string, recovered bool) error {
 	var saved string
-	err := s.store.DB.QueryRowContext(ctx, `INSERT INTO store_paypal_receipts(connection,event_id,fingerprint,kind,resource,related_order,related_capture,next_at)
-		VALUES(?,?,?,?,?,?,?,?) ON CONFLICT(connection,event_id) DO UPDATE SET event_id=excluded.event_id RETURNING fingerprint`,
-		id, e.ID, hash, e.Kind, e.Resource.ID, orderID, captureID, time.Now().Unix()).Scan(&saved)
-	if err == nil && hash != saved {
+	err := q.QueryRowContext(ctx, `INSERT INTO store_paypal_receipts(connection,event_id,fingerprint,kind,resource,related_order,related_capture,next_at,recovered)
+		VALUES(?,?,?,?,?,?,?,?,?) ON CONFLICT(connection,event_id) DO UPDATE SET
+		fingerprint=CASE WHEN store_paypal_receipts.fingerprint='' THEN excluded.fingerprint ELSE store_paypal_receipts.fingerprint END,
+		recovered=max(store_paypal_receipts.recovered,excluded.recovered)
+		WHERE store_paypal_receipts.kind=excluded.kind AND store_paypal_receipts.resource=excluded.resource
+		  AND store_paypal_receipts.related_order=excluded.related_order AND store_paypal_receipts.related_capture=excluded.related_capture
+		  AND (store_paypal_receipts.fingerprint='' OR excluded.fingerprint='' OR store_paypal_receipts.fingerprint=excluded.fingerprint)
+		RETURNING event_id`, connection, row.EventID, fingerprint, row.Kind, row.Resource, row.Order, row.Capture, time.Now().Unix(), recovered).Scan(&saved)
+	if errors.Is(err, sql.ErrNoRows) {
 		return webhook.ErrConflict
 	}
 	return err
@@ -124,6 +145,7 @@ func (s *Service) Accept(ctx context.Context, id string, h http.Header, body []b
 
 type Receipt struct {
 	ID         int64  `json:"id"`
+	EventID    string `json:"event_id"`
 	Connection string `json:"connection"`
 	Kind       string `json:"kind"`
 	Resource   string `json:"resource"`
@@ -131,13 +153,17 @@ type Receipt struct {
 	Capture    string `json:"provider_capture,omitempty"`
 	State      string `json:"state"`
 	Attempts   int    `json:"attempts"`
+	Recovered  bool   `json:"recovered"`
+	ReviewNote string `json:"review_note,omitempty"`
+	ReviewedBy string `json:"reviewed_by,omitempty"`
+	ReviewedAt int64  `json:"reviewed_at,omitempty"`
 }
 
-const receiptColumns = `ordinal,connection,kind,resource,related_order,related_capture,state,attempts`
+const receiptColumns = `ordinal,event_id,connection,kind,resource,related_order,coalesce(nullif(related_capture,''),refund_hold_capture),state,attempts,recovered,review_note,reviewed_by,reviewed_at`
 
 func readReceipt(row interface{ Scan(...any) error }) (Receipt, error) {
 	var out Receipt
-	err := row.Scan(&out.ID, &out.Connection, &out.Kind, &out.Resource, &out.Order, &out.Capture, &out.State, &out.Attempts)
+	err := row.Scan(&out.ID, &out.EventID, &out.Connection, &out.Kind, &out.Resource, &out.Order, &out.Capture, &out.State, &out.Attempts, &out.Recovered, &out.ReviewNote, &out.ReviewedBy, &out.ReviewedAt)
 	return out, err
 }
 
@@ -159,12 +185,12 @@ func (s *Service) Receipts(ctx context.Context, before int64) ([]Receipt, error)
 }
 
 func (s *Service) RetryReceipt(ctx context.Context, id int64) error {
-	_, err := s.store.DB.ExecContext(ctx, `UPDATE store_paypal_receipts SET next_at=?,attempts=0,state='pending' WHERE ordinal=? AND state='review'`, time.Now().Unix(), id)
+	_, err := s.store.DB.ExecContext(ctx, `UPDATE store_paypal_receipts SET next_at=?,attempts=0,state='pending',review_note='',reviewed_by='',reviewed_at=0 WHERE ordinal=? AND state='review'`, time.Now().Unix(), id)
 	return err
 }
 
 func (s *Service) processReceipt(ctx context.Context) error {
-	for range 5 {
+	for range 12 {
 		now := time.Now()
 		r, err := readReceipt(s.store.DB.QueryRowContext(ctx, `SELECT `+receiptColumns+` FROM store_paypal_receipts
 			WHERE state='pending' AND next_at<=? ORDER BY next_at,ordinal LIMIT 1`, now.Unix()))
@@ -207,13 +233,16 @@ func (s *Service) applyReceipt(ctx context.Context, r Receipt) error {
 			return ErrMismatch
 		}
 		op, err := s.store.RefundByID(ctx, e.OperationID)
-		if errors.Is(err, sql.ErrNoRows) {
+		if err == nil {
+			_, err = s.applyRefund(ctx, op, e)
+		}
+		if errors.Is(err, sql.ErrNoRows) || errors.Is(err, ErrMismatch) || errors.Is(err, store.ErrPaymentEvidence) {
+			if _, saveErr := s.store.DB.ExecContext(ctx, `UPDATE store_paypal_receipts SET refund_hold_capture=? WHERE ordinal=?`,
+				e.CaptureID, r.ID); saveErr != nil {
+				return saveErr
+			}
 			return ErrReview
 		}
-		if err != nil {
-			return err
-		}
-		_, err = s.applyRefund(ctx, op, e)
 		return err
 	case "PAYMENT.CAPTURE.REVERSED":
 		return ErrReview

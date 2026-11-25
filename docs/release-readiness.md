@@ -23,6 +23,8 @@ coverage, and operator-specific restore/deployment acceptance require environmen
 results. They are not established by this repository's automated checks. Record the
 revision, date, environment, procedure and observed result for each installation.
 
+For paid checkout, verify the [commerce launch targets and recovery drill](operations/recovery.md#commerce-recovery-and-launch) and record the real PayPal Sandbox result separately.
+
 ## Before making the repository public
 
 A clean current tree does not make its history private. Deleted documents, old

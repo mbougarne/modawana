@@ -142,9 +142,10 @@ further action.
 
 A restored installation closes checkout and pauses refund writes while preserving
 orders, operation IDs and receipt history. After the owner has recovered access,
-compare PayPal activity since the backup against the restored ledger. Resolve
-unmatched captures and refunds in PayPal. Confirm reconciliation under
-**Store → Checkout settings → PayPal**, then enable checkout when ready.
+use the [commerce recovery drill](../operations/recovery.md#commerce-recovery-and-launch)
+to compare PayPal events and merchant reports with the restored ledger. Confirm
+reconciliation under **Store → Checkout settings → PayPal**, then enable checkout
+when ready.
 
 ## Sandbox acceptance
 

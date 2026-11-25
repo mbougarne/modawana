@@ -128,9 +128,47 @@ func (d *Domain) paypalOwner(w http.ResponseWriter, r *http.Request, path string
 	case path == "/resume" && r.Method == http.MethodPost:
 		fresh, err := d.Auth.FreshOwnerCheck(r)
 		if err == nil {
-			err = d.Store.AcknowledgePaymentReview(ctx, fresh)
+			err = d.PayPal.ConfirmRecovery(ctx, fresh)
 		}
 		paypalReply(w, map[string]bool{"recorded": true}, err)
+	case path == "/recovery" && r.Method == http.MethodGet:
+		out, err := d.PayPal.Recovery(ctx)
+		paypalReply(w, out, err)
+	case path == "/recovery" && r.Method == http.MethodPost:
+		var in struct {
+			Connection string `json:"connection"`
+		}
+		if DecodeJSON(w, r, &in, 1024) {
+			paypalReply(w, map[string]bool{"recorded": true}, d.PayPal.RecoverEvents(ctx, in.Connection))
+		}
+	case path == "/recovery/manual" && r.Method == http.MethodPost:
+		var in struct {
+			Connection string `json:"connection"`
+			Note       string `json:"note"`
+		}
+		if DecodeJSON(w, r, &in, 4096) {
+			fresh, err := d.Auth.FreshOwnerCheck(r)
+			if err == nil {
+				err = d.PayPal.RecordManualCoverage(ctx, in.Connection, in.Note, fresh)
+			}
+			paypalReply(w, map[string]bool{"recorded": true}, err)
+		}
+	case len(parts) == 3 && parts[0] == "receipts" && parts[2] == "review" && r.Method == http.MethodPost:
+		var in struct {
+			Note string `json:"note"`
+		}
+		id, err := strconv.ParseInt(parts[1], 10, 64)
+		if err != nil || id < 1 {
+			writeError(w, InvalidFields)
+			return
+		}
+		if DecodeJSON(w, r, &in, 4096) {
+			fresh, err := d.Auth.FreshOwnerCheck(r)
+			if err == nil {
+				err = d.PayPal.ReviewReceipt(ctx, id, in.Note, fresh)
+			}
+			paypalReply(w, map[string]bool{"recorded": true}, err)
+		}
 	case len(parts) == 3 && parts[0] == "refunds" && parts[2] == "retry" && r.Method == http.MethodPost:
 		fresh, err := d.Auth.FreshOwnerCheck(r)
 		if err != nil {
@@ -183,6 +221,8 @@ func paypalReply(w http.ResponseWriter, out any, err error) {
 	switch {
 	case errors.Is(err, paypal.ErrInvalid):
 		writeError(w, InvalidFields)
+	case errors.Is(err, webhook.ErrConflict):
+		writeError(w, IdempotencyConflict)
 	case errors.Is(err, paypal.ErrUnavailable), errors.Is(err, context.DeadlineExceeded):
 		writeError(w, Unavailable)
 	case errors.Is(err, paypal.ErrReview), errors.Is(err, paypal.ErrMismatch), errors.Is(err, store.ErrPaymentEvidence):

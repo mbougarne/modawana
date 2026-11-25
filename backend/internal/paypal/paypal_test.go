@@ -21,18 +21,20 @@ import (
 )
 
 type sandboxTransport struct {
-	t              *testing.T
-	mu             sync.Mutex
-	op             string
-	paid           bool
-	approved       bool
-	mismatch       string
-	creates        int
-	captures       int
-	verifyCalls    int
-	refunds        map[string]refundResult
-	refundRequests int
-	failRefund     bool
+	t                testing.TB
+	mu               sync.Mutex
+	op               string
+	paid             bool
+	approved         bool
+	mismatch         string
+	creates          int
+	captures         int
+	verifyCalls      int
+	refunds          map[string]refundResult
+	refundRequests   int
+	failRefund       bool
+	history          []event
+	truncatedHistory bool
 }
 
 func (f *sandboxTransport) RoundTrip(r *http.Request) (*http.Response, error) {
@@ -135,6 +137,23 @@ func (f *sandboxTransport) RoundTrip(r *http.Request) (*http.Response, error) {
 	case r.Method == "GET" && strings.HasPrefix(r.URL.Path, "/v2/payments/refunds/REF-"):
 		id := strings.TrimPrefix(r.URL.Path, "/v2/payments/refunds/REF-")
 		return reply(200, f.refunds[id])
+	case r.Method == "GET" && r.URL.Path == historyPath:
+		start, startErr := time.Parse(time.RFC3339, r.URL.Query().Get("start_time"))
+		end, endErr := time.Parse(time.RFC3339, r.URL.Query().Get("end_time"))
+		if startErr != nil || endErr != nil || r.URL.Query().Get("page_size") != "10" {
+			f.t.Fatal("history was requested without bounded UTC filter")
+		}
+		if f.truncatedHistory {
+			return reply(200, map[string]any{"events": f.history, "count": 10, "links": []link{{Rel: "next", Href: "https://untrusted.example/next"}}})
+		}
+		events := []event{}
+		for _, item := range f.history {
+			created, _ := time.Parse(time.RFC3339, item.Created)
+			if !created.Before(start) && !created.After(end) {
+				events = append(events, item)
+			}
+		}
+		return reply(200, map[string]any{"events": events, "count": len(events)})
 	case r.Method == "POST" && r.URL.Path == "/v1/notifications/verify-webhook-signature":
 		f.verifyCalls++
 		var in struct {
@@ -160,7 +179,7 @@ const merchantConfig = `{"active":"sandbox-store","connections":[{"id":"sandbox-
 const guest = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 const buyerOrderKey = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 
-func setupPayPal(t *testing.T) (*Service, *sandboxTransport, store.OrderReceipt, config.Config, string) {
+func setupPayPal(t testing.TB) (*Service, *sandboxTransport, store.OrderReceipt, config.Config, string) {
 	t.Helper()
 	ctx := t.Context()
 	root := t.TempDir()

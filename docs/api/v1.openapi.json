@@ -11399,6 +11399,261 @@
           }
         ]
       }
+    },
+    "/api/v1/owner/store/paypal/recovery": {
+      "get": {
+        "operationId": "storePayPalRecovery",
+        "description": "Read snapshot coverage and unresolved payments. / اقرأ تغطية النسخة والمدفوعات غير المحسومة.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PayPal recovery / استعادة PayPal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PayPalRecovery"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "storePayPalImportHistory",
+        "description": "Import a bounded read-only period of provider events. / استورد فترة محدودة من أحداث المزوّد للقراءة فقط.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PayPal recovery / استعادة PayPal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "recorded"
+                  ],
+                  "properties": {
+                    "recorded": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "connection"
+                ],
+                "properties": {
+                  "connection": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9-]{0,47}$"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/owner/store/paypal/recovery/manual": {
+      "post": {
+        "operationId": "storePayPalRecordManualCoverage",
+        "description": "Record report reconciliation with fresh owner authentication. / سجّل مطابقة التقرير بتحقق حديث من هوية المالك.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PayPal recovery / استعادة PayPal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "recorded"
+                  ],
+                  "properties": {
+                    "recorded": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "connection",
+                  "note"
+                ],
+                "properties": {
+                  "connection": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9-]{0,47}$"
+                  },
+                  "note": {
+                    "type": "string",
+                    "maxLength": 300
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/owner/store/paypal/receipts/{id}/review": {
+      "post": {
+        "operationId": "storePayPalRecordReceiptResolution",
+        "description": "Record an unmatched event disposition with fresh owner authentication. / سجّل نتيجة مراجعة حدث غير مطابق بتحقق حديث من هوية المالك.",
+        "security": [
+          {
+            "ownerCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PayPal recovery / استعادة PayPal",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "recorded"
+                  ],
+                  "properties": {
+                    "recorded": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error / خطأ",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "note"
+                ],
+                "properties": {
+                  "note": {
+                    "type": "string",
+                    "maxLength": 300
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -17383,7 +17638,9 @@
           "kind",
           "resource",
           "state",
-          "attempts"
+          "attempts",
+          "event_id",
+          "recovered"
         ],
         "properties": {
           "id": {
@@ -17414,6 +17671,24 @@
             ]
           },
           "attempts": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "event_id": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "recovered": {
+            "type": "boolean"
+          },
+          "review_note": {
+            "type": "string",
+            "maxLength": 300
+          },
+          "reviewed_by": {
+            "type": "string"
+          },
+          "reviewed_at": {
             "type": "integer",
             "minimum": 0
           }
@@ -17578,6 +17853,87 @@
           "created_at": {
             "type": "integer",
             "minimum": 0
+          }
+        }
+      },
+      "PayPalRecoveryConnection": {
+        "type": "object",
+        "required": [
+          "id",
+          "mode",
+          "connected",
+          "start",
+          "through"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{0,47}$"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "sandbox",
+              "live"
+            ]
+          },
+          "connected": {
+            "type": "boolean"
+          },
+          "start": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "through": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 300
+          }
+        }
+      },
+      "PayPalRecovery": {
+        "type": "object",
+        "required": [
+          "cutoff",
+          "target",
+          "connections",
+          "pending",
+          "unresolved",
+          "uncertain",
+          "can_confirm"
+        ],
+        "properties": {
+          "cutoff": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "target": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "connections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PayPalRecoveryConnection"
+            }
+          },
+          "pending": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "unresolved": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "uncertain": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "can_confirm": {
+            "type": "boolean"
           }
         }
       }
