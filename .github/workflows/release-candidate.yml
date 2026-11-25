@@ -1,0 +1,84 @@
+name: Self-hosted release candidate
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (for example, v0.1.0 or v0.1.0-rc.1)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  native-linux:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      VERSION: ${{ inputs.version }}
+      CGO_ENABLED: '0'
+      LC_ALL: C.UTF-8
+      TZ: UTC
+    steps:
+      - name: Validate the release version
+        run: |
+          if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z]+([.-][0-9A-Za-z]+)*)?$ || ${#VERSION} -gt 80 ]]; then
+            echo 'Expected vX.Y.Z with an optional prerelease suffix.'
+            exit 1
+          fi
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.sha }}
+          path: release-primary
+          persist-credentials: false
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.sha }}
+          path: release-rebuild
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version-file: release-primary/.node-version
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: release-primary/backend/go.mod
+          cache: false
+      - run: npm install --global npm@10.9.2
+      - name: Independently build and package both checkouts
+        run: |
+          for checkout in release-primary release-rebuild; do
+            (
+              set -e
+              cd "$checkout"
+              test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+              test -z "$(git status --porcelain)"
+              export GOCACHE="$RUNNER_TEMP/go-$checkout"
+              node scripts/project.mjs install
+              go -C backend mod download
+              go -C backend mod verify
+              node scripts/project.mjs build
+              node scripts/release/check-secrets.mjs
+              node scripts/release/notices.mjs
+              node scripts/release/package.mjs "$VERSION"
+            )
+          done
+      - name: Compare archive bytes and checksums
+        run: |
+          for suffix in tar.gz tar.gz.sha256; do
+            cmp "release-primary/build/releases/$VERSION.$suffix" "release-rebuild/build/releases/$VERSION.$suffix"
+          done
+          cd release-primary/build/releases
+          sha256sum -c "$VERSION.tar.gz.sha256"
+      - name: Verify the packaged catalog and server
+        working-directory: release-primary
+        run: |
+          node scripts/release/smoke-catalog.mjs "build/releases/$VERSION.tar.gz" "$GITHUB_SHA"
+          node scripts/release/smoke-package.mjs "build/releases/$VERSION.tar.gz"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: modawana-${{ inputs.version }}-linux-x64
+          if-no-files-found: error
+          path: |
+            release-primary/build/releases/${{ inputs.version }}.tar.gz
+            release-primary/build/releases/${{ inputs.version }}.tar.gz.sha256

@@ -15,9 +15,10 @@ class AssetManifestPlugin {
           // for server-rendered pages (ADR 0002), listed so the Go server can
           // emit it only on pages that need it.
           const islands = {};
-          for (const [name, entrypoint] of compilation.entrypoints) {
+          for (const name of [...compilation.entrypoints.keys()].sort()) {
             if (name !== 'app') {
-              islands[name] = entrypoint
+              islands[name] = compilation.entrypoints
+                .get(name)
                 .getFiles()
                 .filter((f) => !f.endsWith('.map'))
                 .map((f) => '/' + f);
@@ -30,6 +31,7 @@ class AssetManifestPlugin {
                 (f) =>
                   f.startsWith('assets/') && !f.endsWith('.LICENSE.txt') && !f.endsWith('.map'),
               )
+              .sort()
               .map((f) => '/' + f),
             scripts: files.filter((f) => f.endsWith('.js')).map((f) => '/' + f),
             styles: files.filter((f) => f.endsWith('.css')).map((f) => '/' + f),

@@ -53,6 +53,7 @@ jobs:
       - run: node scripts/release/notices.mjs
       - run: node scripts/release/package.mjs acceptance
       - run: node scripts/release/check-reproducible.mjs
+      - run: node scripts/release/smoke-catalog.mjs
       - name: Build the previous server for the upgrade smoke test
         if: github.event_name == 'pull_request'
         env:
