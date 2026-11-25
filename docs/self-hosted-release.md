@@ -28,6 +28,14 @@ byte-for-byte reproducible with the same build inputs. For an independent build,
 repeat the commands from a second clean checkout of the same commit and compare
 the archive SHA-256. Ship clean-source builds with the corresponding source tag.
 
+Maintainers can run **Self-hosted release candidate** from `main` in GitHub Actions.
+Enter the intended version, such as `v0.1.0-rc.1`. The workflow checks out the
+selected commit twice, builds both Linux x86-64 archives, compares their bytes,
+and tests the packaged server and signed catalog installation. Download the
+verified archive and checksum from the run artifacts. Use that run's source commit
+for the release tag after completing the publication review. Catalog signing
+with the production key and release publication are separate maintainer steps.
+
 Extract into a versioned directory and set the private environment described in
 [deployment](deployment.md). Point `BLOG_FRONTEND_DIST` at the extracted
 `frontend` directory and `BLOG_DATA_ROOT` at a separate private persistent

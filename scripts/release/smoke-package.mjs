@@ -1,48 +1,16 @@
-import { mkdtemp, readdir, readFile, rm, stat } from 'node:fs/promises';
+import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
-import { execFileSync, spawn, spawnSync } from 'node:child_process';
-import { createHash } from 'node:crypto';
+import { spawn, spawnSync } from 'node:child_process';
 import assert from 'node:assert/strict';
+import { verifyPackage } from './verify-package.mjs';
 
 const input = resolve(process.argv[2] || 'build/releases/acceptance.tar.gz');
 const previous = process.argv[3] && resolve(process.argv[3]);
 const work = await mkdtemp(resolve(tmpdir(), 'blog-package-'));
 let server;
 try {
-  let source = input;
-  if ((await stat(input)).isFile()) {
-    const sum = await readFile(input + '.sha256', 'utf8');
-    assert.equal(
-      createHash('sha256')
-        .update(await readFile(input))
-        .digest('hex'),
-      sum.split(' ')[0],
-    );
-    execFileSync('tar', ['-xzf', input, '-C', work]);
-    const entries = await readdir(work);
-    assert.equal(entries.length, 1);
-    source = resolve(work, entries[0]);
-  }
-  const manifest = JSON.parse(await readFile(resolve(source, 'release.json'), 'utf8'));
-  for (const file of manifest.files) {
-    assert.equal(
-      createHash('sha256')
-        .update(await readFile(resolve(source, file.path)))
-        .digest('hex'),
-      file.sha256,
-    );
-  }
-  for (const file of [
-    'examples/plugins/example/plugin.wasm',
-    'examples/themes/pack-example/theme.json',
-    'docs/self-hosted-release.md',
-  ]) {
-    assert.ok(
-      manifest.files.some((entry) => entry.path === file),
-      file,
-    );
-  }
+  const { source } = await verifyPackage(input, work);
   const env = {
     ...process.env,
     BLOG_ENV: 'production',
