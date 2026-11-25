@@ -61,6 +61,9 @@ func (s *Service) PrepareRefund(ctx context.Context, id string, in RefundInput, 
 		if err := checkPaymentReview(ctx, tx); err != nil {
 			return err
 		}
+		if err := checkRefundHold(ctx, tx, id); err != nil {
+			return err
+		}
 		var err error
 		out, err = readRefund(tx.QueryRowContext(ctx, "SELECT "+refundColumns+refundTables+" WHERE r.order_id=? AND r.retry_key=?", id, in.Key))
 		if err == nil {
@@ -201,9 +204,25 @@ func (s *Service) ResumeRefund(ctx context.Context, id string, fresh func(*sql.T
 		if err != nil || op.State != "pending" {
 			return err
 		}
+		if err = checkRefundHold(ctx, tx, op.Order); err != nil {
+			return err
+		}
 		return recordRefundEvent(ctx, tx, op, "refund_retry", access.Actor(ctx, ""), time.Now().Unix())
 	})
 	return op, err
+}
+
+// A missing or mismatched refund can alter the provider's refundable balance.
+// A general recovery acknowledgement never makes this capture safe to retry.
+func checkRefundHold(ctx context.Context, tx *sql.Tx, id string) error {
+	var held bool
+	err := tx.QueryRowContext(ctx, `SELECT EXISTS(SELECT 1 FROM store_payment_operations p
+		JOIN store_paypal_receipts r ON r.connection=p.connection AND r.refund_hold_capture=p.capture_id
+		WHERE p.order_id=? AND r.refund_hold_capture<>'' AND r.state<>'applied')`, id).Scan(&held)
+	if err == nil && held {
+		return ErrPaymentEvidence
+	}
+	return err
 }
 
 func recordRefundEvent(ctx context.Context, tx *sql.Tx, op RefundOperation, kind, actor string, at int64) error {

@@ -1,4 +1,134 @@
 {
+  "paypal.refreshRecovery": {
+    "section": "paypal",
+    "description": "Interface text: paypal.refreshRecovery",
+    "placeholders": [],
+    "values": {
+      "en": "Refresh recovery status",
+      "fr": "Actualiser l’état de la reprise",
+      "ar": "حدّث حالة الاستعادة"
+    }
+  },
+  "paypal.confirmRecoveryScope": {
+    "section": "paypal",
+    "description": "Interface text: paypal.confirmRecoveryScope",
+    "placeholders": [],
+    "values": {
+      "en": "Confirm that you checked the merchant activity reports for this recovery window.",
+      "fr": "Confirmez avoir vérifié les rapports d’activité du commerçant pour cette période.",
+      "ar": "أكّد مراجعة تقارير نشاط التاجر خلال فترة الاستعادة."
+    }
+  },
+  "paypal.recoveryCutoff": {
+    "section": "paypal",
+    "description": "Interface text: paypal.recoveryCutoff",
+    "placeholders": [
+      "date"
+    ],
+    "values": {
+      "en": "Snapshot started {date} UTC",
+      "fr": "Début de la sauvegarde {date} UTC",
+      "ar": "بدأت النسخة الاحتياطية في {date} بتوقيت UTC"
+    }
+  },
+  "paypal.recoveryTarget": {
+    "section": "paypal",
+    "description": "Interface text: paypal.recoveryTarget",
+    "placeholders": [
+      "date"
+    ],
+    "values": {
+      "en": "Review activity through {date} UTC",
+      "fr": "Vérifier l’activité jusqu’au {date} UTC",
+      "ar": "راجع النشاط حتى {date} بتوقيت UTC"
+    }
+  },
+  "paypal.recoveryUnknown": {
+    "section": "paypal",
+    "description": "Interface text: paypal.recoveryUnknown",
+    "placeholders": [],
+    "values": {
+      "en": "The backup has no recorded start time. Compare PayPal reports using the backup job’s earliest known start.",
+      "fr": "L’heure de début de la sauvegarde est inconnue. Comparez les rapports PayPal à partir du premier démarrage connu.",
+      "ar": "لا تحتوي النسخة على وقت بدء مسجّل. طابق تقارير PayPal بدءاً من أقدم وقت معروف لبدء النسخ."
+    }
+  },
+  "paypal.recoveryCounts": {
+    "section": "paypal",
+    "description": "Interface text: paypal.recoveryCounts",
+    "placeholders": [
+      "pending",
+      "uncertain",
+      "unresolved"
+    ],
+    "values": {
+      "en": "Queued {pending} · Unreviewed {unresolved} · Captures on hold {uncertain}",
+      "fr": "En file {pending} · À vérifier {unresolved} · Captures suspendues {uncertain}",
+      "ar": "في الانتظار {pending} · للمراجعة {unresolved} · تحصيلات معلّقة {uncertain}"
+    }
+  },
+  "paypal.recoveryThrough": {
+    "section": "paypal",
+    "description": "Interface text: paypal.recoveryThrough",
+    "placeholders": [
+      "date"
+    ],
+    "values": {
+      "en": "Coverage through {date} UTC",
+      "fr": "Couverture jusqu’au {date} UTC",
+      "ar": "تمت المراجعة حتى {date} بتوقيت UTC"
+    }
+  },
+  "paypal.importHistory": {
+    "section": "paypal",
+    "description": "Interface text: paypal.importHistory",
+    "placeholders": [],
+    "values": {
+      "en": "Import the next period from PayPal",
+      "fr": "Importer la période suivante depuis PayPal",
+      "ar": "استورد الفترة التالية من PayPal"
+    }
+  },
+  "paypal.manualRecovery": {
+    "section": "paypal",
+    "description": "Interface text: paypal.manualRecovery",
+    "placeholders": [],
+    "values": {
+      "en": "Record manual report reconciliation",
+      "fr": "Consigner le rapprochement manuel",
+      "ar": "سجّل المطابقة اليدوية للتقارير"
+    }
+  },
+  "paypal.reviewReceipt": {
+    "section": "paypal",
+    "description": "Interface text: paypal.reviewReceipt",
+    "placeholders": [],
+    "values": {
+      "en": "Record resolution",
+      "fr": "Consigner la résolution",
+      "ar": "سجّل نتيجة المراجعة"
+    }
+  },
+  "paypal.recoveryNote": {
+    "section": "paypal",
+    "description": "Interface text: paypal.recoveryNote",
+    "placeholders": [],
+    "values": {
+      "en": "Resolution or report reference",
+      "fr": "Résolution ou référence du rapport",
+      "ar": "نتيجة المراجعة أو مرجع التقرير"
+    }
+  },
+  "paypal.recovered": {
+    "section": "paypal",
+    "description": "Interface text: paypal.recovered",
+    "placeholders": [],
+    "values": {
+      "en": "Recovered activity",
+      "fr": "Activité récupérée",
+      "ar": "نشاط مُستعاد"
+    }
+  },
   "paypal.pay": {
     "section": "paypal",
     "description": "Interface text: paypal.pay",

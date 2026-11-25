@@ -15,6 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 func References(ctx context.Context, d *sql.DB) ([]storage.File, error) {
@@ -81,10 +82,11 @@ func Backup(ctx context.Context, d *sql.DB, files *storage.Store, dataRoot strin
 			return e
 		}
 		defer os.RemoveAll(root)
+		started := time.Now().Unix()
 		if e = db.Snapshot(ctx, d, filepath.Join(root, "blog.sqlite")); e != nil {
 			return e
 		}
-		if e = stripExtensionSecrets(ctx, root); e != nil {
+		if e = prepareSnapshot(ctx, root, started); e != nil {
 			return e
 		}
 		snapshot, e := openSnapshot(root)
@@ -171,13 +173,19 @@ func openSnapshot(root string) (*sql.DB, error) {
 	return openSnapshotMode(root, "ro")
 }
 
-func stripExtensionSecrets(ctx context.Context, root string) error {
+func prepareSnapshot(ctx context.Context, root string, started int64) error {
 	database, err := openSnapshotMode(root, "rw")
 	if err != nil {
 		return err
 	}
 	defer database.Close()
 	database.SetMaxOpenConns(1)
+	// Record a conservative cutoff in the copied database. A backup taken
+	// during review keeps the previous cutoff, including an unknown one.
+	if _, err = database.ExecContext(ctx, `UPDATE store_paypal_recovery SET snapshot_started_at=?
+		WHERE id=1 AND NOT EXISTS(SELECT 1 FROM store_checkout_settings WHERE payment_review_required=1)`, started); err != nil {
+		return err
+	}
 	// Rebuild pages as well as deleting rows, so old deleted ciphertext is
 	// removed even when the extension credentials are already empty.
 	for _, statement := range []string{"PRAGMA secure_delete=ON", "DELETE FROM plugin_secrets", "UPDATE editorial_settings SET enabled=0,credential=NULL", "VACUUM"} {
@@ -333,6 +341,21 @@ func Restore(ctx context.Context, archive, target string) error {
 			d.Close()
 			return e
 		}
+	}
+	if _, e = tx.ExecContext(ctx, `UPDATE store_paypal_recovery SET target_at=? WHERE id=1`, time.Now().Unix()); e != nil {
+		tx.Rollback()
+		d.Close()
+		return e
+	}
+	if _, e = tx.ExecContext(ctx, `DELETE FROM store_paypal_recovery_coverage`); e != nil {
+		tx.Rollback()
+		d.Close()
+		return e
+	}
+	if _, e = tx.ExecContext(ctx, `UPDATE store_paypal_receipts SET review_note='',reviewed_by='',reviewed_at=0 WHERE state='review'`); e != nil {
+		tx.Rollback()
+		d.Close()
+		return e
 	}
 	for _, slug := range disabled {
 		if _, e = tx.ExecContext(ctx, "UPDATE plugin_installs SET enabled=0,version=version+1 WHERE slug=? AND enabled=1", slug); e != nil {

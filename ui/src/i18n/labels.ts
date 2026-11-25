@@ -10,6 +10,58 @@ export type L = Partial<Record<Locale, LabelText>> & Record<'en' | 'fr' | 'ar', 
 const l = (en: LabelText, fr: LabelText, ar: LabelText): L => ({ en, fr, ar });
 
 export const DEFAULT_LABELS = {
+  'paypal.refreshRecovery': l(
+    'Refresh recovery status',
+    'Actualiser l’état de la reprise',
+    'حدّث حالة الاستعادة',
+  ),
+  'paypal.confirmRecoveryScope': l(
+    'Confirm that you checked the merchant activity reports for this recovery window.',
+    'Confirmez avoir vérifié les rapports d’activité du commerçant pour cette période.',
+    'أكّد مراجعة تقارير نشاط التاجر خلال فترة الاستعادة.',
+  ),
+  'paypal.recoveryCutoff': l(
+    'Snapshot started {date} UTC',
+    'Début de la sauvegarde {date} UTC',
+    'بدأت النسخة الاحتياطية في {date} بتوقيت UTC',
+  ),
+  'paypal.recoveryTarget': l(
+    'Review activity through {date} UTC',
+    'Vérifier l’activité jusqu’au {date} UTC',
+    'راجع النشاط حتى {date} بتوقيت UTC',
+  ),
+  'paypal.recoveryUnknown': l(
+    'The backup has no recorded start time. Compare PayPal reports using the backup job’s earliest known start.',
+    'L’heure de début de la sauvegarde est inconnue. Comparez les rapports PayPal à partir du premier démarrage connu.',
+    'لا تحتوي النسخة على وقت بدء مسجّل. طابق تقارير PayPal بدءاً من أقدم وقت معروف لبدء النسخ.',
+  ),
+  'paypal.recoveryCounts': l(
+    'Queued {pending} · Unreviewed {unresolved} · Captures on hold {uncertain}',
+    'En file {pending} · À vérifier {unresolved} · Captures suspendues {uncertain}',
+    'في الانتظار {pending} · للمراجعة {unresolved} · تحصيلات معلّقة {uncertain}',
+  ),
+  'paypal.recoveryThrough': l(
+    'Coverage through {date} UTC',
+    'Couverture jusqu’au {date} UTC',
+    'تمت المراجعة حتى {date} بتوقيت UTC',
+  ),
+  'paypal.importHistory': l(
+    'Import the next period from PayPal',
+    'Importer la période suivante depuis PayPal',
+    'استورد الفترة التالية من PayPal',
+  ),
+  'paypal.manualRecovery': l(
+    'Record manual report reconciliation',
+    'Consigner le rapprochement manuel',
+    'سجّل المطابقة اليدوية للتقارير',
+  ),
+  'paypal.reviewReceipt': l('Record resolution', 'Consigner la résolution', 'سجّل نتيجة المراجعة'),
+  'paypal.recoveryNote': l(
+    'Resolution or report reference',
+    'Résolution ou référence du rapport',
+    'نتيجة المراجعة أو مرجع التقرير',
+  ),
+  'paypal.recovered': l('Recovered activity', 'Activité récupérée', 'نشاط مُستعاد'),
   'paypal.pay': l('Pay with PayPal', 'Payer avec PayPal', 'ادفع عبر PayPal'),
   'paypal.check': l('Check payment status', 'Vérifier le paiement', 'تحقّق من حالة الدفع'),
   'paypal.retryPayment': l(

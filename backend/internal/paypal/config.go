@@ -120,7 +120,7 @@ func (s *Service) Register(r *extension.Registrar) error {
 		Label: extension.LocalizedText{"en": "PayPal", "fr": "PayPal", "ar": "PayPal"}}, func() bool { return len(s.connections) > 0 }); err != nil {
 		return err
 	}
-	return r.Job(extension.Job{Name: "reconcile", Every: 5 * time.Second, Timeout: 18 * time.Second, Run: func(ctx context.Context) error {
+	return r.Job(extension.Job{Name: "reconcile", Every: 2 * time.Second, Timeout: 18 * time.Second, Run: func(ctx context.Context) error {
 		if s.paused != nil && s.paused() {
 			return nil
 		}
