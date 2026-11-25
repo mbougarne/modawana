@@ -45,20 +45,24 @@ type Directory struct {
 // open goes through os.Root, so symlinks and traversal cannot escape the
 // plugin directory; irregular files are refused rather than followed.
 func ReadDirectory(pluginsDir, slug string) (Directory, error) {
-	var out Directory
 	if !slugPattern.MatchString(slug) {
-		return out, fmt.Errorf("%w: slug", ErrManifest)
+		return Directory{}, fmt.Errorf("%w: slug", ErrManifest)
 	}
 	root, err := os.OpenRoot(pluginsDir)
 	if err != nil {
-		return out, ErrFiles
+		return Directory{}, ErrFiles
 	}
 	defer root.Close()
-	info, err := root.Lstat(slug)
+	return readDirectory(root, slug, slug)
+}
+
+func readDirectory(root *os.Root, location, slug string) (Directory, error) {
+	var out Directory
+	info, err := root.Lstat(location)
 	if err != nil || !info.IsDir() {
 		return out, ErrFiles
 	}
-	dir, err := root.OpenRoot(slug)
+	dir, err := root.OpenRoot(location)
 	if err != nil {
 		return out, ErrFiles
 	}
@@ -79,6 +83,29 @@ func ReadDirectory(pluginsDir, slug string) (Directory, error) {
 		return Directory{}, ErrChecksum
 	}
 	return out, nil
+}
+
+// CatalogPath is relative to plugins/ and includes the exact file-set digest.
+func (d Directory) CatalogPath() string {
+	return catalogPath(d.Manifest.Slug, d.Files)
+}
+
+func catalogPath(slug string, files []File) string {
+	return path.Join(".catalog", fileSetChecksum(files), slug)
+}
+
+func approvedLocation(root *os.Root, slug string, files []File) (string, error) {
+	version := catalogPath(slug, files)
+	for _, dir := range []string{".catalog", path.Dir(version), version} {
+		info, err := root.Lstat(dir)
+		if os.IsNotExist(err) {
+			return slug, nil // Local installations and portable backups use this path.
+		}
+		if err != nil || !info.IsDir() {
+			return "", ErrFiles
+		}
+	}
+	return version, nil
 }
 
 func checksumAll(dir *os.Root) ([]File, error) {

@@ -1,0 +1,9 @@
+{
+  "api_version": 2,
+  "name": "Example narrow theme",
+  "layouts": {
+    "home": { "slots": ["header", "content", "footer"] },
+    "article": { "slots": ["header", "content", "footer"] }
+  },
+  "tokens": { "content_width": "narrow", "typeface": "system" }
+}

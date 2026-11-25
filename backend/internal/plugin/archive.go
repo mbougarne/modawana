@@ -63,10 +63,22 @@ func (a ArchiveRecord) CopyVerifiedFiles(source, destination string) ([]string, 
 		return nil, nil
 	}
 	defer root.Close()
-	if info, err := root.Lstat(path.Join("plugins", a.Slug)); err != nil || !info.IsDir() {
+	if info, err := root.Lstat("plugins"); err != nil || !info.IsDir() {
 		return nil, nil
 	}
-	directory, err := root.OpenRoot(path.Join("plugins", a.Slug))
+	plugins, err := root.OpenRoot("plugins")
+	if err != nil {
+		return nil, nil
+	}
+	defer plugins.Close()
+	location, err := approvedLocation(plugins, a.Slug, a.Files)
+	if err != nil {
+		return nil, nil
+	}
+	if info, err := plugins.Lstat(location); err != nil || !info.IsDir() {
+		return nil, nil
+	}
+	directory, err := plugins.OpenRoot(location)
 	if err != nil {
 		return nil, nil
 	}

@@ -11,11 +11,15 @@ const output = resolve(
   root,
   process.argv[2] || 'backend/internal/plugin/testdata/example/plugin.wasm',
 );
-const child = spawn('go', ['build', '-o', output, './internal/plugin/testdata/example'], {
-  cwd: resolve(root, 'backend'),
-  env: { ...process.env, GOOS: 'wasip1', GOARCH: 'wasm', CGO_ENABLED: '0' },
-  stdio: 'inherit',
-});
+const child = spawn(
+  'go',
+  ['build', '-trimpath', '-buildvcs=false', '-o', output, './internal/plugin/testdata/example'],
+  {
+    cwd: resolve(root, 'backend'),
+    env: { ...process.env, GOOS: 'wasip1', GOARCH: 'wasm', CGO_ENABLED: '0' },
+    stdio: 'inherit',
+  },
+);
 child.on('exit', (code) => {
   if (code === 0) {
     console.log('Built ' + output);

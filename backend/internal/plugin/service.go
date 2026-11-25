@@ -151,6 +151,9 @@ func (s *Service) List(ctx context.Context) ([]Status, error) {
 			status.Capabilities = approved.Capabilities
 		}
 		directory, readErr := ReadDirectory(s.Dir, record.Slug)
+		if readErr != nil {
+			directory, readErr = s.verifiedDirectory(record)
+		}
 		switch {
 		case readErr != nil:
 			status.State = "missing"
@@ -197,15 +200,15 @@ func (s *Service) List(ctx context.Context) ([]Status, error) {
 // the fresh-reauthentication recheck run inside the transaction. expected is
 // the optimistic row version, 0 for a first install.
 func (s *Service) Approve(ctx context.Context, slug string, expected int64, check func(*sql.Tx) error) (Install, error) {
-	return s.approve(ctx, slug, "", expected, check, false)
+	return s.approve(ctx, slug, "", expected, check, false, nil)
 }
 
 // ApproveCandidate binds the web approval to the reviewed directory version.
 func (s *Service) ApproveCandidate(ctx context.Context, slug, checksum string, expected int64, check func(*sql.Tx) error) (Install, error) {
-	return s.approve(ctx, slug, checksum, expected, check, true)
+	return s.approve(ctx, slug, checksum, expected, check, true, nil)
 }
 
-func (s *Service) approve(ctx context.Context, slug, checksum string, expected int64, check func(*sql.Tx) error, bindCandidate bool) (Install, error) {
+func (s *Service) approve(ctx context.Context, slug, checksum string, expected int64, check func(*sql.Tx) error, bindCandidate bool, catalog *Directory) (Install, error) {
 	s.lifecycle.Lock()
 	defer s.lifecycle.Unlock()
 	resume, err := s.pause(ctx, slug)
@@ -213,9 +216,14 @@ func (s *Service) approve(ctx context.Context, slug, checksum string, expected i
 		return Install{}, err
 	}
 	defer resume()
-	directory, err := ReadDirectory(s.Dir, slug)
-	if err != nil {
-		return Install{}, err
+	var directory Directory
+	if catalog == nil {
+		directory, err = ReadDirectory(s.Dir, slug)
+		if err != nil {
+			return Install{}, err
+		}
+	} else {
+		directory = *catalog
 	}
 	if bindCandidate && (checksum != "" || directory.Manifest.HostAPIVersion >= 2) && fileSetChecksum(directory.Files) != checksum {
 		return Install{}, db.ErrVersionConflict
@@ -275,13 +283,22 @@ func (s *Service) approve(ctx context.Context, slug, checksum string, expected i
 			return Install{}, err
 		}
 	}
+	if catalog != nil && candidate != nil {
+		// The offline caller holds the runtime lease. Validate registration
+		// before committing, then let the next serving process load the module.
+		defer candidate.compiled.Close(ctx)
+		if err = s.Host.Install(&wasmExtension{service: s, plugin: candidate}); err != nil {
+			return Install{}, err
+		}
+		defer s.Host.Uninstall(slug)
+	}
 	if err = tx.Commit(); err != nil {
-		if candidate != nil {
+		if catalog == nil && candidate != nil {
 			_ = candidate.compiled.Close(ctx)
 		}
 		return Install{}, err
 	}
-	if candidate != nil {
+	if catalog == nil && candidate != nil {
 		if err := s.activate(ctx, candidate); err != nil {
 			return Install{}, err
 		}
@@ -425,7 +442,19 @@ func (s *Service) running(slug string) bool {
 }
 
 func (s *Service) verifiedDirectory(record Install) (Directory, error) {
-	directory, err := ReadDirectory(s.Dir, record.Slug)
+	if !slugPattern.MatchString(record.Slug) {
+		return Directory{}, ErrFiles
+	}
+	root, err := os.OpenRoot(s.Dir)
+	if err != nil {
+		return Directory{}, ErrFiles
+	}
+	defer root.Close()
+	location, err := approvedLocation(root, record.Slug, record.Files)
+	if err != nil {
+		return Directory{}, err
+	}
+	directory, err := readDirectory(root, location, record.Slug)
 	if err != nil {
 		return Directory{}, err
 	}
