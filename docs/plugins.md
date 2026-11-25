@@ -57,6 +57,9 @@ refused, as are more than 256 files or 64 MiB in total.
 
 ## Owner approval flow
 
+For signed bundles, use the offline [extension catalog](self-hosted-release.md).
+The dashboard also supports checksum approval for local directories.
+
 Nothing executes before approval. From the dashboard **Plugins** page
 (`/{locale}/admin/plugins`), backed by owner-only API routes under
 `/api/v1/plugins`:

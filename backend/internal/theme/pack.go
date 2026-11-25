@@ -47,6 +47,7 @@ type manifest struct {
 type Pack struct {
 	Appearance
 	Name, Checksum string
+	APIVersion     int
 	BannerPNG      []byte
 	assets         map[string][]byte
 	Raw            []byte
@@ -56,18 +57,22 @@ func ReadPack(dataRoot, id string) (Pack, error) {
 	if !IsPack(id) {
 		return Pack{}, ErrPack
 	}
+	return readPack(dataRoot, id, PackPath(id))
+}
+
+func readPack(dataRoot, id, location string) (Pack, error) {
 	root, err := os.OpenRoot(dataRoot)
 	if err != nil {
 		return Pack{}, ErrPackFiles
 	}
 	defer root.Close()
-	for _, dir := range []string{"themes", path.Join("themes", id)} {
+	for dir := path.Dir(location); dir != "."; dir = path.Dir(dir) {
 		info, err := root.Lstat(dir)
 		if err != nil || !info.IsDir() {
 			return Pack{}, ErrPackFiles
 		}
 	}
-	file, err := root.OpenFile(PackPath(id), os.O_RDONLY|syscall.O_NOFOLLOW|syscall.O_NONBLOCK, 0)
+	file, err := root.OpenFile(location, os.O_RDONLY|syscall.O_NOFOLLOW|syscall.O_NONBLOCK, 0)
 	if err != nil {
 		return Pack{}, ErrPackFiles
 	}
@@ -80,15 +85,41 @@ func ReadPack(dataRoot, id string) (Pack, error) {
 	if err != nil || int64(len(raw)) != info.Size() {
 		return Pack{}, ErrPackFiles
 	}
-	return parsePack(id, raw)
+	return ParsePack(id, raw)
 }
 
 func ReadVerifiedPack(dataRoot, id, checksum string) (Pack, error) {
-	pack, err := ReadPack(dataRoot, id)
+	if !IsPack(id) || !packChecksum.MatchString(checksum) {
+		return Pack{}, ErrPack
+	}
+	location := CatalogPath(id, checksum)
+	root, err := os.OpenRoot(dataRoot)
+	if err != nil {
+		return Pack{}, ErrPackFiles
+	}
+	_, statErr := root.Lstat(location)
+	root.Close()
+	if os.IsNotExist(statErr) {
+		location = PackPath(id)
+	} else if statErr != nil {
+		return Pack{}, ErrPackFiles
+	}
+	pack, err := readPack(dataRoot, id, location)
 	if err == nil && pack.Checksum != checksum {
 		err = ErrPackChanged
 	}
 	return pack, err
+}
+
+func CatalogPath(id, checksum string) string {
+	return path.Join("themes", ".catalog", checksum, id, "theme.json")
+}
+
+func ParsePack(id string, raw []byte) (Pack, error) {
+	if !IsPack(id) || len(raw) > maxManifestBytes {
+		return Pack{}, ErrPack
+	}
+	return parsePack(id, raw)
 }
 
 func parsePack(id string, raw []byte) (Pack, error) {
@@ -100,7 +131,9 @@ func parsePack(id string, raw []byte) (Pack, error) {
 	sum := sha256.Sum256(raw)
 	checksum := hex.EncodeToString(sum[:])
 	if m.Version == 2 {
-		return parsePackV2(id, checksum, m, raw)
+		pack, err := parsePackV2(id, checksum, m, raw)
+		pack.APIVersion = m.Version
+		return pack, err
 	}
 	if m.Layouts != nil || m.Assets != nil || m.Tokens != nil {
 		return Pack{}, ErrPack
@@ -121,7 +154,7 @@ func parsePack(id string, raw []byte) (Pack, error) {
 		return Pack{}, err
 	}
 	appearance.Layout, appearance.CSS = layout, css
-	return Pack{Appearance: appearance, Name: m.Name, Checksum: checksum, BannerPNG: m.Banner, Raw: raw}, nil
+	return Pack{Appearance: appearance, Name: m.Name, Checksum: checksum, APIVersion: m.Version, BannerPNG: m.Banner, Raw: raw}, nil
 }
 
 func validBanner(raw []byte) bool {

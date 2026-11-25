@@ -75,6 +75,13 @@ func run() int {
 		logger.Error("configuration rejected", "reason", err.Error())
 		return 1
 	}
+	if len(os.Args) > 1 && os.Args[1] == "extension" {
+		if err := extensionCommand(cfg, os.Args[2:], os.Stdout); err != nil {
+			logger.Error("extension operation failed", "reason", err.Error())
+			return 1
+		}
+		return 0
+	}
 	command, archive, err := operationArgs(os.Args[1:])
 	if err != nil {
 		logger.Error(err.Error())

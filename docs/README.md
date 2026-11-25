@@ -6,6 +6,7 @@
 
 - [Local development](getting-started.md): install, start, set up the owner, HTTPS and troubleshooting.
 - [Deployment](deployment.md): Docker/VPS configuration, private storage, HTTPS and upgrades.
+- [Self-hosted releases and extension catalog](self-hosted-release.md): native packages, signed bundles and compatibility.
 - [Owner tools](owner-tools.md): write, organize, review, publish and build learning paths.
 - [Owner security](owner-security.md) and [passkeys](passkey-access.md): sign-in, backup factors and recovery.
 - [Import/export](api/portability.md): move content or import Notion Markdown as drafts.

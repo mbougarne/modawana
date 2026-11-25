@@ -38,7 +38,7 @@ func operationArgs(args []string) (string, string, error) {
 		}
 		return command, *file, nil
 	default:
-		return "", "", errors.New("usage: blog [bootstrap|recover|cleanup-learning|maintenance|resume|export|import|backup|restore]")
+		return "", "", errors.New("usage: blog [bootstrap|recover|cleanup-learning|maintenance|resume|export|import|backup|restore|extension]")
 	}
 }
 func operate(ctx context.Context, command, archive, root string, d *sql.DB) error {

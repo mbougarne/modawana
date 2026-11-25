@@ -437,6 +437,16 @@
       "companion": "docs/revision-storage.ar.md"
     },
     {
+      "path": "docs/self-hosted-release.ar.md",
+      "coverage": "ar",
+      "companion": "docs/self-hosted-release.md"
+    },
+    {
+      "path": "docs/self-hosted-release.md",
+      "coverage": "en",
+      "companion": "docs/self-hosted-release.ar.md"
+    },
+    {
       "path": "docs/ui-contracts.ar.md",
       "coverage": "ar",
       "companion": "docs/ui-contracts.md"

@@ -54,16 +54,30 @@ for (const [path, pkg] of Object.entries(lock.packages)) {
   await collect('npm', details.name ?? basename(path), details.version, directory, details.license);
 }
 if (!process.argv.includes('--npm-only')) {
-  const stream = execFileSync('go', ['list', '-m', '-json', 'all'], {
-    cwd: resolve(root, 'backend'),
-    encoding: 'utf8',
-  });
-  const modules = JSON.parse('[' + stream.trim().replace(/}\s*\n{/g, '},{') + ']');
-  for (const module of modules.filter((module) => !module.Main)) {
-    if (!module.Dir) {
-      throw new Error('Missing downloaded module ' + module.Path);
+  const stream = execFileSync(
+    'go',
+    [
+      'list',
+      '-deps',
+      '-f',
+      '{{with .Module}}{{if not .Main}}{{.Path}}\t{{.Version}}\t{{.Dir}}{{end}}{{end}}',
+      './cmd/blog',
+      './cmd/publisher',
+    ],
+    {
+      cwd: resolve(root, 'backend'),
+      encoding: 'utf8',
+    },
+  );
+  // Notices for the modules linked into the distributed commands. The WASI
+  // example uses the Go standard library, covered by Go-LICENSE below.
+  const modules = Array.from(new Set(stream.split('\n').filter(Boolean))).sort();
+  for (const module of modules) {
+    const [name, version, directory] = module.split('\t');
+    if (!directory) {
+      throw new Error('Missing downloaded module ' + name);
     }
-    await collect('go', module.Path, module.Version, module.Dir);
+    await collect('go', name, version, directory);
   }
   const goroot = execFileSync('go', ['env', 'GOROOT'], {
     cwd: resolve(root, 'backend'),

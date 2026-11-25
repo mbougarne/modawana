@@ -45,6 +45,14 @@ func approval(ctx context.Context, db Query, id string) (Approval, error) {
 	return out, err
 }
 
+func (s *Service) CatalogApproval(ctx context.Context, id string) (Approval, error) {
+	current, err := approval(ctx, s.DB, id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return current, nil
+	}
+	return current, err
+}
+
 func Approvals(ctx context.Context, db Query) ([]Approval, error) {
 	rows, err := db.QueryContext(ctx, "SELECT id,name,checksum,revision FROM theme_packs ORDER BY id")
 	if err != nil {
@@ -138,6 +146,9 @@ func (s *Service) List(ctx context.Context) ([]Status, error) {
 func (s *Service) status(a Approval) Status {
 	item := Status{Approval: a}
 	pack, err := ReadPack(s.DataRoot, a.ID)
+	if errors.Is(err, ErrPackFiles) && a.Revision != "" {
+		pack, err = ReadVerifiedPack(s.DataRoot, a.ID, a.Checksum)
+	}
 	switch {
 	case errors.Is(err, ErrPackFiles):
 		item.State = "missing"
@@ -161,10 +172,32 @@ func (s *Service) Approve(ctx context.Context, id, checksum, expected string, ch
 	if !packChecksum.MatchString(checksum) {
 		return Approval{}, ErrPack
 	}
-	pack, err := ReadVerifiedPack(s.DataRoot, id, checksum)
+	pack, err := ReadPack(s.DataRoot, id)
 	if err != nil {
 		return Approval{}, err
 	}
+	if pack.Checksum != checksum {
+		return Approval{}, ErrPackChanged
+	}
+	return s.approve(ctx, pack, expected, check)
+}
+
+func (s *Service) ApproveCatalog(ctx context.Context, id, checksum, expected string) (Approval, error) {
+	if !IsPack(id) || !packChecksum.MatchString(checksum) {
+		return Approval{}, ErrPack
+	}
+	pack, err := readPack(s.DataRoot, id, CatalogPath(id, checksum))
+	if err != nil {
+		return Approval{}, err
+	}
+	if pack.Checksum != checksum {
+		return Approval{}, ErrPackChanged
+	}
+	return s.approve(ctx, pack, expected, func(*sql.Tx) error { return nil })
+}
+
+func (s *Service) approve(ctx context.Context, pack Pack, expected string, check func(*sql.Tx) error) (Approval, error) {
+	id, checksum := pack.Appearance.ID, pack.Checksum
 	tx, err := s.DB.BeginTx(ctx, nil)
 	if err != nil {
 		return Approval{}, err

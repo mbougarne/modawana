@@ -52,13 +52,25 @@ jobs:
         working-directory: backend
       - run: node scripts/release/notices.mjs
       - run: node scripts/release/package.mjs acceptance
-      - run: node scripts/release/smoke-package.mjs
+      - run: node scripts/release/check-reproducible.mjs
+      - name: Build the previous server for the upgrade smoke test
+        if: github.event_name == 'pull_request'
+        env:
+          PREVIOUS_COMMIT: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git fetch --depth=1 origin "$PREVIOUS_COMMIT"
+          mkdir -p build/previous-source
+          git archive "$PREVIOUS_COMMIT" backend | tar -x -C build/previous-source
+          go -C build/previous-source/backend build -trimpath -buildvcs=false -o ../../previous-blog ./cmd/blog
+      - run: node scripts/release/smoke-package.mjs build/releases/acceptance.tar.gz ${{ github.event_name == 'pull_request' && 'build/previous-blog' || '' }}
       - run: node scripts/release/smoke-backup.mjs
       - run: node scripts/smoke-production.mjs --http-only
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: native-linux-release
-          path: build/releases/acceptance.tar.gz
+          path: |
+            build/releases/acceptance.tar.gz
+            build/releases/acceptance.tar.gz.sha256
 
   container:
     if: github.event_name != 'pull_request'
